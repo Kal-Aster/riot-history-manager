@@ -1,0 +1,62 @@
+<test>
+    <navigate href="home">to HOME</navigate>
+    <navigate href="me">to ME</navigate>
+    <navigate href="users/{ Math.round(Math.random() * 32) }">to USERS/:id</navigate>
+    <div />
+    <button onclick={ restore("home") }>Restore home</button>
+    <button onclick={ restore("profile") }>Restore profile</button>
+    <div />
+    <router>
+        <route path="" redirect="home" />
+        <route path="home">
+            <homepage need-loading />
+        </route>
+        <route path="me">
+            ME <img src="image.jpg" need-loading>
+        </route>
+        <route path="users/:id">{
+            route.location.href
+        }</route>
+    </router>
+ 
+    <script>
+        import { Router, HistoryManager } from "history-manager";
+        import lazy from "@riotjs/lazy";
+        // const Router = window.historyManager.Router;
+        window.Router = Router;
+        window.HistoryManager = HistoryManager;
+
+        Router.setContext({
+            name: "home",
+            paths: [
+                // { path: "" },
+                { path: "home" }
+            ],
+            // default: ""
+            default: "home"
+        });
+        Router.setContext({
+            name: "profile",
+            paths: [
+                { path: "me" },
+                { path: "users/:id", fallback: true }
+            ],
+            default: "me"
+        });
+
+        export default {
+            onMounted() {
+                Router.start("home").then(() => console.log("started"));
+            },
+            restore(context) {
+                return () => {
+                    Router.restoreContext(context);
+                };
+            },
+            components: {
+                // homepage: window.lazy(() => import('./homepage.riot'))
+                homepage: lazy(() => import('./homepage.riot'))
+            }
+        }
+    </script>
+</test>

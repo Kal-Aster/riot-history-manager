@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" content="text/html; charset=UTF-8; X-Content-Type-Options=nosniff">
+        <title>Category Router</title>
+    </head>
+    <body>
+        <test></test>
+        
+        <script src="../node_modules/riot/riot+compiler.min.js"></script>
+        <script src="../node_modules/history-manager/dist/umd.js"></script>
+        <script src="../dist/umd.js"></script>
+        <script src="lazy.min.js"></script>
+        <script type="riot" src="./test.riot"></script>
+
+        <script>
+            riot.compile()
+            .then(() => {
+                riot.mount("test");
+            });
+        </script>
+    </body>
+</html>

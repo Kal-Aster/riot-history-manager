@@ -1,0 +1,25 @@
+<router>
+    <slot router={ this }/>
+
+    <script>
+        import { Router } from "history-manager";
+        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./misc";
+
+        const PRIVATE_ROUTER = Symbol("private-router");
+
+        export default {
+            onBeforeMount() {
+                this[UNROUTE_METHOD] = () => {};
+                this[ROUTER] = Router.create();
+            },
+            onMounted() {
+                this[ROUTER].route("(.*)", () => {
+                    this[LAST_ROUTED] = null;
+                    this[UNROUTE_METHOD]();
+                    this[UNROUTE_METHOD] = () => {};
+                });
+            },
+            [LAST_ROUTED]: null
+        }
+    </script>
+</router>
