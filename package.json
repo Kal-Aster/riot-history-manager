@@ -1,6 +1,6 @@
 {
   "name": "riot-history-manager",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "",
   "dependencies": {
     "history-manager": "^1.1.3",
@@ -24,5 +24,6 @@
     "compile:watch": "node ./compile.js -w"
   },
   "author": "Giuliano Collacchioni",
-  "license": "MIT"
+  "license": "MIT",
+  "main": "dist/cjs/index.js"
 }
