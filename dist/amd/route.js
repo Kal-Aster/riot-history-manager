@@ -46,6 +46,7 @@ define(['riot', './misc-32c8078b'], function (riot, misc) { 'use strict';
                 location, keymap, redirection
             } });
             misc.dispatchEventOver(this.root.children, routeEvent, null, []);
+            currentMount.update();
         };
         
         const needLoading = [];

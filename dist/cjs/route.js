@@ -49,6 +49,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
             location, keymap, redirection
         } });
         misc.dispatchEventOver(this.root.children, routeEvent, null, []);
+        currentMount.update();
     };
     
     const needLoading = [];

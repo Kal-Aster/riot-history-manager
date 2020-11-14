@@ -5211,6 +5211,7 @@
 	            location, keymap, redirection
 	        } });
 	        dispatchEventOver(this.root.children, routeEvent, null, []);
+	        currentMount.update();
 	    };
 	    
 	    const needLoading = [];

@@ -5291,6 +5291,7 @@ define(['require'], function (require) { 'use strict';
               location, keymap, redirection
           } });
           dispatchEventOver(this.root.children, routeEvent, null, []);
+          currentMount.update();
       };
       
       const needLoading = [];

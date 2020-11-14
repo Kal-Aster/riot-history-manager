@@ -266,7 +266,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr14="expr14"></slot>', [{
+        return template('<slot expr12="expr12"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -279,8 +279,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr14',
-          'selector': '[expr14]'
+          'redundantAttribute': 'expr12',
+          'selector': '[expr12]'
         }]);
       },
 
@@ -333,6 +333,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
                 location, keymap, redirection
             } });
             dispatchEventOver(this.root.children, routeEvent, null, []);
+            currentMount.update();
         };
         
         const needLoading = [];
@@ -460,10 +461,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
+          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
           [{
-            'redundantAttribute': 'expr12',
-            'selector': '[expr12]',
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -484,8 +485,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]'
+            'redundantAttribute': 'expr14',
+            'selector': '[expr14]'
           }]
         );
       },
