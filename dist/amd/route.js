@@ -1,4 +1,4 @@
-define(['riot', './misc-221747b5'], function (riot, misc) { 'use strict';
+define(['riot', './misc-32c8078b'], function (riot, misc) { 'use strict';
 
     function onroute(routeComponent) { return (function (location, keymap, redirection) {
         const route = { location, keymap, redirection };
@@ -24,17 +24,23 @@ define(['riot', './misc-221747b5'], function (riot, misc) { 'use strict';
                 misc.endLoadingBar(claimer);
             }
             router[misc.UNROUTE_METHOD]();
+            const currentElChildren = [];
             router[misc.UNROUTE_METHOD] = () => {
                 const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
                     location, keymap, redirection
                 } });
                 misc.dispatchEventOver(this.root.children, unrouteEvent, null, []);
-                this.root.innerHTML = "";
+                currentElChildren.forEach(child => {
+                    this.root.removeChild(child);
+                    currentEl.appendChild(child);
+                });
+                currentMount.unmount();
             };
             while (currentEl.childNodes.length) {
                 const node = currentEl.childNodes[0];
                 currentEl.removeChild(node);
                 this.root.appendChild(node);
+                currentElChildren.push(node);
             }
             const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
                 location, keymap, redirection

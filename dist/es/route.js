@@ -1,5 +1,5 @@
 import { __ } from 'riot';
-import { R as ROUTER, c as claimLoadingBar, L as LAST_ROUTED, d as dispatchEventOver, h as hasLoadingBar, e as endLoadingBar, U as UNROUTE_METHOD } from './misc-5fdab1b7.js';
+import { R as ROUTER, c as claimLoadingBar, L as LAST_ROUTED, d as dispatchEventOver, U as UNROUTE_METHOD, h as hasLoadingBar, e as endLoadingBar } from './misc-6bdf283c.js';
 
 function onroute(routeComponent) { return (function (location, keymap, redirection) {
     const route = { location, keymap, redirection };
@@ -25,17 +25,23 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
             endLoadingBar(claimer);
         }
         router[UNROUTE_METHOD]();
+        const currentElChildren = [];
         router[UNROUTE_METHOD] = () => {
             const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
                 location, keymap, redirection
             } });
             dispatchEventOver(this.root.children, unrouteEvent, null, []);
-            this.root.innerHTML = "";
+            currentElChildren.forEach(child => {
+                this.root.removeChild(child);
+                currentEl.appendChild(child);
+            });
+            currentMount.unmount();
         };
         while (currentEl.childNodes.length) {
             const node = currentEl.childNodes[0];
             currentEl.removeChild(node);
             this.root.appendChild(node);
+            currentElChildren.push(node);
         }
         const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
             location, keymap, redirection

@@ -226,7 +226,6 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         lastTime = Date.now();
         step();
     }
-    var lastClaim;
     function claimLoadingBar(claimer) {
         if (claimer == null) {
             return;
@@ -234,7 +233,6 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         actualClaimedBy = claimer;
         loadingProgress = 5;
         loadingDone = false;
-        lastClaim = Date.now();
         startLoading();
     }
     function hasLoadingBar(claimer) {
@@ -244,7 +242,6 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         if (claimer == null || actualClaimedBy !== claimer) {
             return;
         }
-        console.log("claim end at", Date.now() - lastClaim + "ms");
         loadingDone = true;
     }
 
@@ -269,7 +266,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr12="expr12"></slot>', [{
+        return template('<slot expr14="expr14"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -282,8 +279,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr12',
-          'selector': '[expr12]'
+          'redundantAttribute': 'expr14',
+          'selector': '[expr14]'
         }]);
       },
 
@@ -314,17 +311,23 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
                 endLoadingBar(claimer);
             }
             router[UNROUTE_METHOD]();
+            const currentElChildren = [];
             router[UNROUTE_METHOD] = () => {
                 const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
                     location, keymap, redirection
                 } });
                 dispatchEventOver(this.root.children, unrouteEvent, null, []);
-                this.root.innerHTML = "";
+                currentElChildren.forEach(child => {
+                    this.root.removeChild(child);
+                    currentEl.appendChild(child);
+                });
+                currentMount.unmount();
             };
             while (currentEl.childNodes.length) {
                 const node = currentEl.childNodes[0];
                 currentEl.removeChild(node);
                 this.root.appendChild(node);
+                currentElChildren.push(node);
             }
             const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
                 location, keymap, redirection
@@ -457,10 +460,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
+          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
           [{
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]',
+            'redundantAttribute': 'expr12',
+            'selector': '[expr12]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -481,8 +484,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr14',
-            'selector': '[expr14]'
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]'
           }]
         );
       },

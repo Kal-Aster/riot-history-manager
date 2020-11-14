@@ -230,7 +230,6 @@
         lastTime = Date.now();
         step();
     }
-    var lastClaim;
     function claimLoadingBar(claimer) {
         if (claimer == null) {
             return;
@@ -238,7 +237,6 @@
         actualClaimedBy = claimer;
         loadingProgress = 5;
         loadingDone = false;
-        lastClaim = Date.now();
         startLoading();
     }
     function hasLoadingBar(claimer) {
@@ -248,7 +246,6 @@
         if (claimer == null || actualClaimedBy !== claimer) {
             return;
         }
-        console.log("claim end at", Date.now() - lastClaim + "ms");
         loadingDone = true;
     }
 
@@ -273,7 +270,7 @@
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr15="expr15"></slot>', [{
+        return template('<slot expr17="expr17"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -286,8 +283,8 @@
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr15',
-          'selector': '[expr15]'
+          'redundantAttribute': 'expr17',
+          'selector': '[expr17]'
         }]);
       },
 
@@ -318,17 +315,23 @@
                 endLoadingBar(claimer);
             }
             router[UNROUTE_METHOD]();
+            const currentElChildren = [];
             router[UNROUTE_METHOD] = () => {
                 const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
                     location, keymap, redirection
                 } });
                 dispatchEventOver(this.root.children, unrouteEvent, null, []);
-                this.root.innerHTML = "";
+                currentElChildren.forEach(child => {
+                    this.root.removeChild(child);
+                    currentEl.appendChild(child);
+                });
+                currentMount.unmount();
             };
             while (currentEl.childNodes.length) {
                 const node = currentEl.childNodes[0];
                 currentEl.removeChild(node);
                 this.root.appendChild(node);
+                currentElChildren.push(node);
             }
             const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
                 location, keymap, redirection
@@ -461,10 +464,10 @@
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr16="expr16" ref="-navigate-a"><slot expr17="expr17"></slot></a>',
+          '<a expr15="expr15" ref="-navigate-a"><slot expr16="expr16"></slot></a>',
           [{
-            'redundantAttribute': 'expr16',
-            'selector': '[expr16]',
+            'redundantAttribute': 'expr15',
+            'selector': '[expr15]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -485,8 +488,8 @@
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr17',
-            'selector': '[expr17]'
+            'redundantAttribute': 'expr16',
+            'selector': '[expr16]'
           }]
         );
       },

@@ -5184,7 +5184,6 @@ define(['require'], function (require) { 'use strict';
       lastTime = Date.now();
       step();
   }
-  var lastClaim;
   function claimLoadingBar(claimer) {
       if (claimer == null) {
           return;
@@ -5192,7 +5191,6 @@ define(['require'], function (require) { 'use strict';
       actualClaimedBy = claimer;
       loadingProgress = 5;
       loadingDone = false;
-      lastClaim = Date.now();
       startLoading();
   }
   function hasLoadingBar(claimer) {
@@ -5202,7 +5200,6 @@ define(['require'], function (require) { 'use strict';
       if (claimer == null || actualClaimedBy !== claimer) {
           return;
       }
-      console.log("claim end at", Date.now() - lastClaim + "ms");
       loadingDone = true;
   }
 
@@ -5272,17 +5269,23 @@ define(['require'], function (require) { 'use strict';
               endLoadingBar(claimer);
           }
           router[UNROUTE_METHOD]();
+          const currentElChildren = [];
           router[UNROUTE_METHOD] = () => {
               const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
                   location, keymap, redirection
               } });
               dispatchEventOver(this.root.children, unrouteEvent, null, []);
-              this.root.innerHTML = "";
+              currentElChildren.forEach(child => {
+                  this.root.removeChild(child);
+                  currentEl.appendChild(child);
+              });
+              currentMount.unmount();
           };
           while (currentEl.childNodes.length) {
               const node = currentEl.childNodes[0];
               currentEl.removeChild(node);
               this.root.appendChild(node);
+              currentElChildren.push(node);
           }
           const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
               location, keymap, redirection
@@ -5470,10 +5473,7 @@ define(['require'], function (require) { 'use strict';
       mount(el, parentScope) {
         this.el = el;
         this.isMounted = true;
-        const mount = () => {
-          this.mountLazyComponent(parentScope);
-          this.el.dispatchEvent(new Event("load"));
-        };
+        const mount = () => this.mountLazyComponent(parentScope);
 
         if (cachedComponent) {
           mount();
@@ -5558,7 +5558,7 @@ define(['require'], function (require) { 'use strict';
 
       components: {
           // homepage: window.lazy(() => import('./homepage.riot'))
-          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-202d6247'], resolve, reject) }))
+          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-e1fc7c1a'], resolve, reject) }))
       }
     },
 

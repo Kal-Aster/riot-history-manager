@@ -2,7 +2,7 @@
 
 var historyManager = require('history-manager');
 require('riot');
-var misc = require('./misc-0f4d28db.js');
+var misc = require('./misc-bb6a22fa.js');
 
 var RouterComponent = {
   'css': null,

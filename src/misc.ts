@@ -318,6 +318,6 @@ export function endLoadingBar(claimer: any): void {
     if (claimer == null || actualClaimedBy !== claimer) {
         return;
     }
-    console.log("claim end at", Date.now() - lastClaim + "ms");
+    // console.log("claim end at", Date.now() - lastClaim + "ms");
     loadingDone = true;
 }

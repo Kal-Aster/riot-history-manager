@@ -246,7 +246,6 @@ function startLoading() {
     lastTime = Date.now();
     step();
 }
-var lastClaim;
 function claimLoadingBar(claimer) {
     if (claimer == null) {
         return;
@@ -254,7 +253,6 @@ function claimLoadingBar(claimer) {
     actualClaimedBy = claimer;
     loadingProgress = 5;
     loadingDone = false;
-    lastClaim = Date.now();
     startLoading();
 }
 function hasLoadingBar(claimer) {
@@ -264,7 +262,6 @@ function endLoadingBar(claimer) {
     if (claimer == null || actualClaimedBy !== claimer) {
         return;
     }
-    console.log("claim end at", Date.now() - lastClaim + "ms");
     loadingDone = true;
 }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 var riot = require('riot');
-var misc = require('./misc-0f4d28db.js');
+var misc = require('./misc-bb6a22fa.js');
 
 function onroute(routeComponent) { return (function (location, keymap, redirection) {
     const route = { location, keymap, redirection };
@@ -27,17 +27,23 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
             misc.endLoadingBar(claimer);
         }
         router[misc.UNROUTE_METHOD]();
+        const currentElChildren = [];
         router[misc.UNROUTE_METHOD] = () => {
             const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
                 location, keymap, redirection
             } });
             misc.dispatchEventOver(this.root.children, unrouteEvent, null, []);
-            this.root.innerHTML = "";
+            currentElChildren.forEach(child => {
+                this.root.removeChild(child);
+                currentEl.appendChild(child);
+            });
+            currentMount.unmount();
         };
         while (currentEl.childNodes.length) {
             const node = currentEl.childNodes[0];
             currentEl.removeChild(node);
             this.root.appendChild(node);
+            currentElChildren.push(node);
         }
         const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
             location, keymap, redirection

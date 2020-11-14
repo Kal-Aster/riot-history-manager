@@ -226,7 +226,6 @@ define(['exports', 'riot'], function (exports, riot) { 'use strict';
         lastTime = Date.now();
         step();
     }
-    var lastClaim;
     function claimLoadingBar(claimer) {
         if (claimer == null) {
             return;
@@ -234,7 +233,6 @@ define(['exports', 'riot'], function (exports, riot) { 'use strict';
         actualClaimedBy = claimer;
         loadingProgress = 5;
         loadingDone = false;
-        lastClaim = Date.now();
         startLoading();
     }
     function hasLoadingBar(claimer) {
@@ -244,7 +242,6 @@ define(['exports', 'riot'], function (exports, riot) { 'use strict';
         if (claimer == null || actualClaimedBy !== claimer) {
             return;
         }
-        console.log("claim end at", Date.now() - lastClaim + "ms");
         loadingDone = true;
     }
 

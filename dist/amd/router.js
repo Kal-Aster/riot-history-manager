@@ -1,4 +1,4 @@
-define(['history-manager', 'riot', './misc-221747b5'], function (historyManager, riot, misc) { 'use strict';
+define(['history-manager', 'riot', './misc-32c8078b'], function (historyManager, riot, misc) { 'use strict';
 
     var RouterComponent = {
       'css': null,
