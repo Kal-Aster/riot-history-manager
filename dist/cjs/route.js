@@ -25,11 +25,12 @@ function onloadingcomplete(routeComponent, currentMount, route, router, claimer)
             {...routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
             routeComponent[riot.__.globals.PARENT_KEY_SYMBOL]
         );
-        // routeComponent.root.removeChild(currentEl);
-        currentEl.style.display = "none";
+        routeComponent.root.removeChild(currentEl);
+        // if want to keep some route for faster loading, just `display: none` the element
+        // currentEl.style.display = "none";
         router[misc.UNROUTE_METHOD] = () => {};
     };
-    currentEl.style.display = "inline-block";
+    currentEl.style.display = "block";
     // while (currentEl.childNodes.length) {
     //     const node = currentEl.childNodes[0];
     //     currentEl.removeChild(node);

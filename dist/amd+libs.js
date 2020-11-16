@@ -5141,7 +5141,7 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr11="expr11"></slot>', [{
+	    return template('<slot expr9="expr9"></slot>', [{
 	      'type': bindingTypes.SLOT,
 
 	      'attributes': [{
@@ -5154,8 +5154,8 @@ define(function () { 'use strict';
 	      }],
 
 	      'name': 'default',
-	      'redundantAttribute': 'expr11',
-	      'selector': '[expr11]'
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]'
 	    }]);
 	  },
 
@@ -5184,11 +5184,12 @@ define(function () { 'use strict';
 	            {...routeComponent[__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
 	            routeComponent[__.globals.PARENT_KEY_SYMBOL]
 	        );
-	        // routeComponent.root.removeChild(currentEl);
-	        currentEl.style.display = "none";
+	        routeComponent.root.removeChild(currentEl);
+	        // if want to keep some route for faster loading, just `display: none` the element
+	        // currentEl.style.display = "none";
 	        router[UNROUTE_METHOD] = () => {};
 	    };
-	    currentEl.style.display = "inline-block";
+	    currentEl.style.display = "block";
 	    // while (currentEl.childNodes.length) {
 	    //     const node = currentEl.childNodes[0];
 	    //     currentEl.removeChild(node);
@@ -5350,32 +5351,35 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]',
+	    return template(
+	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
+	      [{
+	        'redundantAttribute': 'expr10',
+	        'selector': '[expr10]',
 
-	      'expressions': [{
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'href',
+	        'expressions': [{
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'href',
 
-	        'evaluate': function(scope) {
-	          return scope.href();
-	        }
+	          'evaluate': function(scope) {
+	            return scope.href();
+	          }
+	        }, {
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'style',
+
+	          'evaluate': function(scope) {
+	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	          }
+	        }]
 	      }, {
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'style',
-
-	        'evaluate': function(scope) {
-	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	        }
+	        'type': bindingTypes.SLOT,
+	        'attributes': [],
+	        'name': 'default',
+	        'redundantAttribute': 'expr11',
+	        'selector': '[expr11]'
 	      }]
-	    }, {
-	      'type': bindingTypes.SLOT,
-	      'attributes': [],
-	      'name': 'default',
-	      'redundantAttribute': 'expr10',
-	      'selector': '[expr10]'
-	    }]);
+	    );
 	  },
 
 	  'name': 'navigate'
