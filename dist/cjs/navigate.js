@@ -18,13 +18,10 @@ var NavigateComponent = {
         });
         
         this.root.firstElementChild.addEventListener("click", event => {
-            // console.log(event);
             event.preventDefault();
             let href = this.href(false);
             if (href != null) {
-                // console.log("got href:", this.href(false), this.props.href);
                 historyManager.Router.go(href, { replace: this.replace() });
-                // event.stopPropagation();
             } else {
                 let context = this.context();
                 if (context) {
@@ -52,9 +49,9 @@ var NavigateComponent = {
         }
         if (this._href == null) {
             this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
-            // console.log("got href", this._href, "from", this.props.href, "and", router.location.href, this.root);
+            // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
         }
-        return this._href; // (toA ? router.base : "") + this._href;
+        return this._href; // (toA ? Router.base : "") + this._href;
     },
 
     context() {

@@ -37,7 +37,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
                 this.root.removeChild(child);
                 currentEl.appendChild(child);
             });
-            currentMount.unmount();
+            currentMount.unmount({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
         };
         while (currentEl.childNodes.length) {
             const node = currentEl.childNodes[0];
@@ -49,7 +49,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
             location, keymap, redirection
         } });
         misc.dispatchEventOver(this.root.children, routeEvent, null, []);
-        currentMount.update();
+        currentMount.update({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
     };
     
     const needLoading = [];

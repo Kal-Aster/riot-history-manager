@@ -34,7 +34,7 @@ define(['riot', './misc-32c8078b'], function (riot, misc) { 'use strict';
                     this.root.removeChild(child);
                     currentEl.appendChild(child);
                 });
-                currentMount.unmount();
+                currentMount.unmount({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
             };
             while (currentEl.childNodes.length) {
                 const node = currentEl.childNodes[0];
@@ -46,7 +46,7 @@ define(['riot', './misc-32c8078b'], function (riot, misc) { 'use strict';
                 location, keymap, redirection
             } });
             misc.dispatchEventOver(this.root.children, routeEvent, null, []);
-            currentMount.update();
+            currentMount.update({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
         };
         
         const needLoading = [];

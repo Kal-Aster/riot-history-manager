@@ -5279,7 +5279,7 @@ define(['require'], function (require) { 'use strict';
                   this.root.removeChild(child);
                   currentEl.appendChild(child);
               });
-              currentMount.unmount();
+              currentMount.unmount({ ...this[__.globals.PARENT_KEY_SYMBOL], route }, this[__.globals.PARENT_KEY_SYMBOL]);
           };
           while (currentEl.childNodes.length) {
               const node = currentEl.childNodes[0];
@@ -5291,7 +5291,7 @@ define(['require'], function (require) { 'use strict';
               location, keymap, redirection
           } });
           dispatchEventOver(this.root.children, routeEvent, null, []);
-          currentMount.update();
+          currentMount.update({ ...this[__.globals.PARENT_KEY_SYMBOL], route }, this[__.globals.PARENT_KEY_SYMBOL]);
       };
       
       const needLoading = [];
@@ -5370,13 +5370,10 @@ define(['require'], function (require) { 'use strict';
           });
           
           this.root.firstElementChild.addEventListener("click", event => {
-              // console.log(event);
               event.preventDefault();
               let href = this.href(false);
               if (href != null) {
-                  // console.log("got href:", this.href(false), this.props.href);
                   cjs.Router.go(href, { replace: this.replace() });
-                  // event.stopPropagation();
               } else {
                   let context = this.context();
                   if (context) {
@@ -5404,9 +5401,9 @@ define(['require'], function (require) { 'use strict';
           }
           if (this._href == null) {
               this._href = cjs.Router.getLocation().hrefIf(this.props.href);
-              // console.log("got href", this._href, "from", this.props.href, "and", router.location.href, this.root);
+              // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
           }
-          return this._href; // (toA ? router.base : "") + this._href;
+          return this._href; // (toA ? Router.base : "") + this._href;
       },
 
       context() {
@@ -5484,6 +5481,7 @@ define(['require'], function (require) { 'use strict';
           load().then(data => {
             cache.set(LazyComponent, data.default || data);
             mount();
+            this.el.dispatchEvent(new Event('load'));
           });
         }
       },
@@ -5521,18 +5519,16 @@ define(['require'], function (require) { 'use strict';
     }
   }
 
-  // const Router = window.historyManager.Router;
   window.Router = cjs.Router;
   window.HistoryManager = cjs.HistoryManager;
 
   cjs.Router.setContext({
       name: "home",
       paths: [
-          // { path: "" },
+          { path: "" },
           { path: "home" }
       ],
-      // default: ""
-      default: "home"
+      default: ""
   });
   cjs.Router.setContext({
       name: "profile",
@@ -5558,7 +5554,6 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          // homepage: window.lazy(() => import('./homepage.riot'))
           homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-e1fc7c1a'], resolve, reject) }))
       }
     },

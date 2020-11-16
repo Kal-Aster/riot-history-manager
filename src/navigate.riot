@@ -14,7 +14,7 @@
     </style>
 
     <script>
-        import { Router as router } from "history-manager";
+        import { Router } from "history-manager";
 
         export default {
             onMounted() {
@@ -29,17 +29,14 @@
                 });
                 
                 this.root.firstElementChild.addEventListener("click", event => {
-                    // console.log(event);
                     event.preventDefault();
                     let href = this.href(false);
                     if (href != null) {
-                        // console.log("got href:", this.href(false), this.props.href);
-                        router.go(href, { replace: this.replace() });
-                        // event.stopPropagation();
+                        Router.go(href, { replace: this.replace() });
                     } else {
                         let context = this.context();
                         if (context) {
-                            router.restoreContext(context);
+                            Router.restoreContext(context);
                         }
                     }
                     return false;
@@ -59,10 +56,10 @@
                     return null;
                 }
                 if (this._href == null) {
-                    this._href = router.getLocation().hrefIf(this.props.href);
-                    // console.log("got href", this._href, "from", this.props.href, "and", router.location.href, this.root);
+                    this._href = Router.getLocation().hrefIf(this.props.href);
+                    // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
                 }
-                return this._href; // (toA ? router.base : "") + this._href;
+                return this._href; // (toA ? Router.base : "") + this._href;
             },
             context() {
                 if (typeof this.props.context !== "string") {

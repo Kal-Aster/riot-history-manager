@@ -22,18 +22,16 @@
     <script>
         import { Router, HistoryManager } from "history-manager";
         import lazy from "@riotjs/lazy";
-        // const Router = window.historyManager.Router;
         window.Router = Router;
         window.HistoryManager = HistoryManager;
 
         Router.setContext({
             name: "home",
             paths: [
-                // { path: "" },
+                { path: "" },
                 { path: "home" }
             ],
-            // default: ""
-            default: "home"
+            default: ""
         });
         Router.setContext({
             name: "profile",
@@ -54,7 +52,6 @@
                 };
             },
             components: {
-                // homepage: window.lazy(() => import('./homepage.riot'))
                 homepage: lazy(() => import('./homepage.riot'))
             }
         }

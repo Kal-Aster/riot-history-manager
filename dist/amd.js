@@ -266,7 +266,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr12="expr12"></slot>', [{
+        return template('<slot expr14="expr14"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -279,8 +279,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr12',
-          'selector': '[expr12]'
+          'redundantAttribute': 'expr14',
+          'selector': '[expr14]'
         }]);
       },
 
@@ -321,7 +321,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
                     this.root.removeChild(child);
                     currentEl.appendChild(child);
                 });
-                currentMount.unmount();
+                currentMount.unmount({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
             };
             while (currentEl.childNodes.length) {
                 const node = currentEl.childNodes[0];
@@ -333,7 +333,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
                 location, keymap, redirection
             } });
             dispatchEventOver(this.root.children, routeEvent, null, []);
-            currentMount.update();
+            currentMount.update({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
         };
         
         const needLoading = [];
@@ -412,13 +412,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             });
             
             this.root.firstElementChild.addEventListener("click", event => {
-                // console.log(event);
                 event.preventDefault();
                 let href = this.href(false);
                 if (href != null) {
-                    // console.log("got href:", this.href(false), this.props.href);
                     historyManager.Router.go(href, { replace: this.replace() });
-                    // event.stopPropagation();
                 } else {
                     let context = this.context();
                     if (context) {
@@ -446,9 +443,9 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             }
             if (this._href == null) {
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
-                // console.log("got href", this._href, "from", this.props.href, "and", router.location.href, this.root);
+                // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
             }
-            return this._href; // (toA ? router.base : "") + this._href;
+            return this._href; // (toA ? Router.base : "") + this._href;
         },
 
         context() {
@@ -461,10 +458,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
+          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
           [{
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]',
+            'redundantAttribute': 'expr12',
+            'selector': '[expr12]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -485,8 +482,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr14',
-            'selector': '[expr14]'
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]'
           }]
         );
       },
