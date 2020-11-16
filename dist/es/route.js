@@ -300,10 +300,15 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     }
     if (needLoading.length > 0) {
         let loaded = 0;
+        const onrequestvisibility = () => {
+            currentEl.style.display = "block";
+        };
         needLoading.forEach(el => {
             loaded++;
             const onload = el => {
                 const fn = () => {
+                    currentEl.style.display = "none";
+                    el.removeEventListener("requestvisibility", onrequestvisibility);
                     el.removeEventListener("load", fn);
                     Array.prototype.forEach.call(
                         currentEl.querySelectorAll("[need-loading]:not([need-loading='false'])"),
@@ -312,6 +317,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
                             needLoading.push(el);
                             loaded++;
                             el.addEventListener("load", onload(el));
+                            el.addEventListener("requestvisibility", onrequestvisibility);
                         }
                     );
                     if (--loaded <= 0) {
@@ -320,6 +326,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
                 };
                 return fn;
             };
+            el.addEventListener("requestvisibility", onrequestvisibility);
             el.addEventListener("load", onload(el));
         });
     } else {

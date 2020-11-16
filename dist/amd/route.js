@@ -299,10 +299,15 @@ define(['riot', './constants-3a92086f'], function (riot, constants) { 'use stric
         }
         if (needLoading.length > 0) {
             let loaded = 0;
+            const onrequestvisibility = () => {
+                currentEl.style.display = "block";
+            };
             needLoading.forEach(el => {
                 loaded++;
                 const onload = el => {
                     const fn = () => {
+                        currentEl.style.display = "none";
+                        el.removeEventListener("requestvisibility", onrequestvisibility);
                         el.removeEventListener("load", fn);
                         Array.prototype.forEach.call(
                             currentEl.querySelectorAll("[need-loading]:not([need-loading='false'])"),
@@ -311,6 +316,7 @@ define(['riot', './constants-3a92086f'], function (riot, constants) { 'use stric
                                 needLoading.push(el);
                                 loaded++;
                                 el.addEventListener("load", onload(el));
+                                el.addEventListener("requestvisibility", onrequestvisibility);
                             }
                         );
                         if (--loaded <= 0) {
@@ -319,6 +325,7 @@ define(['riot', './constants-3a92086f'], function (riot, constants) { 'use stric
                     };
                     return fn;
                 };
+                el.addEventListener("requestvisibility", onrequestvisibility);
                 el.addEventListener("load", onload(el));
             });
         } else {

@@ -3,7 +3,13 @@ All notable changes to this project will be documented in this file.
 
 ## [any] - Unreleased
 ### Add
+- "requestvisibility" documentation
 ### Change
+
+## [1.3.4] - 2020-11-16
+### Added
+- "requestvisibility" event
+### Changed
 
 ## [1.3.1] - 2020-11-16
 ### Added

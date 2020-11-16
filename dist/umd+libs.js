@@ -2633,7 +2633,7 @@
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr20="expr20"></slot>', [{
+	    return template('<slot expr18="expr18"></slot>', [{
 	      'type': bindingTypes.SLOT,
 
 	      'attributes': [{
@@ -2646,8 +2646,8 @@
 	      }],
 
 	      'name': 'default',
-	      'redundantAttribute': 'expr20',
-	      'selector': '[expr20]'
+	      'redundantAttribute': 'expr18',
+	      'selector': '[expr18]'
 	    }]);
 	  },
 
@@ -5223,10 +5223,15 @@
 	    }
 	    if (needLoading.length > 0) {
 	        let loaded = 0;
+	        const onrequestvisibility = () => {
+	            currentEl.style.display = "block";
+	        };
 	        needLoading.forEach(el => {
 	            loaded++;
 	            const onload = el => {
 	                const fn = () => {
+	                    currentEl.style.display = "none";
+	                    el.removeEventListener("requestvisibility", onrequestvisibility);
 	                    el.removeEventListener("load", fn);
 	                    Array.prototype.forEach.call(
 	                        currentEl.querySelectorAll("[need-loading]:not([need-loading='false'])"),
@@ -5235,6 +5240,7 @@
 	                            needLoading.push(el);
 	                            loaded++;
 	                            el.addEventListener("load", onload(el));
+	                            el.addEventListener("requestvisibility", onrequestvisibility);
 	                        }
 	                    );
 	                    if (--loaded <= 0) {
@@ -5243,6 +5249,7 @@
 	                };
 	                return fn;
 	            };
+	            el.addEventListener("requestvisibility", onrequestvisibility);
 	            el.addEventListener("load", onload(el));
 	        });
 	    } else {
@@ -5346,10 +5353,10 @@
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
 	    return template(
-	      '<a expr18="expr18" ref="-navigate-a"><slot expr19="expr19"></slot></a>',
+	      '<a expr19="expr19" ref="-navigate-a"><slot expr20="expr20"></slot></a>',
 	      [{
-	        'redundantAttribute': 'expr18',
-	        'selector': '[expr18]',
+	        'redundantAttribute': 'expr19',
+	        'selector': '[expr19]',
 
 	        'expressions': [{
 	          'type': expressionTypes.ATTRIBUTE,
@@ -5370,8 +5377,8 @@
 	        'type': bindingTypes.SLOT,
 	        'attributes': [],
 	        'name': 'default',
-	        'redundantAttribute': 'expr19',
-	        'selector': '[expr19]'
+	        'redundantAttribute': 'expr20',
+	        'selector': '[expr20]'
 	      }]
 	    );
 	  },
