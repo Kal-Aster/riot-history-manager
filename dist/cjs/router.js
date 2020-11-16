@@ -1,31 +1,30 @@
 'use strict';
 
 var historyManager = require('history-manager');
-require('riot');
-var misc = require('./misc-bb6a22fa.js');
+var constants = require('./constants-85f206eb.js');
 
 var RouterComponent = {
   'css': null,
 
   'exports': {
     onBeforeMount() {
-        this[misc.UNROUTE_METHOD] = () => {};
-        this[misc.ROUTER] = historyManager.Router.create();
+        this[constants.UNROUTE_METHOD] = () => {};
+        this[constants.ROUTER] = historyManager.Router.create();
     },
 
     onMounted() {
-        this[misc.ROUTER].route("(.*)", () => {
-            this[misc.LAST_ROUTED] = null;
-            this[misc.UNROUTE_METHOD]();
-            this[misc.UNROUTE_METHOD] = () => {};
+        this[constants.ROUTER].route("(.*)", () => {
+            this[constants.LAST_ROUTED] = null;
+            this[constants.UNROUTE_METHOD]();
+            this[constants.UNROUTE_METHOD] = () => {};
         });
     },
 
-    [misc.LAST_ROUTED]: null
+    [constants.LAST_ROUTED]: null
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<slot expr3="expr3"></slot>', [{
+    return template('<slot expr5="expr5"></slot>', [{
       'type': bindingTypes.SLOT,
 
       'attributes': [{
@@ -38,8 +37,8 @@ var RouterComponent = {
       }],
 
       'name': 'default',
-      'redundantAttribute': 'expr3',
-      'selector': '[expr3]'
+      'redundantAttribute': 'expr5',
+      'selector': '[expr5]'
     }]);
   },
 

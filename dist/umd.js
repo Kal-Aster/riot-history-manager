@@ -4,10 +4,123 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.historyManager, global.riot));
 }(this, (function (historyManager, riot) { 'use strict';
 
-    var DOM_COMPONENT_INSTANCE_PROPERTY = riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY;
     var ROUTER = Symbol("router");
     var UNROUTE_METHOD = Symbol("unroute");
     var LAST_ROUTED = Symbol("last-routed");
+
+    var RouterComponent = {
+      'css': null,
+
+      'exports': {
+        onBeforeMount() {
+            this[UNROUTE_METHOD] = () => {};
+            this[ROUTER] = historyManager.Router.create();
+        },
+
+        onMounted() {
+            this[ROUTER].route("(.*)", () => {
+                this[LAST_ROUTED] = null;
+                this[UNROUTE_METHOD]();
+                this[UNROUTE_METHOD] = () => {};
+            });
+        },
+
+        [LAST_ROUTED]: null
+      },
+
+      'template': function(template, expressionTypes, bindingTypes, getComponent) {
+        return template('<slot expr17="expr17"></slot>', [{
+          'type': bindingTypes.SLOT,
+
+          'attributes': [{
+            'type': expressionTypes.ATTRIBUTE,
+            'name': 'router',
+
+            'evaluate': function(scope) {
+              return scope;
+            }
+          }],
+
+          'name': 'default',
+          'redundantAttribute': 'expr17',
+          'selector': '[expr17]'
+        }]);
+      },
+
+      'name': 'router'
+    };
+
+    var loadingBar = document.body.appendChild(document.createElement("div"));
+    var loadingBarContainer = document.body.appendChild(document.createElement("div"));
+    loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 101; background: rgba(250, 120, 30, .5); display: none;");
+    loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
+    loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+    var actualClaimedBy = null;
+    var nextFrame = -1;
+    var loadingProgress = 0;
+    var loadingDone = false;
+    var progressVel = function (progress) {
+        return (8192 - (1.08 * progress * progress)) / 819.2;
+    };
+    var visibilityTime = 300;
+    var doneTime = visibilityTime;
+    function startLoading() {
+        if (nextFrame) {
+            cancelAnimationFrame(nextFrame);
+        }
+        var lastTime;
+        var step = function () {
+            if (loadingDone && loadingProgress === 5) {
+                loadingProgress = 100;
+                loadingBarContainer.style.display = "none";
+                window.dispatchEvent(new Event("routerload"));
+                return;
+            }
+            var last = lastTime;
+            var delta = ((lastTime = Date.now()) - last);
+            if (loadingProgress >= 100) {
+                if ((doneTime -= delta) <= 0) {
+                    doneTime = visibilityTime;
+                    loadingBarContainer.style.display = "none";
+                    window.dispatchEvent(new Event("routerload"));
+                }
+                else {
+                    requestAnimationFrame(step);
+                }
+                return;
+            }
+            if (loadingDone) {
+                loadingProgress += delta;
+            }
+            else {
+                loadingProgress += delta * progressVel(loadingProgress) / 100;
+            }
+            loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+            nextFrame = requestAnimationFrame(step);
+        };
+        loadingBarContainer.style.display = "block";
+        lastTime = Date.now();
+        step();
+    }
+    function claim(claimer) {
+        if (claimer == null) {
+            return;
+        }
+        actualClaimedBy = claimer;
+        loadingProgress = 5;
+        loadingDone = false;
+        startLoading();
+    }
+    function claimed(claimer) {
+        return claimer != null && claimer === actualClaimedBy;
+    }
+    function release(claimer) {
+        if (claimer == null || actualClaimedBy !== claimer) {
+            return;
+        }
+        loadingDone = true;
+    }
+
     var ONBEFOREROUTE = Symbol("onbeforeroute");
     var ONUNROUTE = Symbol("onunroute");
     var ONROUTE = Symbol("onroute");
@@ -104,7 +217,7 @@
         }
     };
     function getRouter(element) {
-        var tag = parent[DOM_COMPONENT_INSTANCE_PROPERTY];
+        var tag = parent[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
         if (tag && tag.name === "router") {
             return tag;
         }
@@ -178,137 +291,21 @@
         delete event.stopImmediatePropagation;
         delete event.stopPropagation;
     }
-    var loadingBar = document.body.appendChild(document.createElement("div"));
-    var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-    loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 101; background: rgba(250, 120, 30, .5); display: none;");
-    loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
-    loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
-    var actualClaimedBy = null;
-    var nextFrame = -1;
-    var loadingProgress = 0;
-    var loadingDone = false;
-    var progressVel = function (progress) {
-        return (8192 - (1.08 * progress * progress)) / 819.2;
-    };
-    var visibilityTime = 300;
-    var doneTime = visibilityTime;
-    function startLoading() {
-        if (nextFrame) {
-            cancelAnimationFrame(nextFrame);
-        }
-        var lastTime;
-        var step = function () {
-            if (loadingDone && loadingProgress === 5) {
-                loadingProgress = 100;
-                loadingBarContainer.style.display = "none";
-                window.dispatchEvent(new Event("routerload"));
-                return;
-            }
-            var last = lastTime;
-            var delta = ((lastTime = Date.now()) - last);
-            if (loadingProgress >= 100) {
-                if ((doneTime -= delta) <= 0) {
-                    doneTime = visibilityTime;
-                    loadingBarContainer.style.display = "none";
-                    window.dispatchEvent(new Event("routerload"));
-                }
-                else {
-                    requestAnimationFrame(step);
-                }
-                return;
-            }
-            if (loadingDone) {
-                loadingProgress += delta;
-            }
-            else {
-                loadingProgress += delta * progressVel(loadingProgress) / 100;
-            }
-            loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
-            nextFrame = requestAnimationFrame(step);
-        };
-        loadingBarContainer.style.display = "block";
-        lastTime = Date.now();
-        step();
-    }
-    function claimLoadingBar(claimer) {
-        if (claimer == null) {
-            return;
-        }
-        actualClaimedBy = claimer;
-        loadingProgress = 5;
-        loadingDone = false;
-        startLoading();
-    }
-    function hasLoadingBar(claimer) {
-        return claimer != null && claimer === actualClaimedBy;
-    }
-    function endLoadingBar(claimer) {
-        if (claimer == null || actualClaimedBy !== claimer) {
-            return;
-        }
-        loadingDone = true;
-    }
-
-    var RouterComponent = {
-      'css': null,
-
-      'exports': {
-        onBeforeMount() {
-            this[UNROUTE_METHOD] = () => {};
-            this[ROUTER] = historyManager.Router.create();
-        },
-
-        onMounted() {
-            this[ROUTER].route("(.*)", () => {
-                this[LAST_ROUTED] = null;
-                this[UNROUTE_METHOD]();
-                this[UNROUTE_METHOD] = () => {};
-            });
-        },
-
-        [LAST_ROUTED]: null
-      },
-
-      'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr17="expr17"></slot>', [{
-          'type': bindingTypes.SLOT,
-
-          'attributes': [{
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'router',
-
-            'evaluate': function(scope) {
-              return scope;
-            }
-          }],
-
-          'name': 'default',
-          'redundantAttribute': 'expr17',
-          'selector': '[expr17]'
-        }]);
-      },
-
-      'name': 'router'
-    };
 
     function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
         if (router[LAST_ROUTED] !== routeComponent) {
             return;
         }
         const currentEl = currentMount.el;
-        if (hasLoadingBar(claimer)) {
-            endLoadingBar(claimer);
+        if (claimed(claimer)) {
+            release(claimer);
         }
         router[UNROUTE_METHOD]();
-        // const currentElChildren = [];
         router[UNROUTE_METHOD] = () => {
-            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
-            // dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
-            // currentElChildren.forEach(child => {
-            //     routeComponent.root.removeChild(child);
-            //     currentEl.appendChild(child);
-            // });
+            {
+                const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+                dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+            }
             currentMount.unmount(
                 {...routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
                 routeComponent[riot.__.globals.PARENT_KEY_SYMBOL]
@@ -319,23 +316,17 @@
             router[UNROUTE_METHOD] = () => {};
         };
         currentEl.style.display = "block";
-        // while (currentEl.childNodes.length) {
-        //     const node = currentEl.childNodes[0];
-        //     currentEl.removeChild(node);
-        //     routeComponent.root.appendChild(node);
-        //     currentElChildren.push(node);
-        // }
-        const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
-        dispatchEventOver(currentEl.children, routeEvent, null, []);
-        // dispatchEventOver(routeComponent.root.children, routeEvent, null, []);
-        // currentMount.update({ ...routeComponent[__.globals.PARENT_KEY_SYMBOL], route }, routeComponent[__.globals.PARENT_KEY_SYMBOL]);
+        {
+            const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+            dispatchEventOver(currentEl.children, routeEvent, null, []);
+        }
     }
 
     function onroute(routeComponent) { return (function (location, keymap, redirection) {
         const route = { location, keymap, redirection };
 
         const claimer = Object.create(null);
-        claimLoadingBar(claimer);
+        claim(claimer);
 
         const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
         router[LAST_ROUTED] = this;

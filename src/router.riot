@@ -3,9 +3,7 @@
 
     <script>
         import { Router } from "history-manager";
-        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./misc";
-
-        const PRIVATE_ROUTER = Symbol("private-router");
+        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./constants";
 
         export default {
             onBeforeMount() {

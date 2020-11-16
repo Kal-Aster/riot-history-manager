@@ -1,23 +1,23 @@
-define(['history-manager', 'riot', './misc-32c8078b'], function (historyManager, riot, misc) { 'use strict';
+define(['history-manager', './constants-3a92086f'], function (historyManager, constants) { 'use strict';
 
     var RouterComponent = {
       'css': null,
 
       'exports': {
         onBeforeMount() {
-            this[misc.UNROUTE_METHOD] = () => {};
-            this[misc.ROUTER] = historyManager.Router.create();
+            this[constants.UNROUTE_METHOD] = () => {};
+            this[constants.ROUTER] = historyManager.Router.create();
         },
 
         onMounted() {
-            this[misc.ROUTER].route("(.*)", () => {
-                this[misc.LAST_ROUTED] = null;
-                this[misc.UNROUTE_METHOD]();
-                this[misc.UNROUTE_METHOD] = () => {};
+            this[constants.ROUTER].route("(.*)", () => {
+                this[constants.LAST_ROUTED] = null;
+                this[constants.UNROUTE_METHOD]();
+                this[constants.UNROUTE_METHOD] = () => {};
             });
         },
 
-        [misc.LAST_ROUTED]: null
+        [constants.LAST_ROUTED]: null
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {

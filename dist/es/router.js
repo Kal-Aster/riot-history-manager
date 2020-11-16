@@ -1,6 +1,5 @@
 import { Router } from 'history-manager';
-import 'riot';
-import { U as UNROUTE_METHOD, R as ROUTER, L as LAST_ROUTED } from './misc-6bdf283c.js';
+import { U as UNROUTE_METHOD, R as ROUTER, L as LAST_ROUTED } from './constants-58bd8f59.js';
 
 var RouterComponent = {
   'css': null,

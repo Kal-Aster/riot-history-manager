@@ -1,30 +1,24 @@
 <route>
     <script>
         import { __ } from "riot";
-        import {
-            ROUTER, UNROUTE_METHOD, LAST_ROUTED,
-            claimLoadingBar, hasLoadingBar, endLoadingBar,
-            dispatchEventOver
-        } from "./misc";
+        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./constants";
+        import * as loadingBar from "./loading-bar";
+        import { dispatchEventOver } from "./custom-event-handling";
 
         function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
             if (router[LAST_ROUTED] !== routeComponent) {
                 return;
             }
             const currentEl = currentMount.el;
-            if (hasLoadingBar(claimer)) {
-                endLoadingBar(claimer);
+            if (loadingBar.claimed(claimer)) {
+                loadingBar.release(claimer);
             }
             router[UNROUTE_METHOD]();
-            // const currentElChildren = [];
             router[UNROUTE_METHOD] = () => {
-                const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-                dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
-                // dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
-                // currentElChildren.forEach(child => {
-                //     routeComponent.root.removeChild(child);
-                //     currentEl.appendChild(child);
-                // });
+                {
+                    const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+                    dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+                }
                 currentMount.unmount(
                     {...routeComponent[__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
                     routeComponent[__.globals.PARENT_KEY_SYMBOL]
@@ -35,23 +29,17 @@
                 router[UNROUTE_METHOD] = () => {};
             };
             currentEl.style.display = "block";
-            // while (currentEl.childNodes.length) {
-            //     const node = currentEl.childNodes[0];
-            //     currentEl.removeChild(node);
-            //     routeComponent.root.appendChild(node);
-            //     currentElChildren.push(node);
-            // }
-            const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
-            dispatchEventOver(currentEl.children, routeEvent, null, []);
-            // dispatchEventOver(routeComponent.root.children, routeEvent, null, []);
-            // currentMount.update({ ...routeComponent[__.globals.PARENT_KEY_SYMBOL], route }, routeComponent[__.globals.PARENT_KEY_SYMBOL]);
+            {
+                const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+                dispatchEventOver(currentEl.children, routeEvent, null, []);
+            }
         }
 
         function onroute(routeComponent) { return (function (location, keymap, redirection) {
             const route = { location, keymap, redirection };
 
             const claimer = Object.create(null);
-            claimLoadingBar(claimer);
+            loadingBar.claim(claimer);
 
             const router = this[__.globals.PARENT_KEY_SYMBOL].router;
             router[LAST_ROUTED] = this;
