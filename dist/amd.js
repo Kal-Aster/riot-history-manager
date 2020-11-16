@@ -266,7 +266,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr14="expr14"></slot>', [{
+        return template('<slot expr12="expr12"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -279,13 +279,52 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr14',
-          'selector': '[expr14]'
+          'redundantAttribute': 'expr12',
+          'selector': '[expr12]'
         }]);
       },
 
       'name': 'router'
     };
+
+    function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
+        if (router[LAST_ROUTED] !== routeComponent) {
+            return;
+        }
+        const currentEl = currentMount.el;
+        if (hasLoadingBar(claimer)) {
+            endLoadingBar(claimer);
+        }
+        router[UNROUTE_METHOD]();
+        // const currentElChildren = [];
+        router[UNROUTE_METHOD] = () => {
+            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+            // dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+            // currentElChildren.forEach(child => {
+            //     routeComponent.root.removeChild(child);
+            //     currentEl.appendChild(child);
+            // });
+            currentMount.unmount(
+                {...routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
+                routeComponent[riot.__.globals.PARENT_KEY_SYMBOL]
+            );
+            // routeComponent.root.removeChild(currentEl);
+            currentEl.style.display = "none";
+            router[UNROUTE_METHOD] = () => {};
+        };
+        currentEl.style.display = "inline-block";
+        // while (currentEl.childNodes.length) {
+        //     const node = currentEl.childNodes[0];
+        //     currentEl.removeChild(node);
+        //     routeComponent.root.appendChild(node);
+        //     currentElChildren.push(node);
+        // }
+        const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+        dispatchEventOver(currentEl.children, routeEvent, null, []);
+        // dispatchEventOver(routeComponent.root.children, routeEvent, null, []);
+        // currentMount.update({ ...routeComponent[__.globals.PARENT_KEY_SYMBOL], route }, routeComponent[__.globals.PARENT_KEY_SYMBOL]);
+    }
 
     function onroute(routeComponent) { return (function (location, keymap, redirection) {
         const route = { location, keymap, redirection };
@@ -298,50 +337,18 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
         const slot = this.slots[0];
         const currentEl = document.createElement("div");
+        this.root.appendChild(currentEl);
         const currentMount = riot.__.DOMBindings.template(slot.html, slot.bindings).mount(
             currentEl,
-            { ...this[riot.__.globals.PARENT_KEY_SYMBOL], route },
+            { ...this[riot.__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
             this[riot.__.globals.PARENT_KEY_SYMBOL]
         );
-        const onloadingcomplete = () => {
-            if (router[LAST_ROUTED] !== this) {
-                return;
-            }
-            if (hasLoadingBar(claimer)) {
-                endLoadingBar(claimer);
-            }
-            router[UNROUTE_METHOD]();
-            const currentElChildren = [];
-            router[UNROUTE_METHOD] = () => {
-                const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
-                    location, keymap, redirection
-                } });
-                dispatchEventOver(this.root.children, unrouteEvent, null, []);
-                currentElChildren.forEach(child => {
-                    this.root.removeChild(child);
-                    currentEl.appendChild(child);
-                });
-                currentMount.unmount({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
-            };
-            while (currentEl.childNodes.length) {
-                const node = currentEl.childNodes[0];
-                currentEl.removeChild(node);
-                this.root.appendChild(node);
-                currentElChildren.push(node);
-            }
-            const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
-                location, keymap, redirection
-            } });
-            dispatchEventOver(this.root.children, routeEvent, null, []);
-            currentMount.update({ ...this[riot.__.globals.PARENT_KEY_SYMBOL], route }, this[riot.__.globals.PARENT_KEY_SYMBOL]);
-        };
+        currentEl.style.display = "none";
         
         const needLoading = [];
         const routerChildren = [];
         {
-            const beforeRouteEvent = new CustomEvent("beforeroute", { cancelable: false, detail: {
-                location, keymap, redirection
-            } });
+            const beforeRouteEvent = new CustomEvent("beforeroute", { cancelable: false, detail: { ...route } });
             dispatchEventOver(currentEl.children, beforeRouteEvent, needLoading, routerChildren);
         }
         if (needLoading.length > 0) {
@@ -360,14 +367,16 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
                                 el.addEventListener("load", onload(el));
                             }
                         );
-                        if (--loaded <= 0) { onloadingcomplete(); }
+                        if (--loaded <= 0) {
+                            onloadingcomplete(routeComponent, currentMount, route, router, claimer);
+                        }
                     };
                     return fn;
                 };
                 el.addEventListener("load", onload(el));
             });
         } else {
-            onloadingcomplete();
+            onloadingcomplete(routeComponent, currentMount, route, router, claimer);
         }
     }).bind(routeComponent); }
 
@@ -376,6 +385,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'exports': {
         _valid: false,
+        _onroute: null,
+        _path: null,
 
         onMounted() {
             const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
@@ -387,8 +398,15 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             if (this.props.redirect) {
                 router[ROUTER].redirect(this.props.path, this.props.redirect);
             } else {
-                router[ROUTER].route(this.props.path, onroute(this));
+                router[ROUTER].route(this._path = this.props.path, this._onroute = onroute(this));
             }
+        },
+
+        onUnmounted() {
+            if (this._onroute == null) {
+                return;
+            }
+            this[riot.__.globlas.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
         }
       },
 
@@ -458,10 +476,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
+          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
           [{
-            'redundantAttribute': 'expr12',
-            'selector': '[expr12]',
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -482,8 +500,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]'
+            'redundantAttribute': 'expr14',
+            'selector': '[expr14]'
           }]
         );
       },
