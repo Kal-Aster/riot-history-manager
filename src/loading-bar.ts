@@ -2,7 +2,7 @@ let loadingBar: HTMLElement = document.body.appendChild(document.createElement("
 let loadingBarContainer: HTMLElement = document.body.appendChild(document.createElement("div"));
 loadingBarContainer.setAttribute(
     "style",
-    "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 101; background: rgba(250, 120, 30, .5); display: none;"
+    "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;"
 );
 loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
 loadingBar.setAttribute(

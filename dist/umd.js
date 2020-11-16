@@ -29,7 +29,7 @@
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr17="expr17"></slot>', [{
+        return template('<slot expr15="expr15"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -42,8 +42,8 @@
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr17',
-          'selector': '[expr17]'
+          'redundantAttribute': 'expr15',
+          'selector': '[expr15]'
         }]);
       },
 
@@ -52,7 +52,7 @@
 
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-    loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 101; background: rgba(250, 120, 30, .5); display: none;");
+    loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
     loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
     loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
     var actualClaimedBy = null;
@@ -479,10 +479,10 @@
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr15="expr15" ref="-navigate-a"><slot expr16="expr16"></slot></a>',
+          '<a expr16="expr16" ref="-navigate-a"><slot expr17="expr17"></slot></a>',
           [{
-            'redundantAttribute': 'expr15',
-            'selector': '[expr15]',
+            'redundantAttribute': 'expr16',
+            'selector': '[expr16]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -503,8 +503,8 @@
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr16',
-            'selector': '[expr16]'
+            'redundantAttribute': 'expr17',
+            'selector': '[expr17]'
           }]
         );
       },

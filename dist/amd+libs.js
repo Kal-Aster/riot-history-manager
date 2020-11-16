@@ -4923,7 +4923,7 @@ define(function () { 'use strict';
 
 	var loadingBar = document.body.appendChild(document.createElement("div"));
 	var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-	loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 101; background: rgba(250, 120, 30, .5); display: none;");
+	loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
 	loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
 	loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
 	var actualClaimedBy = null;

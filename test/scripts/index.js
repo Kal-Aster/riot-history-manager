@@ -4983,7 +4983,7 @@ define(['require'], function (require) { 'use strict';
     },
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
-      return template('<slot expr32="expr32"></slot>', [{
+      return template('<slot expr34="expr34"></slot>', [{
         'type': bindingTypes.SLOT,
 
         'attributes': [{
@@ -4996,8 +4996,8 @@ define(['require'], function (require) { 'use strict';
         }],
 
         'name': 'default',
-        'redundantAttribute': 'expr32',
-        'selector': '[expr32]'
+        'redundantAttribute': 'expr34',
+        'selector': '[expr34]'
       }]);
     },
 
@@ -5006,7 +5006,7 @@ define(['require'], function (require) { 'use strict';
 
   var loadingBar = document.body.appendChild(document.createElement("div"));
   var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-  loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 101; background: rgba(250, 120, 30, .5); display: none;");
+  loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
   loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
   loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
   var actualClaimedBy = null;
@@ -5433,10 +5433,10 @@ define(['require'], function (require) { 'use strict';
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<a expr33="expr33" ref="-navigate-a"><slot expr34="expr34"></slot></a>',
+        '<a expr32="expr32" ref="-navigate-a"><slot expr33="expr33"></slot></a>',
         [{
-          'redundantAttribute': 'expr33',
-          'selector': '[expr33]',
+          'redundantAttribute': 'expr32',
+          'selector': '[expr32]',
 
           'expressions': [{
             'type': expressionTypes.ATTRIBUTE,
@@ -5457,8 +5457,8 @@ define(['require'], function (require) { 'use strict';
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr34',
-          'selector': '[expr34]'
+          'redundantAttribute': 'expr33',
+          'selector': '[expr33]'
         }]
       );
     },

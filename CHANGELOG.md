@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ### Add
 - "requestvisibility" documentation
 ### Change
+- customable `z-index` of loading bar
 
 ## [1.3.4] - 2020-11-16
 ### Added
