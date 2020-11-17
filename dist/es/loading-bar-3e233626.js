@@ -1,6 +1,6 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
+var ROUTER = Symbol("router");
+var UNROUTE_METHOD = Symbol("unroute");
+var LAST_ROUTED = Symbol("last-routed");
 
 var loadingBar = document.body.appendChild(document.createElement("div"));
 var loadingBarContainer = document.body.appendChild(document.createElement("div"));
@@ -79,6 +79,4 @@ function release(claimer) {
     loadingDone = true;
 }
 
-exports.claim = claim;
-exports.claimed = claimed;
-exports.release = release;
+export { LAST_ROUTED as L, ROUTER as R, UNROUTE_METHOD as U, claimed as a, claim as c, release as r };

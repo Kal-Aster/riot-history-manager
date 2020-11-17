@@ -48,7 +48,7 @@
             },
             replace() {
                 if (typeof this.props.replace !== "boolean") {
-                    return (this.props.replace && this.props.replace !== "false") || this.props.replace === "";
+                    return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
                 }
                 return this.props.replace;
             },

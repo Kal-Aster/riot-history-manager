@@ -4972,48 +4972,6 @@ define(['require'], function (require) { 'use strict';
   var UNROUTE_METHOD = Symbol("unroute");
   var LAST_ROUTED = Symbol("last-routed");
 
-  var RouterComponent = {
-    'css': null,
-
-    'exports': {
-      onBeforeMount() {
-          this[UNROUTE_METHOD] = () => {};
-          this[ROUTER] = cjs.Router.create();
-      },
-
-      onMounted() {
-          this[ROUTER].route("(.*)", () => {
-              this[LAST_ROUTED] = null;
-              this[UNROUTE_METHOD]();
-              this[UNROUTE_METHOD] = () => {};
-          });
-      },
-
-      [LAST_ROUTED]: null
-    },
-
-    'template': function(template, expressionTypes, bindingTypes, getComponent) {
-      return template('<slot expr32="expr32"></slot>', [{
-        'type': bindingTypes.SLOT,
-
-        'attributes': [{
-          'type': expressionTypes.ATTRIBUTE,
-          'name': 'router',
-
-          'evaluate': function(scope) {
-            return scope;
-          }
-        }],
-
-        'name': 'default',
-        'redundantAttribute': 'expr32',
-        'selector': '[expr32]'
-      }]);
-    },
-
-    'name': 'router'
-  };
-
   var loadingBar = document.body.appendChild(document.createElement("div"));
   var loadingBarContainer = document.body.appendChild(document.createElement("div"));
   loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
@@ -5028,6 +4986,7 @@ define(['require'], function (require) { 'use strict';
   };
   var visibilityTime = 300;
   var doneTime = visibilityTime;
+  var claimedWhenVisible = 0;
   function startLoading() {
       if (nextFrame) {
           cancelAnimationFrame(nextFrame);
@@ -5035,7 +4994,7 @@ define(['require'], function (require) { 'use strict';
       var lastTime;
       var eventDispatched = false;
       var step = function () {
-          if (loadingDone && loadingProgress === 5) {
+          if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
               loadingProgress = 100;
               loadingBarContainer.style.display = "none";
               window.dispatchEvent(new Event("routerload"));
@@ -5058,7 +5017,7 @@ define(['require'], function (require) { 'use strict';
               return;
           }
           if (loadingDone) {
-              loadingProgress += delta;
+              loadingProgress += delta / 2;
           }
           else {
               loadingProgress += delta * progressVel(loadingProgress) / 100;
@@ -5075,6 +5034,7 @@ define(['require'], function (require) { 'use strict';
           return;
       }
       actualClaimedBy = claimer;
+      claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
       loadingProgress = 5;
       loadingDone = false;
       startLoading();
@@ -5088,6 +5048,49 @@ define(['require'], function (require) { 'use strict';
       }
       loadingDone = true;
   }
+
+  var RouterComponent = {
+    'css': null,
+
+    'exports': {
+      onBeforeMount() {
+          this[UNROUTE_METHOD] = () => {};
+          this[ROUTER] = cjs.Router.create();
+      },
+
+      onMounted() {
+          this[ROUTER].route("(.*)", () => {
+              claim(this); release(this);
+              this[LAST_ROUTED] = null;
+              this[UNROUTE_METHOD]();
+              this[UNROUTE_METHOD] = () => {};
+          });
+      },
+
+      [LAST_ROUTED]: null
+    },
+
+    'template': function(template, expressionTypes, bindingTypes, getComponent) {
+      return template('<slot expr33="expr33"></slot>', [{
+        'type': bindingTypes.SLOT,
+
+        'attributes': [{
+          'type': expressionTypes.ATTRIBUTE,
+          'name': 'router',
+
+          'evaluate': function(scope) {
+            return scope;
+          }
+        }],
+
+        'name': 'default',
+        'redundantAttribute': 'expr33',
+        'selector': '[expr33]'
+      }]);
+    },
+
+    'name': 'router'
+  };
 
   var ONBEFOREROUTE = Symbol("onbeforeroute");
   var ONUNROUTE = Symbol("onunroute");
@@ -5421,7 +5424,7 @@ define(['require'], function (require) { 'use strict';
 
       replace() {
           if (typeof this.props.replace !== "boolean") {
-              return (this.props.replace && this.props.replace !== "false") || this.props.replace === "";
+              return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
           }
           return this.props.replace;
       },
@@ -5451,10 +5454,10 @@ define(['require'], function (require) { 'use strict';
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<a expr33="expr33" ref="-navigate-a"><slot expr34="expr34"></slot></a>',
+        '<a expr34="expr34" ref="-navigate-a"><slot expr35="expr35"></slot></a>',
         [{
-          'redundantAttribute': 'expr33',
-          'selector': '[expr33]',
+          'redundantAttribute': 'expr34',
+          'selector': '[expr34]',
 
           'expressions': [{
             'type': expressionTypes.ATTRIBUTE,
@@ -5475,8 +5478,8 @@ define(['require'], function (require) { 'use strict';
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr34',
-          'selector': '[expr34]'
+          'redundantAttribute': 'expr35',
+          'selector': '[expr35]'
         }]
       );
     },
@@ -5571,6 +5574,7 @@ define(['require'], function (require) { 'use strict';
       name: "profile",
       paths: [
           { path: "me" },
+          { path: "accedi", fallback: true },
           { path: "users/:id", fallback: true }
       ],
       default: "me"
@@ -5585,13 +5589,14 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-eebb63b5'], resolve, reject) }))
+          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-c37c91c7'], resolve, reject) })),
+          "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-c3bcf306'], resolve, reject) }))
       }
     },
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<navigate expr21="expr21" href="home"></navigate><navigate expr22="expr22" href="me"></navigate><navigate expr23="expr23"></navigate><div></div><navigate expr24="expr24" context="home"></navigate><navigate expr25="expr25" context="profile"></navigate><div></div><router expr26="expr26"></router>',
+        '<navigate expr21="expr21" href="home"></navigate><navigate expr22="expr22" href="me"></navigate><navigate expr23="expr23" replace></navigate><div></div><navigate expr24="expr24" context="home"></navigate><navigate expr25="expr25" context="profile"></navigate><div></div><router expr26="expr26"></router>',
         [{
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5695,7 +5700,7 @@ define(['require'], function (require) { 'use strict';
 
           'slots': [{
             'id': 'default',
-            'html': '<route expr27="expr27" path redirect="home"></route><route expr28="expr28" path="home"></route><route expr30="expr30" path="me"></route><route expr31="expr31" path="users/:id"></route>',
+            'html': '<route expr27="expr27" path redirect="home"></route><route expr28="expr28" path="home"></route><route expr30="expr30" path="me"></route><route expr32="expr32" path="users/:id"></route>',
 
             'bindings': [{
               'type': bindingTypes.TAG,
@@ -5749,8 +5754,21 @@ define(['require'], function (require) { 'use strict';
 
               'slots': [{
                 'id': 'default',
-                'html': '\r\n            ME <img src="image.jpg" need-loading/>',
-                'bindings': []
+                'html': '<replace-test expr31="expr31" need-loading></replace-test>',
+
+                'bindings': [{
+                  'type': bindingTypes.TAG,
+                  'getComponent': getComponent,
+
+                  'evaluate': function(scope) {
+                    return 'replace-test';
+                  },
+
+                  'slots': [],
+                  'attributes': [],
+                  'redundantAttribute': 'expr31',
+                  'selector': '[expr31]'
+                }]
               }],
 
               'attributes': [],
@@ -5781,8 +5799,8 @@ define(['require'], function (require) { 'use strict';
               }],
 
               'attributes': [],
-              'redundantAttribute': 'expr31',
-              'selector': '[expr31]'
+              'redundantAttribute': 'expr32',
+              'selector': '[expr32]'
             }]
           }],
 

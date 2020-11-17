@@ -1,0 +1,18 @@
+<replace-test>
+    <div ref="loader" need-loading />
+    <div ref="slowLoader" need-loading />
+
+    <script>
+        export default {
+            onBeforeMount() {
+                setTimeout(() => {
+                    this.root.querySelector("[ref=slowLoader]").dispatchEvent(new Event("load"));
+                }, 1000);
+                Promise.resolve().then(() => {
+                    Router.go("/accedi", { replace: true });
+                    this.root.querySelector("[ref=loader]").dispatchEvent(new Event("load"));
+                });
+            }
+        }
+    </script>
+</replace-test>

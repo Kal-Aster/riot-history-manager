@@ -1,5 +1,5 @@
 import { Router } from 'history-manager';
-import { U as UNROUTE_METHOD, R as ROUTER, L as LAST_ROUTED } from './constants-58bd8f59.js';
+import { U as UNROUTE_METHOD, R as ROUTER, c as claim, L as LAST_ROUTED, r as release } from './loading-bar-3e233626.js';
 
 var RouterComponent = {
   'css': null,
@@ -12,6 +12,7 @@ var RouterComponent = {
 
     onMounted() {
         this[ROUTER].route("(.*)", () => {
+            claim(this); release(this);
             this[LAST_ROUTED] = null;
             this[UNROUTE_METHOD]();
             this[UNROUTE_METHOD] = () => {};
@@ -22,7 +23,7 @@ var RouterComponent = {
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<slot expr8="expr8"></slot>', [{
+    return template('<slot expr6="expr6"></slot>', [{
       'type': bindingTypes.SLOT,
 
       'attributes': [{
@@ -35,8 +36,8 @@ var RouterComponent = {
       }],
 
       'name': 'default',
-      'redundantAttribute': 'expr8',
-      'selector': '[expr8]'
+      'redundantAttribute': 'expr6',
+      'selector': '[expr6]'
     }]);
   },
 

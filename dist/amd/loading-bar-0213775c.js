@@ -1,5 +1,9 @@
 define(['exports'], function (exports) { 'use strict';
 
+    var ROUTER = Symbol("router");
+    var UNROUTE_METHOD = Symbol("unroute");
+    var LAST_ROUTED = Symbol("last-routed");
+
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
     loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
@@ -77,10 +81,11 @@ define(['exports'], function (exports) { 'use strict';
         loadingDone = true;
     }
 
+    exports.LAST_ROUTED = LAST_ROUTED;
+    exports.ROUTER = ROUTER;
+    exports.UNROUTE_METHOD = UNROUTE_METHOD;
     exports.claim = claim;
     exports.claimed = claimed;
     exports.release = release;
-
-    Object.defineProperty(exports, '__esModule', { value: true });
 
 });

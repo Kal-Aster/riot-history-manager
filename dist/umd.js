@@ -8,48 +8,6 @@
     var UNROUTE_METHOD = Symbol("unroute");
     var LAST_ROUTED = Symbol("last-routed");
 
-    var RouterComponent = {
-      'css': null,
-
-      'exports': {
-        onBeforeMount() {
-            this[UNROUTE_METHOD] = () => {};
-            this[ROUTER] = historyManager.Router.create();
-        },
-
-        onMounted() {
-            this[ROUTER].route("(.*)", () => {
-                this[LAST_ROUTED] = null;
-                this[UNROUTE_METHOD]();
-                this[UNROUTE_METHOD] = () => {};
-            });
-        },
-
-        [LAST_ROUTED]: null
-      },
-
-      'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr15="expr15"></slot>', [{
-          'type': bindingTypes.SLOT,
-
-          'attributes': [{
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'router',
-
-            'evaluate': function(scope) {
-              return scope;
-            }
-          }],
-
-          'name': 'default',
-          'redundantAttribute': 'expr15',
-          'selector': '[expr15]'
-        }]);
-      },
-
-      'name': 'router'
-    };
-
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
     loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
@@ -64,6 +22,7 @@
     };
     var visibilityTime = 300;
     var doneTime = visibilityTime;
+    var claimedWhenVisible = 0;
     function startLoading() {
         if (nextFrame) {
             cancelAnimationFrame(nextFrame);
@@ -71,7 +30,7 @@
         var lastTime;
         var eventDispatched = false;
         var step = function () {
-            if (loadingDone && loadingProgress === 5) {
+            if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
                 loadingProgress = 100;
                 loadingBarContainer.style.display = "none";
                 window.dispatchEvent(new Event("routerload"));
@@ -94,7 +53,7 @@
                 return;
             }
             if (loadingDone) {
-                loadingProgress += delta;
+                loadingProgress += delta / 2;
             }
             else {
                 loadingProgress += delta * progressVel(loadingProgress) / 100;
@@ -111,6 +70,7 @@
             return;
         }
         actualClaimedBy = claimer;
+        claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
         loadingProgress = 5;
         loadingDone = false;
         startLoading();
@@ -124,6 +84,49 @@
         }
         loadingDone = true;
     }
+
+    var RouterComponent = {
+      'css': null,
+
+      'exports': {
+        onBeforeMount() {
+            this[UNROUTE_METHOD] = () => {};
+            this[ROUTER] = historyManager.Router.create();
+        },
+
+        onMounted() {
+            this[ROUTER].route("(.*)", () => {
+                claim(this); release(this);
+                this[LAST_ROUTED] = null;
+                this[UNROUTE_METHOD]();
+                this[UNROUTE_METHOD] = () => {};
+            });
+        },
+
+        [LAST_ROUTED]: null
+      },
+
+      'template': function(template, expressionTypes, bindingTypes, getComponent) {
+        return template('<slot expr17="expr17"></slot>', [{
+          'type': bindingTypes.SLOT,
+
+          'attributes': [{
+            'type': expressionTypes.ATTRIBUTE,
+            'name': 'router',
+
+            'evaluate': function(scope) {
+              return scope;
+            }
+          }],
+
+          'name': 'default',
+          'redundantAttribute': 'expr17',
+          'selector': '[expr17]'
+        }]);
+      },
+
+      'name': 'router'
+    };
 
     var ONBEFOREROUTE = Symbol("onbeforeroute");
     var ONUNROUTE = Symbol("onunroute");
@@ -457,7 +460,7 @@
 
         replace() {
             if (typeof this.props.replace !== "boolean") {
-                return (this.props.replace && this.props.replace !== "false") || this.props.replace === "";
+                return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
             }
             return this.props.replace;
         },
@@ -487,10 +490,10 @@
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr16="expr16" ref="-navigate-a"><slot expr17="expr17"></slot></a>',
+          '<a expr15="expr15" ref="-navigate-a"><slot expr16="expr16"></slot></a>',
           [{
-            'redundantAttribute': 'expr16',
-            'selector': '[expr16]',
+            'redundantAttribute': 'expr15',
+            'selector': '[expr15]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -511,8 +514,8 @@
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr17',
-            'selector': '[expr17]'
+            'redundantAttribute': 'expr16',
+            'selector': '[expr16]'
           }]
         );
       },

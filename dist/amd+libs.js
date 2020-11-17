@@ -2619,6 +2619,83 @@ define(function () { 'use strict';
 	var UNROUTE_METHOD = Symbol("unroute");
 	var LAST_ROUTED = Symbol("last-routed");
 
+	var loadingBar = document.body.appendChild(document.createElement("div"));
+	var loadingBarContainer = document.body.appendChild(document.createElement("div"));
+	loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
+	loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
+	loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+	var actualClaimedBy = null;
+	var nextFrame = -1;
+	var loadingProgress = 0;
+	var loadingDone = false;
+	var progressVel = function (progress) {
+	    return (8192 - (1.08 * progress * progress)) / 819.2;
+	};
+	var visibilityTime = 300;
+	var doneTime = visibilityTime;
+	var claimedWhenVisible = 0;
+	function startLoading() {
+	    if (nextFrame) {
+	        cancelAnimationFrame(nextFrame);
+	    }
+	    var lastTime;
+	    var eventDispatched = false;
+	    var step = function () {
+	        if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
+	            loadingProgress = 100;
+	            loadingBarContainer.style.display = "none";
+	            window.dispatchEvent(new Event("routerload"));
+	            return;
+	        }
+	        var last = lastTime;
+	        var delta = ((lastTime = Date.now()) - last);
+	        if (loadingProgress >= 100) {
+	            if (!eventDispatched) {
+	                window.dispatchEvent(new Event("routerload"));
+	                eventDispatched = true;
+	            }
+	            if ((doneTime -= delta) <= 0) {
+	                doneTime = visibilityTime;
+	                loadingBarContainer.style.display = "none";
+	            }
+	            else {
+	                requestAnimationFrame(step);
+	            }
+	            return;
+	        }
+	        if (loadingDone) {
+	            loadingProgress += delta / 2;
+	        }
+	        else {
+	            loadingProgress += delta * progressVel(loadingProgress) / 100;
+	        }
+	        loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+	        nextFrame = requestAnimationFrame(step);
+	    };
+	    loadingBarContainer.style.display = "block";
+	    lastTime = Date.now();
+	    step();
+	}
+	function claim(claimer) {
+	    if (claimer == null) {
+	        return;
+	    }
+	    actualClaimedBy = claimer;
+	    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+	    loadingProgress = 5;
+	    loadingDone = false;
+	    startLoading();
+	}
+	function claimed(claimer) {
+	    return claimer != null && claimer === actualClaimedBy;
+	}
+	function release(claimer) {
+	    if (claimer == null || actualClaimedBy !== claimer) {
+	        return;
+	    }
+	    loadingDone = true;
+	}
+
 	var RouterComponent = {
 	  'css': null,
 
@@ -2630,6 +2707,7 @@ define(function () { 'use strict';
 
 	    onMounted() {
 	        this[ROUTER].route("(.*)", () => {
+	            claim(this); release(this);
 	            this[LAST_ROUTED] = null;
 	            this[UNROUTE_METHOD]();
 	            this[UNROUTE_METHOD] = () => {};
@@ -2640,7 +2718,7 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr9="expr9"></slot>', [{
+	    return template('<slot expr11="expr11"></slot>', [{
 	      'type': bindingTypes.SLOT,
 
 	      'attributes': [{
@@ -2653,8 +2731,8 @@ define(function () { 'use strict';
 	      }],
 
 	      'name': 'default',
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]'
+	      'redundantAttribute': 'expr11',
+	      'selector': '[expr11]'
 	    }]);
 	  },
 
@@ -4931,81 +5009,6 @@ define(function () { 'use strict';
 	  globals
 	};
 
-	var loadingBar = document.body.appendChild(document.createElement("div"));
-	var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-	loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
-	loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
-	loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
-	var actualClaimedBy = null;
-	var nextFrame = -1;
-	var loadingProgress = 0;
-	var loadingDone = false;
-	var progressVel = function (progress) {
-	    return (8192 - (1.08 * progress * progress)) / 819.2;
-	};
-	var visibilityTime = 300;
-	var doneTime = visibilityTime;
-	function startLoading() {
-	    if (nextFrame) {
-	        cancelAnimationFrame(nextFrame);
-	    }
-	    var lastTime;
-	    var eventDispatched = false;
-	    var step = function () {
-	        if (loadingDone && loadingProgress === 5) {
-	            loadingProgress = 100;
-	            loadingBarContainer.style.display = "none";
-	            window.dispatchEvent(new Event("routerload"));
-	            return;
-	        }
-	        var last = lastTime;
-	        var delta = ((lastTime = Date.now()) - last);
-	        if (loadingProgress >= 100) {
-	            if (!eventDispatched) {
-	                window.dispatchEvent(new Event("routerload"));
-	                eventDispatched = true;
-	            }
-	            if ((doneTime -= delta) <= 0) {
-	                doneTime = visibilityTime;
-	                loadingBarContainer.style.display = "none";
-	            }
-	            else {
-	                requestAnimationFrame(step);
-	            }
-	            return;
-	        }
-	        if (loadingDone) {
-	            loadingProgress += delta;
-	        }
-	        else {
-	            loadingProgress += delta * progressVel(loadingProgress) / 100;
-	        }
-	        loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
-	        nextFrame = requestAnimationFrame(step);
-	    };
-	    loadingBarContainer.style.display = "block";
-	    lastTime = Date.now();
-	    step();
-	}
-	function claim(claimer) {
-	    if (claimer == null) {
-	        return;
-	    }
-	    actualClaimedBy = claimer;
-	    loadingProgress = 5;
-	    loadingDone = false;
-	    startLoading();
-	}
-	function claimed(claimer) {
-	    return claimer != null && claimer === actualClaimedBy;
-	}
-	function release(claimer) {
-	    if (claimer == null || actualClaimedBy !== claimer) {
-	        return;
-	    }
-	    loadingDone = true;
-	}
-
 	var ONBEFOREROUTE = Symbol("onbeforeroute");
 	var ONUNROUTE = Symbol("onunroute");
 	var ONROUTE = Symbol("onroute");
@@ -5338,7 +5341,7 @@ define(function () { 'use strict';
 
 	    replace() {
 	        if (typeof this.props.replace !== "boolean") {
-	            return (this.props.replace && this.props.replace !== "false") || this.props.replace === "";
+	            return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
 	        }
 	        return this.props.replace;
 	    },
@@ -5367,35 +5370,32 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template(
-	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
-	      [{
-	        'redundantAttribute': 'expr10',
-	        'selector': '[expr10]',
+	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]',
 
-	        'expressions': [{
-	          'type': expressionTypes.ATTRIBUTE,
-	          'name': 'href',
+	      'expressions': [{
+	        'type': expressionTypes.ATTRIBUTE,
+	        'name': 'href',
 
-	          'evaluate': function(scope) {
-	            return "#" + scope.href();
-	          }
-	        }, {
-	          'type': expressionTypes.ATTRIBUTE,
-	          'name': 'style',
-
-	          'evaluate': function(scope) {
-	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	          }
-	        }]
+	        'evaluate': function(scope) {
+	          return "#" + scope.href();
+	        }
 	      }, {
-	        'type': bindingTypes.SLOT,
-	        'attributes': [],
-	        'name': 'default',
-	        'redundantAttribute': 'expr11',
-	        'selector': '[expr11]'
+	        'type': expressionTypes.ATTRIBUTE,
+	        'name': 'style',
+
+	        'evaluate': function(scope) {
+	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	        }
 	      }]
-	    );
+	    }, {
+	      'type': bindingTypes.SLOT,
+	      'attributes': [],
+	      'name': 'default',
+	      'redundantAttribute': 'expr10',
+	      'selector': '[expr10]'
+	    }]);
 	  },
 
 	  'name': 'navigate'

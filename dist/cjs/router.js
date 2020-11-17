@@ -1,30 +1,31 @@
 'use strict';
 
 var historyManager = require('history-manager');
-var constants = require('./constants-85f206eb.js');
+var loadingBar = require('./loading-bar-b1a5cbaa.js');
 
 var RouterComponent = {
   'css': null,
 
   'exports': {
     onBeforeMount() {
-        this[constants.UNROUTE_METHOD] = () => {};
-        this[constants.ROUTER] = historyManager.Router.create();
+        this[loadingBar.UNROUTE_METHOD] = () => {};
+        this[loadingBar.ROUTER] = historyManager.Router.create();
     },
 
     onMounted() {
-        this[constants.ROUTER].route("(.*)", () => {
-            this[constants.LAST_ROUTED] = null;
-            this[constants.UNROUTE_METHOD]();
-            this[constants.UNROUTE_METHOD] = () => {};
+        this[loadingBar.ROUTER].route("(.*)", () => {
+            loadingBar.claim(this); loadingBar.release(this);
+            this[loadingBar.LAST_ROUTED] = null;
+            this[loadingBar.UNROUTE_METHOD]();
+            this[loadingBar.UNROUTE_METHOD] = () => {};
         });
     },
 
-    [constants.LAST_ROUTED]: null
+    [loadingBar.LAST_ROUTED]: null
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<slot expr3="expr3"></slot>', [{
+    return template('<slot expr5="expr5"></slot>', [{
       'type': bindingTypes.SLOT,
 
       'attributes': [{
@@ -37,8 +38,8 @@ var RouterComponent = {
       }],
 
       'name': 'default',
-      'redundantAttribute': 'expr3',
-      'selector': '[expr3]'
+      'redundantAttribute': 'expr5',
+      'selector': '[expr5]'
     }]);
   },
 

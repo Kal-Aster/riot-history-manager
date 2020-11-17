@@ -12,6 +12,7 @@ var progressVel = function (progress) {
 };
 var visibilityTime = 300;
 var doneTime = visibilityTime;
+var claimedWhenVisible = 0;
 function startLoading() {
     if (nextFrame) {
         cancelAnimationFrame(nextFrame);
@@ -19,7 +20,7 @@ function startLoading() {
     var lastTime;
     var eventDispatched = false;
     var step = function () {
-        if (loadingDone && loadingProgress === 5) {
+        if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
             loadingProgress = 100;
             loadingBarContainer.style.display = "none";
             window.dispatchEvent(new Event("routerload"));
@@ -42,7 +43,7 @@ function startLoading() {
             return;
         }
         if (loadingDone) {
-            loadingProgress += delta;
+            loadingProgress += delta / 2;
         }
         else {
             loadingProgress += delta * progressVel(loadingProgress) / 100;
@@ -59,6 +60,7 @@ function claim(claimer) {
         return;
     }
     actualClaimedBy = claimer;
+    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
     loadingProgress = 5;
     loadingDone = false;
     startLoading();

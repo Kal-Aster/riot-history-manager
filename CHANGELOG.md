@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Change
 - customable `z-index` of loading bar
 
+## [1.3.8] - 2020-11-17
+### Added
+### Changed
+- fixed bug: loading bar was not released correctly when reached a non-`route`d path
+
 ## [1.3.7] - 2020-11-17
 ### Added
 ### Changed

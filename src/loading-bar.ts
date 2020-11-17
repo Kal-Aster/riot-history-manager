@@ -20,6 +20,7 @@ let progressVel: (progress: number) => number = (progress) => {
 // tempo di visibilità della barra, da quando ha il progresso è completo
 const visibilityTime: number = 300;
 let doneTime: number = visibilityTime;
+let claimedWhenVisible: number = 0;
 function startLoading(): void {
     // se era già previsto un aggiornamento della barra, annullarlo
     if (nextFrame) {
@@ -28,7 +29,7 @@ function startLoading(): void {
     let lastTime: number;
     let eventDispatched: boolean = false;
     let step: () => void = () => {
-        if (loadingDone && loadingProgress === 5) {
+        if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
             loadingProgress = 100;
             loadingBarContainer.style.display = "none";
             window.dispatchEvent(new Event("routerload"));
@@ -53,7 +54,7 @@ function startLoading(): void {
         // se il caricamento è determinato, aggiungere un valore fisso per raggiungere il completamento
         // altrimenti richiedere la velocità alla funzione designata
         if (loadingDone) {
-            loadingProgress += delta;
+            loadingProgress += delta / 2;
         } else {
             loadingProgress += delta * progressVel(loadingProgress) / 100;
         }
@@ -74,6 +75,7 @@ export function claim(claimer: any): void {
     }
     // ricomincia il progresso della barra, gestita da un altro processo
     actualClaimedBy = claimer;
+    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
     loadingProgress = 5;
     loadingDone = false;
     lastClaim = Date.now();

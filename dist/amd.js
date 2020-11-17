@@ -4,48 +4,6 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
     var UNROUTE_METHOD = Symbol("unroute");
     var LAST_ROUTED = Symbol("last-routed");
 
-    var RouterComponent = {
-      'css': null,
-
-      'exports': {
-        onBeforeMount() {
-            this[UNROUTE_METHOD] = () => {};
-            this[ROUTER] = historyManager.Router.create();
-        },
-
-        onMounted() {
-            this[ROUTER].route("(.*)", () => {
-                this[LAST_ROUTED] = null;
-                this[UNROUTE_METHOD]();
-                this[UNROUTE_METHOD] = () => {};
-            });
-        },
-
-        [LAST_ROUTED]: null
-      },
-
-      'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr14="expr14"></slot>', [{
-          'type': bindingTypes.SLOT,
-
-          'attributes': [{
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'router',
-
-            'evaluate': function(scope) {
-              return scope;
-            }
-          }],
-
-          'name': 'default',
-          'redundantAttribute': 'expr14',
-          'selector': '[expr14]'
-        }]);
-      },
-
-      'name': 'router'
-    };
-
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
     loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
@@ -60,6 +18,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
     };
     var visibilityTime = 300;
     var doneTime = visibilityTime;
+    var claimedWhenVisible = 0;
     function startLoading() {
         if (nextFrame) {
             cancelAnimationFrame(nextFrame);
@@ -67,7 +26,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         var lastTime;
         var eventDispatched = false;
         var step = function () {
-            if (loadingDone && loadingProgress === 5) {
+            if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
                 loadingProgress = 100;
                 loadingBarContainer.style.display = "none";
                 window.dispatchEvent(new Event("routerload"));
@@ -90,7 +49,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
                 return;
             }
             if (loadingDone) {
-                loadingProgress += delta;
+                loadingProgress += delta / 2;
             }
             else {
                 loadingProgress += delta * progressVel(loadingProgress) / 100;
@@ -107,6 +66,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             return;
         }
         actualClaimedBy = claimer;
+        claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
         loadingProgress = 5;
         loadingDone = false;
         startLoading();
@@ -120,6 +80,49 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         }
         loadingDone = true;
     }
+
+    var RouterComponent = {
+      'css': null,
+
+      'exports': {
+        onBeforeMount() {
+            this[UNROUTE_METHOD] = () => {};
+            this[ROUTER] = historyManager.Router.create();
+        },
+
+        onMounted() {
+            this[ROUTER].route("(.*)", () => {
+                claim(this); release(this);
+                this[LAST_ROUTED] = null;
+                this[UNROUTE_METHOD]();
+                this[UNROUTE_METHOD] = () => {};
+            });
+        },
+
+        [LAST_ROUTED]: null
+      },
+
+      'template': function(template, expressionTypes, bindingTypes, getComponent) {
+        return template('<slot expr12="expr12"></slot>', [{
+          'type': bindingTypes.SLOT,
+
+          'attributes': [{
+            'type': expressionTypes.ATTRIBUTE,
+            'name': 'router',
+
+            'evaluate': function(scope) {
+              return scope;
+            }
+          }],
+
+          'name': 'default',
+          'redundantAttribute': 'expr12',
+          'selector': '[expr12]'
+        }]);
+      },
+
+      'name': 'router'
+    };
 
     var ONBEFOREROUTE = Symbol("onbeforeroute");
     var ONUNROUTE = Symbol("onunroute");
@@ -453,7 +456,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
         replace() {
             if (typeof this.props.replace !== "boolean") {
-                return (this.props.replace && this.props.replace !== "false") || this.props.replace === "";
+                return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
             }
             return this.props.replace;
         },
@@ -483,10 +486,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
+          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
           [{
-            'redundantAttribute': 'expr12',
-            'selector': '[expr12]',
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -507,8 +510,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]'
+            'redundantAttribute': 'expr14',
+            'selector': '[expr14]'
           }]
         );
       },

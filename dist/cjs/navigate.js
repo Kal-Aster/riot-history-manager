@@ -38,7 +38,7 @@ var NavigateComponent = {
 
     replace() {
         if (typeof this.props.replace !== "boolean") {
-            return (this.props.replace && this.props.replace !== "false") || this.props.replace === "";
+            return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
         }
         return this.props.replace;
     },
@@ -67,9 +67,9 @@ var NavigateComponent = {
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>', [{
-      'redundantAttribute': 'expr4',
-      'selector': '[expr4]',
+    return template('<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>', [{
+      'redundantAttribute': 'expr3',
+      'selector': '[expr3]',
 
       'expressions': [{
         'type': expressionTypes.ATTRIBUTE,
@@ -90,8 +90,8 @@ var NavigateComponent = {
       'type': bindingTypes.SLOT,
       'attributes': [],
       'name': 'default',
-      'redundantAttribute': 'expr5',
-      'selector': '[expr5]'
+      'redundantAttribute': 'expr4',
+      'selector': '[expr4]'
     }]);
   },
 

@@ -1,6 +1,6 @@
 import { register } from 'riot';
 import 'history-manager';
-import './constants-58bd8f59.js';
+import './loading-bar-3e233626.js';
 import RouterComponent from './router.js';
 import RouteComponent from './route.js';
 import NavigateComponent from './navigate.js';

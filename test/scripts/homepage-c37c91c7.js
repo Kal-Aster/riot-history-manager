@@ -18,7 +18,7 @@ define(['exports'], function (exports) { 'use strict';
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template(' <img expr35="expr35" src="image1.jpg" need-loading/>', [{
+        return template(' <img expr36="expr36" src="image1.jpg" need-loading/>', [{
           'expressions': [{
             'type': expressionTypes.TEXT,
             'childNodeIndex': 0,
@@ -28,8 +28,8 @@ define(['exports'], function (exports) { 'use strict';
             }
           }]
         }, {
-          'redundantAttribute': 'expr35',
-          'selector': '[expr35]',
+          'redundantAttribute': 'expr36',
+          'selector': '[expr36]',
 
           'expressions': [{
             'type': expressionTypes.EVENT,

@@ -1,7 +1,7 @@
 <test>
     <navigate href="home">to HOME</navigate>
     <navigate href="me">to ME</navigate>
-    <navigate href="users/{ Math.round(Math.random() * 32) }">to USERS/:id</navigate>
+    <navigate href="users/{ Math.round(Math.random() * 32) }" replace>to USERS/:id</navigate>
     <div />
     <navigate context="home">Restore home</navigate>
     <navigate context="profile">Restore profile</navigate>
@@ -12,7 +12,7 @@
             <homepage need-loading />
         </route>
         <route path="me">
-            ME <img src="image.jpg" need-loading>
+            <replace-test need-loading />
         </route>
         <route path="users/:id">{
             route.location.href
@@ -37,6 +37,7 @@
             name: "profile",
             paths: [
                 { path: "me" },
+                { path: "accedi", fallback: true },
                 { path: "users/:id", fallback: true }
             ],
             default: "me"
@@ -47,7 +48,8 @@
                 Router.start("home").then(() => console.log("started"));
             },
             components: {
-                homepage: lazy(() => import('./homepage.riot'))
+                homepage: lazy(() => import('./homepage.riot')),
+                "replace-test": lazy(() => import('./replace-test.riot'))
             }
         }
     </script>

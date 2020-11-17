@@ -4,6 +4,7 @@
     <script>
         import { Router } from "history-manager";
         import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./constants";
+        import { claim, release } from "./loading-bar";
 
         export default {
             onBeforeMount() {
@@ -12,6 +13,7 @@
             },
             onMounted() {
                 this[ROUTER].route("(.*)", () => {
+                    claim(this); release(this);
                     this[LAST_ROUTED] = null;
                     this[UNROUTE_METHOD]();
                     this[UNROUTE_METHOD] = () => {};
