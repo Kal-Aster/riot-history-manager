@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 ### Change
 - customable `z-index` of loading bar
 
+## [1.3.7] - 2020-11-17
+### Added
+### Changed
+- `a` tag in `navigate` has the default href if `context` is specified
+- `routerload` event is dispatch as soon as the loading bar progress ends
+
 ## [1.3.4] - 2020-11-16
 ### Added
 - "requestvisibility" event

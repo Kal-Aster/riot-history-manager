@@ -43,7 +43,9 @@ define(['history-manager'], function (historyManager) { 'use strict';
 
         href(toA = true) {
             if (typeof this.props.href !== "string") {
-                return null;
+                const context = this.context();
+                console.log(context, historyManager.Router.getContextDefaultOf(context));
+                return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
             }
             if (this._href == null) {
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
@@ -70,7 +72,7 @@ define(['history-manager'], function (historyManager) { 'use strict';
             'name': 'href',
 
             'evaluate': function(scope) {
-              return scope.href();
+              return "#" + scope.href();
             }
           }, {
             'type': expressionTypes.ATTRIBUTE,

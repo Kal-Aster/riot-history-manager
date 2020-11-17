@@ -20,6 +20,7 @@ function startLoading() {
         cancelAnimationFrame(nextFrame);
     }
     var lastTime;
+    var eventDispatched = false;
     var step = function () {
         if (loadingDone && loadingProgress === 5) {
             loadingProgress = 100;
@@ -30,10 +31,13 @@ function startLoading() {
         var last = lastTime;
         var delta = ((lastTime = Date.now()) - last);
         if (loadingProgress >= 100) {
+            if (!eventDispatched) {
+                window.dispatchEvent(new Event("routerload"));
+                eventDispatched = true;
+            }
             if ((doneTime -= delta) <= 0) {
                 doneTime = visibilityTime;
                 loadingBarContainer.style.display = "none";
-                window.dispatchEvent(new Event("routerload"));
             }
             else {
                 requestAnimationFrame(step);

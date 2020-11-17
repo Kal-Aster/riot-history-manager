@@ -29,7 +29,7 @@
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr15="expr15"></slot>', [{
+        return template('<slot expr17="expr17"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -42,8 +42,8 @@
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr15',
-          'selector': '[expr15]'
+          'redundantAttribute': 'expr17',
+          'selector': '[expr17]'
         }]);
       },
 
@@ -69,6 +69,7 @@
             cancelAnimationFrame(nextFrame);
         }
         var lastTime;
+        var eventDispatched = false;
         var step = function () {
             if (loadingDone && loadingProgress === 5) {
                 loadingProgress = 100;
@@ -79,10 +80,13 @@
             var last = lastTime;
             var delta = ((lastTime = Date.now()) - last);
             if (loadingProgress >= 100) {
+                if (!eventDispatched) {
+                    window.dispatchEvent(new Event("routerload"));
+                    eventDispatched = true;
+                }
                 if ((doneTime -= delta) <= 0) {
                     doneTime = visibilityTime;
                     loadingBarContainer.style.display = "none";
-                    window.dispatchEvent(new Event("routerload"));
                 }
                 else {
                     requestAnimationFrame(step);
@@ -460,7 +464,9 @@
 
         href(toA = true) {
             if (typeof this.props.href !== "string") {
-                return null;
+                const context = this.context();
+                console.log(context, historyManager.Router.getContextDefaultOf(context));
+                return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
             }
             if (this._href == null) {
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
@@ -479,17 +485,17 @@
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr16="expr16" ref="-navigate-a"><slot expr17="expr17"></slot></a>',
+          '<a expr15="expr15" ref="-navigate-a"><slot expr16="expr16"></slot></a>',
           [{
-            'redundantAttribute': 'expr16',
-            'selector': '[expr16]',
+            'redundantAttribute': 'expr15',
+            'selector': '[expr15]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
               'name': 'href',
 
               'evaluate': function(scope) {
-                return scope.href();
+                return "#" + scope.href();
               }
             }, {
               'type': expressionTypes.ATTRIBUTE,
@@ -503,8 +509,8 @@
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr17',
-            'selector': '[expr17]'
+            'redundantAttribute': 'expr16',
+            'selector': '[expr16]'
           }]
         );
       },

@@ -26,6 +26,7 @@ function startLoading(): void {
         cancelAnimationFrame(nextFrame);
     }
     let lastTime: number;
+    let eventDispatched: boolean = false;
     let step: () => void = () => {
         if (loadingDone && loadingProgress === 5) {
             loadingProgress = 100;
@@ -37,10 +38,13 @@ function startLoading(): void {
         let delta: number = ((lastTime = Date.now()) - last);
         // se il progresso della barra è completo, attendere che passi il tempo previsto prima di nasconderla
         if (loadingProgress >= 100) {
+            if (!eventDispatched) {
+                window.dispatchEvent(new Event("routerload"));
+                eventDispatched = true;
+            }
             if ((doneTime -= delta) <= 0) {
                 doneTime = visibilityTime;
                 loadingBarContainer.style.display = "none";
-                window.dispatchEvent(new Event("routerload"));
             } else {
                 requestAnimationFrame(step);
             }

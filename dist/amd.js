@@ -25,7 +25,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr12="expr12"></slot>', [{
+        return template('<slot expr14="expr14"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -38,8 +38,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr12',
-          'selector': '[expr12]'
+          'redundantAttribute': 'expr14',
+          'selector': '[expr14]'
         }]);
       },
 
@@ -65,6 +65,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             cancelAnimationFrame(nextFrame);
         }
         var lastTime;
+        var eventDispatched = false;
         var step = function () {
             if (loadingDone && loadingProgress === 5) {
                 loadingProgress = 100;
@@ -75,10 +76,13 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             var last = lastTime;
             var delta = ((lastTime = Date.now()) - last);
             if (loadingProgress >= 100) {
+                if (!eventDispatched) {
+                    window.dispatchEvent(new Event("routerload"));
+                    eventDispatched = true;
+                }
                 if ((doneTime -= delta) <= 0) {
                     doneTime = visibilityTime;
                     loadingBarContainer.style.display = "none";
-                    window.dispatchEvent(new Event("routerload"));
                 }
                 else {
                     requestAnimationFrame(step);
@@ -456,7 +460,9 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
         href(toA = true) {
             if (typeof this.props.href !== "string") {
-                return null;
+                const context = this.context();
+                console.log(context, historyManager.Router.getContextDefaultOf(context));
+                return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
             }
             if (this._href == null) {
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
@@ -475,17 +481,17 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
+          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
           [{
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]',
+            'redundantAttribute': 'expr12',
+            'selector': '[expr12]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
               'name': 'href',
 
               'evaluate': function(scope) {
-                return scope.href();
+                return "#" + scope.href();
               }
             }, {
               'type': expressionTypes.ATTRIBUTE,
@@ -499,8 +505,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr14',
-            'selector': '[expr14]'
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]'
           }]
         );
       },

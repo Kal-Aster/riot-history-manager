@@ -1521,6 +1521,9 @@ define(function () { 'use strict';
 	function setContextDefaultHref(context, href) {
 	    return contextManager.setContextDefaultHref(context, href);
 	}
+	function getContextDefaultOf(context) {
+	    return contextManager.getDefaultOf(context);
+	}
 	function getContext(href) {
 	    if (href === void 0) { href = null; }
 	    if (href == null) {
@@ -1825,6 +1828,7 @@ define(function () { 'use strict';
 	    setContext: setContext,
 	    addContextPath: addContextPath,
 	    setContextDefaultHref: setContextDefaultHref,
+	    getContextDefaultOf: getContextDefaultOf,
 	    getContext: getContext,
 	    getHREFs: getHREFs,
 	    restore: restore,
@@ -1839,6 +1843,7 @@ define(function () { 'use strict';
 	var addContextPath_1 = addContextPath;
 	var assign_1 = assign;
 	var getContext_1 = getContext;
+	var getContextDefaultOf_1 = getContextDefaultOf;
 	var getHREFAt_1 = getHREFAt;
 	var go_1 = go;
 	var index_1 = index;
@@ -1849,12 +1854,13 @@ define(function () { 'use strict';
 	var setContextDefaultHref_1 = setContextDefaultHref;
 	var start_1 = start;
 
-	var HistoryManager2d438168 = {
+	var HistoryManager377f9dde = {
 		HistoryManager: HistoryManager_1,
 		acquire: acquire_1,
 		addContextPath: addContextPath_1,
 		assign: assign_1,
 		getContext: getContext_1,
+		getContextDefaultOf: getContextDefaultOf_1,
 		getHREFAt: getHREFAt_1,
 		go: go_1,
 		index: index_1,
@@ -1894,8 +1900,8 @@ define(function () { 'use strict';
 	    var promise = new Promise(function (resolve) {
 	        promiseResolve = resolve;
 	    });
-	    HistoryManager2d438168.onWorkFinished(function () {
-	        historyLock = HistoryManager2d438168.acquire();
+	    HistoryManager377f9dde.onWorkFinished(function () {
+	        historyLock = HistoryManager377f9dde.acquire();
 	        var lock = {
 	            lock: {
 	                get id() {
@@ -2016,7 +2022,7 @@ define(function () { 'use strict';
 	var locked_1 = locked;
 	var unlock_1 = unlock;
 
-	var NavigationLock98e110ab = {
+	var NavigationLockD1fe8181 = {
 		NavigationLock: NavigationLock_1,
 		lock: lock_1,
 		locked: locked_1,
@@ -2253,7 +2259,7 @@ define(function () { 'use strict';
 	    if (emit === void 0) { emit = true; }
 	    var lastEmitRoute = emitRoute;
 	    emitRoute = emit;
-	    return (replace ? HistoryManager2d438168.replace(path) : HistoryManager2d438168.assign(path)).catch(function () {
+	    return (replace ? HistoryManager377f9dde.replace(path) : HistoryManager377f9dde.assign(path)).catch(function () {
 	        emitRoute = lastEmitRoute;
 	    });
 	}
@@ -2351,13 +2357,13 @@ define(function () { 'use strict';
 	    return main.unroute(path);
 	}
 	function start(startingContext) {
-	    return HistoryManager2d438168.start(startingContext);
+	    return HistoryManager377f9dde.start(startingContext);
 	}
 	function index() {
-	    return HistoryManager2d438168.index();
+	    return HistoryManager377f9dde.index();
 	}
 	function getLocationAt(index) {
-	    var href = HistoryManager2d438168.getHREFAt(index);
+	    var href = HistoryManager377f9dde.getHREFAt(index);
 	    if (href == null) {
 	        return null;
 	    }
@@ -2365,19 +2371,22 @@ define(function () { 'use strict';
 	}
 	function addContextPath(context, href, isFallback) {
 	    if (isFallback === void 0) { isFallback = false; }
-	    return HistoryManager2d438168.addContextPath(context, href, isFallback);
+	    return HistoryManager377f9dde.addContextPath(context, href, isFallback);
 	}
 	function setContextDefaultHref(context, href) {
-	    return HistoryManager2d438168.setContextDefaultHref(context, href);
+	    return HistoryManager377f9dde.setContextDefaultHref(context, href);
 	}
 	function setContext(context) {
-	    return HistoryManager2d438168.setContext(context);
+	    return HistoryManager377f9dde.setContext(context);
 	}
 	function getContext(href) {
-	    return HistoryManager2d438168.getContext(href);
+	    return HistoryManager377f9dde.getContext(href);
 	}
 	function restoreContext(context, defaultHref) {
-	    return HistoryManager2d438168.restore(context);
+	    return HistoryManager377f9dde.restore(context);
+	}
+	function getContextDefaultOf(context) {
+	    return HistoryManager377f9dde.getContextDefaultOf(context);
 	}
 	function emit(single) {
 	    if (single === void 0) { single = false; }
@@ -2411,7 +2420,7 @@ define(function () { 'use strict';
 	        else {
 	            var lastEmitRoute_1 = emitRoute;
 	            emitRoute = options.emit == null ? true : options.emit;
-	            HistoryManager2d438168.go(path_index).then(promiseResolve, function () {
+	            HistoryManager377f9dde.go(path_index).then(promiseResolve, function () {
 	                emitRoute = lastEmitRoute_1;
 	            });
 	        }
@@ -2420,7 +2429,7 @@ define(function () { 'use strict';
 	function setQueryParam(param, value, options) {
 	    var promiseResolve;
 	    var promise = new Promise(function (resolve) { promiseResolve = resolve; });
-	    HistoryManager2d438168.onWorkFinished(function () {
+	    HistoryManager377f9dde.onWorkFinished(function () {
 	        var location = getLocation();
 	        if (value === undefined) {
 	            location.removeQueryParam(param);
@@ -2433,11 +2442,11 @@ define(function () { 'use strict';
 	    return promise;
 	}
 	function lock() {
-	    return NavigationLock98e110ab.lock();
+	    return NavigationLockD1fe8181.lock();
 	}
 	function unlock(force) {
 	    if (force === void 0) { force = true; }
-	    return NavigationLock98e110ab.unlock(force);
+	    return NavigationLockD1fe8181.unlock(force);
 	}
 	function destroy() {
 	    throw new Error("cannot destroy main Router");
@@ -2450,7 +2459,7 @@ define(function () { 'use strict';
 	    _emit();
 	}
 	function isLocked() {
-	    return NavigationLock98e110ab.locked();
+	    return NavigationLockD1fe8181.locked();
 	}
 
 	var Router = /*#__PURE__*/Object.freeze({
@@ -2468,6 +2477,7 @@ define(function () { 'use strict';
 	    setContext: setContext,
 	    getContext: getContext,
 	    restoreContext: restoreContext,
+	    getContextDefaultOf: getContextDefaultOf,
 	    emit: emit,
 	    create: create,
 	    go: go,
@@ -2478,7 +2488,7 @@ define(function () { 'use strict';
 	    getBase: getBase,
 	    setBase: setBase,
 	    isLocked: isLocked,
-	    NavigationLock: NavigationLock98e110ab.NavigationLock
+	    NavigationLock: NavigationLockD1fe8181.NavigationLock
 	});
 
 	var locks = [];
@@ -2599,8 +2609,8 @@ define(function () { 'use strict';
 	exports.OptionsManager = OptionsManager3fd4d9f6.OptionsManager;
 	exports.ContextManager = ContextManager6ca49066.ContextManager$1;
 	exports.URLManager = ContextManager6ca49066.URLManager;
-	exports.HistoryManager = HistoryManager2d438168.HistoryManager;
-	exports.NavigationLock = NavigationLock98e110ab.NavigationLock;
+	exports.HistoryManager = HistoryManager377f9dde.HistoryManager;
+	exports.NavigationLock = NavigationLockD1fe8181.NavigationLock;
 	exports.Router = Router;
 	exports.WorkManager = WorkManager;
 	});
@@ -2630,7 +2640,7 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr9="expr9"></slot>', [{
+	    return template('<slot expr11="expr11"></slot>', [{
 	      'type': bindingTypes.SLOT,
 
 	      'attributes': [{
@@ -2643,8 +2653,8 @@ define(function () { 'use strict';
 	      }],
 
 	      'name': 'default',
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]'
+	      'redundantAttribute': 'expr11',
+	      'selector': '[expr11]'
 	    }]);
 	  },
 
@@ -4940,6 +4950,7 @@ define(function () { 'use strict';
 	        cancelAnimationFrame(nextFrame);
 	    }
 	    var lastTime;
+	    var eventDispatched = false;
 	    var step = function () {
 	        if (loadingDone && loadingProgress === 5) {
 	            loadingProgress = 100;
@@ -4950,10 +4961,13 @@ define(function () { 'use strict';
 	        var last = lastTime;
 	        var delta = ((lastTime = Date.now()) - last);
 	        if (loadingProgress >= 100) {
+	            if (!eventDispatched) {
+	                window.dispatchEvent(new Event("routerload"));
+	                eventDispatched = true;
+	            }
 	            if ((doneTime -= delta) <= 0) {
 	                doneTime = visibilityTime;
 	                loadingBarContainer.style.display = "none";
-	                window.dispatchEvent(new Event("routerload"));
 	            }
 	            else {
 	                requestAnimationFrame(step);
@@ -5331,7 +5345,9 @@ define(function () { 'use strict';
 
 	    href(toA = true) {
 	        if (typeof this.props.href !== "string") {
-	            return null;
+	            const context = this.context();
+	            console.log(context, cjs.Router.getContextDefaultOf(context));
+	            return context != null ? cjs.Router.getContextDefaultOf(context) : null;
 	        }
 	        if (this._href == null) {
 	            this._href = cjs.Router.getLocation().hrefIf(this.props.href);
@@ -5349,35 +5365,32 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template(
-	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
-	      [{
-	        'redundantAttribute': 'expr10',
-	        'selector': '[expr10]',
+	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]',
 
-	        'expressions': [{
-	          'type': expressionTypes.ATTRIBUTE,
-	          'name': 'href',
+	      'expressions': [{
+	        'type': expressionTypes.ATTRIBUTE,
+	        'name': 'href',
 
-	          'evaluate': function(scope) {
-	            return scope.href();
-	          }
-	        }, {
-	          'type': expressionTypes.ATTRIBUTE,
-	          'name': 'style',
-
-	          'evaluate': function(scope) {
-	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	          }
-	        }]
+	        'evaluate': function(scope) {
+	          return "#" + scope.href();
+	        }
 	      }, {
-	        'type': bindingTypes.SLOT,
-	        'attributes': [],
-	        'name': 'default',
-	        'redundantAttribute': 'expr11',
-	        'selector': '[expr11]'
+	        'type': expressionTypes.ATTRIBUTE,
+	        'name': 'style',
+
+	        'evaluate': function(scope) {
+	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	        }
 	      }]
-	    );
+	    }, {
+	      'type': bindingTypes.SLOT,
+	      'attributes': [],
+	      'name': 'default',
+	      'redundantAttribute': 'expr10',
+	      'selector': '[expr10]'
+	    }]);
 	  },
 
 	  'name': 'navigate'

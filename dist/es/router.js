@@ -22,7 +22,7 @@ var RouterComponent = {
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<slot expr8="expr8"></slot>', [{
+    return template('<slot expr6="expr6"></slot>', [{
       'type': bindingTypes.SLOT,
 
       'attributes': [{
@@ -35,8 +35,8 @@ var RouterComponent = {
       }],
 
       'name': 'default',
-      'redundantAttribute': 'expr8',
-      'selector': '[expr8]'
+      'redundantAttribute': 'expr6',
+      'selector': '[expr6]'
     }]);
   },
 

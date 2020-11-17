@@ -45,7 +45,9 @@ var NavigateComponent = {
 
     href(toA = true) {
         if (typeof this.props.href !== "string") {
-            return null;
+            const context = this.context();
+            console.log(context, historyManager.Router.getContextDefaultOf(context));
+            return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
         }
         if (this._href == null) {
             this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
@@ -63,16 +65,16 @@ var NavigateComponent = {
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>', [{
-      'redundantAttribute': 'expr3',
-      'selector': '[expr3]',
+    return template('<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>', [{
+      'redundantAttribute': 'expr4',
+      'selector': '[expr4]',
 
       'expressions': [{
         'type': expressionTypes.ATTRIBUTE,
         'name': 'href',
 
         'evaluate': function(scope) {
-          return scope.href();
+          return "#" + scope.href();
         }
       }, {
         'type': expressionTypes.ATTRIBUTE,
@@ -86,8 +88,8 @@ var NavigateComponent = {
       'type': bindingTypes.SLOT,
       'attributes': [],
       'name': 'default',
-      'redundantAttribute': 'expr4',
-      'selector': '[expr4]'
+      'redundantAttribute': 'expr5',
+      'selector': '[expr5]'
     }]);
   },
 

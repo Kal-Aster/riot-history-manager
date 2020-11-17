@@ -1,6 +1,7 @@
 <navigate>
 <!--  Giuliano Collacchioni: 2019  -->
-    <a href={ href() } style="display: { root.style.display }; width: 100%; height: 100%;" ref="-navigate-a">
+    <!-- the hashtag should be the Router base -->
+    <a href={ "#" + href() } style="display: { root.style.display }; width: 100%; height: 100%;" ref="-navigate-a">
         <slot />
     </a>
 
@@ -53,7 +54,9 @@
             },
             href(toA = true) {
                 if (typeof this.props.href !== "string") {
-                    return null;
+                    const context = this.context();
+                    console.log(context, Router.getContextDefaultOf(context));
+                    return context != null ? Router.getContextDefaultOf(context) : null;
                 }
                 if (this._href == null) {
                     this._href = Router.getLocation().hrefIf(this.props.href);

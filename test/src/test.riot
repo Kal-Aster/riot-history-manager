@@ -3,8 +3,8 @@
     <navigate href="me">to ME</navigate>
     <navigate href="users/{ Math.round(Math.random() * 32) }">to USERS/:id</navigate>
     <div />
-    <button onclick={ restore("home") }>Restore home</button>
-    <button onclick={ restore("profile") }>Restore profile</button>
+    <navigate context="home">Restore home</navigate>
+    <navigate context="profile">Restore profile</navigate>
     <div />
     <router>
         <route path="" redirect="home" />
@@ -45,11 +45,6 @@
         export default {
             onMounted() {
                 Router.start("home").then(() => console.log("started"));
-            },
-            restore(context) {
-                return () => {
-                    Router.restoreContext(context);
-                };
             },
             components: {
                 homepage: lazy(() => import('./homepage.riot'))
