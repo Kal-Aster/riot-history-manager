@@ -460,9 +460,11 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
         href(toA = true) {
             if (typeof this.props.href !== "string") {
-                const context = this.context();
-                console.log(context, historyManager.Router.getContextDefaultOf(context));
-                return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
+                if (toA) {
+                    const context = this.context();
+                    return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
+                }
+                return null;
             }
             if (this._href == null) {
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);

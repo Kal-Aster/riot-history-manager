@@ -2640,7 +2640,7 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr11="expr11"></slot>', [{
+	    return template('<slot expr9="expr9"></slot>', [{
 	      'type': bindingTypes.SLOT,
 
 	      'attributes': [{
@@ -2653,8 +2653,8 @@ define(function () { 'use strict';
 	      }],
 
 	      'name': 'default',
-	      'redundantAttribute': 'expr11',
-	      'selector': '[expr11]'
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]'
 	    }]);
 	  },
 
@@ -5345,9 +5345,11 @@ define(function () { 'use strict';
 
 	    href(toA = true) {
 	        if (typeof this.props.href !== "string") {
-	            const context = this.context();
-	            console.log(context, cjs.Router.getContextDefaultOf(context));
-	            return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+	            if (toA) {
+	                const context = this.context();
+	                return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+	            }
+	            return null;
 	        }
 	        if (this._href == null) {
 	            this._href = cjs.Router.getLocation().hrefIf(this.props.href);
@@ -5365,32 +5367,35 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]',
+	    return template(
+	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
+	      [{
+	        'redundantAttribute': 'expr10',
+	        'selector': '[expr10]',
 
-	      'expressions': [{
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'href',
+	        'expressions': [{
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'href',
 
-	        'evaluate': function(scope) {
-	          return "#" + scope.href();
-	        }
+	          'evaluate': function(scope) {
+	            return "#" + scope.href();
+	          }
+	        }, {
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'style',
+
+	          'evaluate': function(scope) {
+	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	          }
+	        }]
 	      }, {
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'style',
-
-	        'evaluate': function(scope) {
-	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	        }
+	        'type': bindingTypes.SLOT,
+	        'attributes': [],
+	        'name': 'default',
+	        'redundantAttribute': 'expr11',
+	        'selector': '[expr11]'
 	      }]
-	    }, {
-	      'type': bindingTypes.SLOT,
-	      'attributes': [],
-	      'name': 'default',
-	      'redundantAttribute': 'expr10',
-	      'selector': '[expr10]'
-	    }]);
+	    );
 	  },
 
 	  'name': 'navigate'

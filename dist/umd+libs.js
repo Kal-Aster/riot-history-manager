@@ -2643,7 +2643,7 @@
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr20="expr20"></slot>', [{
+	    return template('<slot expr18="expr18"></slot>', [{
 	      'type': bindingTypes.SLOT,
 
 	      'attributes': [{
@@ -2656,8 +2656,8 @@
 	      }],
 
 	      'name': 'default',
-	      'redundantAttribute': 'expr20',
-	      'selector': '[expr20]'
+	      'redundantAttribute': 'expr18',
+	      'selector': '[expr18]'
 	    }]);
 	  },
 
@@ -5348,9 +5348,11 @@
 
 	    href(toA = true) {
 	        if (typeof this.props.href !== "string") {
-	            const context = this.context();
-	            console.log(context, cjs.Router.getContextDefaultOf(context));
-	            return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+	            if (toA) {
+	                const context = this.context();
+	                return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+	            }
+	            return null;
 	        }
 	        if (this._href == null) {
 	            this._href = cjs.Router.getLocation().hrefIf(this.props.href);
@@ -5369,10 +5371,10 @@
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
 	    return template(
-	      '<a expr18="expr18" ref="-navigate-a"><slot expr19="expr19"></slot></a>',
+	      '<a expr19="expr19" ref="-navigate-a"><slot expr20="expr20"></slot></a>',
 	      [{
-	        'redundantAttribute': 'expr18',
-	        'selector': '[expr18]',
+	        'redundantAttribute': 'expr19',
+	        'selector': '[expr19]',
 
 	        'expressions': [{
 	          'type': expressionTypes.ATTRIBUTE,
@@ -5393,8 +5395,8 @@
 	        'type': bindingTypes.SLOT,
 	        'attributes': [],
 	        'name': 'default',
-	        'redundantAttribute': 'expr19',
-	        'selector': '[expr19]'
+	        'redundantAttribute': 'expr20',
+	        'selector': '[expr20]'
 	      }]
 	    );
 	  },

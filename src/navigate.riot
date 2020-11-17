@@ -54,9 +54,11 @@
             },
             href(toA = true) {
                 if (typeof this.props.href !== "string") {
-                    const context = this.context();
-                    console.log(context, Router.getContextDefaultOf(context));
-                    return context != null ? Router.getContextDefaultOf(context) : null;
+                    if (toA) {
+                        const context = this.context();
+                        return context != null ? Router.getContextDefaultOf(context) : null;
+                    }
+                    return null;
                 }
                 if (this._href == null) {
                     this._href = Router.getLocation().hrefIf(this.props.href);

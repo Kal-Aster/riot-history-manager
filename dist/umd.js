@@ -29,7 +29,7 @@
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr17="expr17"></slot>', [{
+        return template('<slot expr15="expr15"></slot>', [{
           'type': bindingTypes.SLOT,
 
           'attributes': [{
@@ -42,8 +42,8 @@
           }],
 
           'name': 'default',
-          'redundantAttribute': 'expr17',
-          'selector': '[expr17]'
+          'redundantAttribute': 'expr15',
+          'selector': '[expr15]'
         }]);
       },
 
@@ -464,9 +464,11 @@
 
         href(toA = true) {
             if (typeof this.props.href !== "string") {
-                const context = this.context();
-                console.log(context, historyManager.Router.getContextDefaultOf(context));
-                return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
+                if (toA) {
+                    const context = this.context();
+                    return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
+                }
+                return null;
             }
             if (this._href == null) {
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
@@ -485,10 +487,10 @@
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr15="expr15" ref="-navigate-a"><slot expr16="expr16"></slot></a>',
+          '<a expr16="expr16" ref="-navigate-a"><slot expr17="expr17"></slot></a>',
           [{
-            'redundantAttribute': 'expr15',
-            'selector': '[expr15]',
+            'redundantAttribute': 'expr16',
+            'selector': '[expr16]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -509,8 +511,8 @@
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr16',
-            'selector': '[expr16]'
+            'redundantAttribute': 'expr17',
+            'selector': '[expr17]'
           }]
         );
       },

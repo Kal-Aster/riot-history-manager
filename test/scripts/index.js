@@ -4993,7 +4993,7 @@ define(['require'], function (require) { 'use strict';
     },
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
-      return template('<slot expr34="expr34"></slot>', [{
+      return template('<slot expr32="expr32"></slot>', [{
         'type': bindingTypes.SLOT,
 
         'attributes': [{
@@ -5006,8 +5006,8 @@ define(['require'], function (require) { 'use strict';
         }],
 
         'name': 'default',
-        'redundantAttribute': 'expr34',
-        'selector': '[expr34]'
+        'redundantAttribute': 'expr32',
+        'selector': '[expr32]'
       }]);
     },
 
@@ -5428,9 +5428,11 @@ define(['require'], function (require) { 'use strict';
 
       href(toA = true) {
           if (typeof this.props.href !== "string") {
-              const context = this.context();
-              console.log(context, cjs.Router.getContextDefaultOf(context));
-              return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+              if (toA) {
+                  const context = this.context();
+                  return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+              }
+              return null;
           }
           if (this._href == null) {
               this._href = cjs.Router.getLocation().hrefIf(this.props.href);
@@ -5449,10 +5451,10 @@ define(['require'], function (require) { 'use strict';
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<a expr32="expr32" ref="-navigate-a"><slot expr33="expr33"></slot></a>',
+        '<a expr33="expr33" ref="-navigate-a"><slot expr34="expr34"></slot></a>',
         [{
-          'redundantAttribute': 'expr32',
-          'selector': '[expr32]',
+          'redundantAttribute': 'expr33',
+          'selector': '[expr33]',
 
           'expressions': [{
             'type': expressionTypes.ATTRIBUTE,
@@ -5473,8 +5475,8 @@ define(['require'], function (require) { 'use strict';
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr33',
-          'selector': '[expr33]'
+          'redundantAttribute': 'expr34',
+          'selector': '[expr34]'
         }]
       );
     },
