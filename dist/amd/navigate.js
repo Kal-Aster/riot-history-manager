@@ -65,9 +65,9 @@ define(['history-manager'], function (historyManager) { 'use strict';
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<a expr0="expr0" ref="-navigate-a"><slot expr1="expr1"></slot></a>', [{
-          'redundantAttribute': 'expr0',
-          'selector': '[expr0]',
+        return template('<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>', [{
+          'redundantAttribute': 'expr1',
+          'selector': '[expr1]',
 
           'expressions': [{
             'type': expressionTypes.ATTRIBUTE,
@@ -88,8 +88,8 @@ define(['history-manager'], function (historyManager) { 'use strict';
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr1',
-          'selector': '[expr1]'
+          'redundantAttribute': 'expr2',
+          'selector': '[expr2]'
         }]);
       },
 

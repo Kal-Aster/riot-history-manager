@@ -2724,12 +2724,12 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr11="expr11"></slot>', [{
+	    return template('<slot expr9="expr9"></slot>', [{
 	      'type': bindingTypes.SLOT,
 	      'attributes': [],
 	      'name': 'default',
-	      'redundantAttribute': 'expr11',
-	      'selector': '[expr11]'
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]'
 	    }]);
 	  },
 
@@ -5177,8 +5177,27 @@ define(function () { 'use strict';
 	    delete event.stopPropagation;
 	}
 
+	function onunroute(routeComponent, currentMount, route, router, shouldResetUnroute) {
+	    const currentEl = currentMount.el;
+	    {
+	        const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+	        dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+	        const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+	        currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
+	    }
+	    {
+	        routeComponent.root.removeChild(currentEl);
+	        // if want to keep some route for faster loading, just `display: none` the element
+	        // currentEl.style.display = "none";
+	    }
+	    if (shouldResetUnroute) {
+	        router[UNROUTE_METHOD] = () => {};
+	    }
+	}
+
 	function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
 	    if (router[LAST_ROUTED] !== routeComponent) {
+	        onunroute(routeComponent, currentMount, route, router, false);
 	        return;
 	    }
 	    const currentEl = currentMount.el;
@@ -5186,18 +5205,7 @@ define(function () { 'use strict';
 	        release(claimer);
 	    }
 	    router[UNROUTE_METHOD]();
-	    router[UNROUTE_METHOD] = () => {
-	        {
-	            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-	            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
-	        }
-	        const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
-	        currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
-	        routeComponent.root.removeChild(currentEl);
-	        // if want to keep some route for faster loading, just `display: none` the element
-	        // currentEl.style.display = "none";
-	        router[UNROUTE_METHOD] = () => {};
-	    };
+	    router[UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
 	    currentEl.style.display = "block";
 	    {
 	        const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
@@ -5217,9 +5225,9 @@ define(function () { 'use strict';
 	    const slot = this.slots[0];
 	    const currentEl = document.createElement("div");
 	    this.root.appendChild(currentEl);
-	    const scope = Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
 	    const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
-	        currentEl, scope,
+	        currentEl,
+	        Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
 	        this[__.globals.PARENT_KEY_SYMBOL]
 	    );
 	    currentEl.style.display = "none";
@@ -5372,32 +5380,35 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]',
+	    return template(
+	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
+	      [{
+	        'redundantAttribute': 'expr10',
+	        'selector': '[expr10]',
 
-	      'expressions': [{
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'href',
+	        'expressions': [{
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'href',
 
-	        'evaluate': function(scope) {
-	          return "#" + scope.href();
-	        }
+	          'evaluate': function(scope) {
+	            return "#" + scope.href();
+	          }
+	        }, {
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'style',
+
+	          'evaluate': function(scope) {
+	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	          }
+	        }]
 	      }, {
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'style',
-
-	        'evaluate': function(scope) {
-	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	        }
+	        'type': bindingTypes.SLOT,
+	        'attributes': [],
+	        'name': 'default',
+	        'redundantAttribute': 'expr11',
+	        'selector': '[expr11]'
 	      }]
-	    }, {
-	      'type': bindingTypes.SLOT,
-	      'attributes': [],
-	      'name': 'default',
-	      'redundantAttribute': 'expr10',
-	      'selector': '[expr10]'
-	    }]);
+	    );
 	  },
 
 	  'name': 'navigate'

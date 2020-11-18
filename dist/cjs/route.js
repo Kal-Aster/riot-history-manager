@@ -174,8 +174,27 @@ function dispatchEventOver(children, event, collectLoaders, collectRouter) {
     delete event.stopPropagation;
 }
 
+function onunroute(routeComponent, currentMount, route, router, shouldResetUnroute) {
+    const currentEl = currentMount.el;
+    {
+        const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+        dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+        const scope = Object.create(routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+        currentMount.unmount( scope, routeComponent[riot.__.globals.PARENT_KEY_SYMBOL] );
+    }
+    {
+        routeComponent.root.removeChild(currentEl);
+        // if want to keep some route for faster loading, just `display: none` the element
+        // currentEl.style.display = "none";
+    }
+    if (shouldResetUnroute) {
+        router[loadingBar.UNROUTE_METHOD] = () => {};
+    }
+}
+
 function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
     if (router[loadingBar.LAST_ROUTED] !== routeComponent) {
+        onunroute(routeComponent, currentMount, route, router, false);
         return;
     }
     const currentEl = currentMount.el;
@@ -183,18 +202,7 @@ function onloadingcomplete(routeComponent, currentMount, route, router, claimer)
         loadingBar.release(claimer);
     }
     router[loadingBar.UNROUTE_METHOD]();
-    router[loadingBar.UNROUTE_METHOD] = () => {
-        {
-            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
-        }
-        const scope = Object.create(routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
-        currentMount.unmount( scope, routeComponent[riot.__.globals.PARENT_KEY_SYMBOL] );
-        routeComponent.root.removeChild(currentEl);
-        // if want to keep some route for faster loading, just `display: none` the element
-        // currentEl.style.display = "none";
-        router[loadingBar.UNROUTE_METHOD] = () => {};
-    };
+    router[loadingBar.UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
     currentEl.style.display = "block";
     {
         const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
@@ -214,9 +222,9 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     const slot = this.slots[0];
     const currentEl = document.createElement("div");
     this.root.appendChild(currentEl);
-    const scope = Object.create(this[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
     const currentMount = riot.__.DOMBindings.template(slot.html, slot.bindings).mount(
-        currentEl, scope,
+        currentEl,
+        Object.create(this[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
         this[riot.__.globals.PARENT_KEY_SYMBOL]
     );
     currentEl.style.display = "none";

@@ -27,12 +27,12 @@ define(['history-manager', './loading-bar-e86c6d04'], function (historyManager, 
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr2="expr2"></slot>', [{
+        return template('<slot expr0="expr0"></slot>', [{
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr2',
-          'selector': '[expr2]'
+          'redundantAttribute': 'expr0',
+          'selector': '[expr0]'
         }]);
       },
 

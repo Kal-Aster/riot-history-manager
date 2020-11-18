@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Change
 - customable `z-index` of loading bar
 
+## [1.3.12] - 2020-11-18
+### Added
+### Changed
+- unrouting correctly when loading routes overlap
+
 ## [1.3.11] - 2020-11-18
 ### Added
 ### Changed
