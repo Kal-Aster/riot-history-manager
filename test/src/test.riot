@@ -12,7 +12,7 @@
             <homepage need-loading />
         </route>
         <route path="me">
-            <replace-test test={ window.console.log("here") || testcontext } need-loading />
+            <replace-test test={ window.console.log("here", this) || testcontext } need-loading />
         </route>
         <route path="users/:id">{
             route.location.href

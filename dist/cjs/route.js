@@ -188,10 +188,8 @@ function onloadingcomplete(routeComponent, currentMount, route, router, claimer)
             const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
             dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
         }
-        currentMount.unmount(
-            {...routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
-            routeComponent[riot.__.globals.PARENT_KEY_SYMBOL]
-        );
+        const scope = Object.create(routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+        currentMount.unmount( scope, routeComponent[riot.__.globals.PARENT_KEY_SYMBOL] );
         routeComponent.root.removeChild(currentEl);
         // if want to keep some route for faster loading, just `display: none` the element
         // currentEl.style.display = "none";
@@ -216,9 +214,9 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     const slot = this.slots[0];
     const currentEl = document.createElement("div");
     this.root.appendChild(currentEl);
+    const scope = Object.create(this[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
     const currentMount = riot.__.DOMBindings.template(slot.html, slot.bindings).mount(
-        currentEl,
-        { ...this[riot.__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
+        currentEl, scope,
         this[riot.__.globals.PARENT_KEY_SYMBOL]
     );
     currentEl.style.display = "none";

@@ -65,9 +65,9 @@ var NavigateComponent = {
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<a expr6="expr6" ref="-navigate-a"><slot expr7="expr7"></slot></a>', [{
-      'redundantAttribute': 'expr6',
-      'selector': '[expr6]',
+    return template('<a expr7="expr7" ref="-navigate-a"><slot expr8="expr8"></slot></a>', [{
+      'redundantAttribute': 'expr7',
+      'selector': '[expr7]',
 
       'expressions': [{
         'type': expressionTypes.ATTRIBUTE,
@@ -88,8 +88,8 @@ var NavigateComponent = {
       'type': bindingTypes.SLOT,
       'attributes': [],
       'name': 'default',
-      'redundantAttribute': 'expr7',
-      'selector': '[expr7]'
+      'redundantAttribute': 'expr8',
+      'selector': '[expr8]'
     }]);
   },
 

@@ -5194,10 +5194,8 @@
 	            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
 	            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
 	        }
-	        currentMount.unmount(
-	            {...routeComponent[__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
-	            routeComponent[__.globals.PARENT_KEY_SYMBOL]
-	        );
+	        const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+	        currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
 	        routeComponent.root.removeChild(currentEl);
 	        // if want to keep some route for faster loading, just `display: none` the element
 	        // currentEl.style.display = "none";
@@ -5222,9 +5220,9 @@
 	    const slot = this.slots[0];
 	    const currentEl = document.createElement("div");
 	    this.root.appendChild(currentEl);
+	    const scope = Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
 	    const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
-	        currentEl,
-	        { ...this[__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
+	        currentEl, scope,
 	        this[__.globals.PARENT_KEY_SYMBOL]
 	    );
 	    currentEl.style.display = "none";

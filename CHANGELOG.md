@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Change
 - customable `z-index` of loading bar
 
+## [1.3.11] - 2020-11-18
+### Added
+### Changed
+- fixed the way the scope is created for the route slot
+
 ## [1.3.10] - 2020-11-18
 ### Added
 ### Changed

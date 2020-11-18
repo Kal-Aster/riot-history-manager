@@ -2724,12 +2724,12 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr9="expr9"></slot>', [{
+	    return template('<slot expr11="expr11"></slot>', [{
 	      'type': bindingTypes.SLOT,
 	      'attributes': [],
 	      'name': 'default',
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]'
+	      'redundantAttribute': 'expr11',
+	      'selector': '[expr11]'
 	    }]);
 	  },
 
@@ -5191,10 +5191,8 @@ define(function () { 'use strict';
 	            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
 	            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
 	        }
-	        currentMount.unmount(
-	            {...routeComponent[__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
-	            routeComponent[__.globals.PARENT_KEY_SYMBOL]
-	        );
+	        const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+	        currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
 	        routeComponent.root.removeChild(currentEl);
 	        // if want to keep some route for faster loading, just `display: none` the element
 	        // currentEl.style.display = "none";
@@ -5219,9 +5217,9 @@ define(function () { 'use strict';
 	    const slot = this.slots[0];
 	    const currentEl = document.createElement("div");
 	    this.root.appendChild(currentEl);
+	    const scope = Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
 	    const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
-	        currentEl,
-	        { ...this[__.globals.PARENT_KEY_SYMBOL], route: { ...route } },
+	        currentEl, scope,
 	        this[__.globals.PARENT_KEY_SYMBOL]
 	    );
 	    currentEl.style.display = "none";
@@ -5374,35 +5372,32 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template(
-	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
-	      [{
-	        'redundantAttribute': 'expr10',
-	        'selector': '[expr10]',
+	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]',
 
-	        'expressions': [{
-	          'type': expressionTypes.ATTRIBUTE,
-	          'name': 'href',
+	      'expressions': [{
+	        'type': expressionTypes.ATTRIBUTE,
+	        'name': 'href',
 
-	          'evaluate': function(scope) {
-	            return "#" + scope.href();
-	          }
-	        }, {
-	          'type': expressionTypes.ATTRIBUTE,
-	          'name': 'style',
-
-	          'evaluate': function(scope) {
-	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	          }
-	        }]
+	        'evaluate': function(scope) {
+	          return "#" + scope.href();
+	        }
 	      }, {
-	        'type': bindingTypes.SLOT,
-	        'attributes': [],
-	        'name': 'default',
-	        'redundantAttribute': 'expr11',
-	        'selector': '[expr11]'
+	        'type': expressionTypes.ATTRIBUTE,
+	        'name': 'style',
+
+	        'evaluate': function(scope) {
+	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	        }
 	      }]
-	    );
+	    }, {
+	      'type': bindingTypes.SLOT,
+	      'attributes': [],
+	      'name': 'default',
+	      'redundantAttribute': 'expr10',
+	      'selector': '[expr10]'
+	    }]);
 	  },
 
 	  'name': 'navigate'
