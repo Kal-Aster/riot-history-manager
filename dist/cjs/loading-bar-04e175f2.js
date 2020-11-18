@@ -1,6 +1,7 @@
 'use strict';
 
 var ROUTER = Symbol("router");
+var IS_ROUTER = Symbol("is-router");
 var UNROUTE_METHOD = Symbol("unroute");
 var LAST_ROUTED = Symbol("last-routed");
 
@@ -81,6 +82,7 @@ function release(claimer) {
     loadingDone = true;
 }
 
+exports.IS_ROUTER = IS_ROUTER;
 exports.LAST_ROUTED = LAST_ROUTED;
 exports.ROUTER = ROUTER;
 exports.UNROUTE_METHOD = UNROUTE_METHOD;

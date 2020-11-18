@@ -1,13 +1,14 @@
 <router>
-    <slot router={ this }/>
+    <slot/>
 
     <script>
         import { Router } from "history-manager";
-        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./constants";
+        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED, IS_ROUTER } from "./constants";
         import { claim, release } from "./loading-bar";
 
         export default {
             onBeforeMount() {
+                this.root[IS_ROUTER] = true;
                 this[UNROUTE_METHOD] = () => {};
                 this[ROUTER] = Router.create();
             },
@@ -18,6 +19,9 @@
                     this[UNROUTE_METHOD]();
                     this[UNROUTE_METHOD] = () => {};
                 });
+            },
+            onUnmounted() {
+                delete this.root[IS_ROUTER];
             },
             [LAST_ROUTED]: null
         }

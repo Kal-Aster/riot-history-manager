@@ -2616,6 +2616,7 @@ define(function () { 'use strict';
 	});
 
 	var ROUTER = Symbol("router");
+	var IS_ROUTER = Symbol("is-router");
 	var UNROUTE_METHOD = Symbol("unroute");
 	var LAST_ROUTED = Symbol("last-routed");
 
@@ -2701,6 +2702,7 @@ define(function () { 'use strict';
 
 	  'exports': {
 	    onBeforeMount() {
+	        this.root[IS_ROUTER] = true;
 	        this[UNROUTE_METHOD] = () => {};
 	        this[ROUTER] = cjs.Router.create();
 	    },
@@ -2714,25 +2716,20 @@ define(function () { 'use strict';
 	        });
 	    },
 
+	    onUnmounted() {
+	        delete this.root[IS_ROUTER];
+	    },
+
 	    [LAST_ROUTED]: null
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr11="expr11"></slot>', [{
+	    return template('<slot expr9="expr9"></slot>', [{
 	      'type': bindingTypes.SLOT,
-
-	      'attributes': [{
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'router',
-
-	        'evaluate': function(scope) {
-	          return scope;
-	        }
-	      }],
-
+	      'attributes': [],
 	      'name': 'default',
-	      'redundantAttribute': 'expr11',
-	      'selector': '[expr11]'
+	      'redundantAttribute': 'expr9',
+	      'selector': '[expr9]'
 	    }]);
 	  },
 
@@ -5216,7 +5213,7 @@ define(function () { 'use strict';
 	    const claimer = Object.create(null);
 	    claim(claimer);
 
-	    const router = this[__.globals.PARENT_KEY_SYMBOL].router;
+	    const router = this[ROUTER];
 	    router[LAST_ROUTED] = this;
 
 	    const slot = this.slots[0];
@@ -5280,11 +5277,18 @@ define(function () { 'use strict';
 	    _path: null,
 
 	    onMounted() {
-	        const router = this[__.globals.PARENT_KEY_SYMBOL].router;
-	        if (router == null) {
+	        let routerEl = this.root;
+	        while (routerEl != null) {
+	            if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
+	                break;
+	            }
+	        }
+	        const router = routerEl != null ? routerEl[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+	        if (routerEl == null) {
 	            return;
 	        }
 	        this._valid = true;
+	        this[ROUTER] = router;
 
 	        if (this.props.redirect) {
 	            router[ROUTER].redirect(this.props.path, this.props.redirect);
@@ -5370,32 +5374,35 @@ define(function () { 'use strict';
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<a expr9="expr9" ref="-navigate-a"><slot expr10="expr10"></slot></a>', [{
-	      'redundantAttribute': 'expr9',
-	      'selector': '[expr9]',
+	    return template(
+	      '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
+	      [{
+	        'redundantAttribute': 'expr10',
+	        'selector': '[expr10]',
 
-	      'expressions': [{
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'href',
+	        'expressions': [{
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'href',
 
-	        'evaluate': function(scope) {
-	          return "#" + scope.href();
-	        }
+	          'evaluate': function(scope) {
+	            return "#" + scope.href();
+	          }
+	        }, {
+	          'type': expressionTypes.ATTRIBUTE,
+	          'name': 'style',
+
+	          'evaluate': function(scope) {
+	            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+	          }
+	        }]
 	      }, {
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'style',
-
-	        'evaluate': function(scope) {
-	          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-	        }
+	        'type': bindingTypes.SLOT,
+	        'attributes': [],
+	        'name': 'default',
+	        'redundantAttribute': 'expr11',
+	        'selector': '[expr11]'
 	      }]
-	    }, {
-	      'type': bindingTypes.SLOT,
-	      'attributes': [],
-	      'name': 'default',
-	      'redundantAttribute': 'expr10',
-	      'selector': '[expr10]'
-	    }]);
+	    );
 	  },
 
 	  'name': 'navigate'

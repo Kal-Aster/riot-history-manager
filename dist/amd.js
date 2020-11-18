@@ -1,6 +1,7 @@
 define(['history-manager', 'riot'], function (historyManager, riot) { 'use strict';
 
     var ROUTER = Symbol("router");
+    var IS_ROUTER = Symbol("is-router");
     var UNROUTE_METHOD = Symbol("unroute");
     var LAST_ROUTED = Symbol("last-routed");
 
@@ -86,6 +87,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'exports': {
         onBeforeMount() {
+            this.root[IS_ROUTER] = true;
             this[UNROUTE_METHOD] = () => {};
             this[ROUTER] = historyManager.Router.create();
         },
@@ -99,25 +101,20 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             });
         },
 
+        onUnmounted() {
+            delete this.root[IS_ROUTER];
+        },
+
         [LAST_ROUTED]: null
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr12="expr12"></slot>', [{
+        return template('<slot expr14="expr14"></slot>', [{
           'type': bindingTypes.SLOT,
-
-          'attributes': [{
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'router',
-
-            'evaluate': function(scope) {
-              return scope;
-            }
-          }],
-
+          'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr12',
-          'selector': '[expr12]'
+          'redundantAttribute': 'expr14',
+          'selector': '[expr14]'
         }]);
       },
 
@@ -331,7 +328,7 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         const claimer = Object.create(null);
         claim(claimer);
 
-        const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
+        const router = this[ROUTER];
         router[LAST_ROUTED] = this;
 
         const slot = this.slots[0];
@@ -395,11 +392,18 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         _path: null,
 
         onMounted() {
-            const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
-            if (router == null) {
+            let routerEl = this.root;
+            while (routerEl != null) {
+                if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
+                    break;
+                }
+            }
+            const router = routerEl != null ? routerEl[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+            if (routerEl == null) {
                 return;
             }
             this._valid = true;
+            this[ROUTER] = router;
 
             if (this.props.redirect) {
                 router[ROUTER].redirect(this.props.path, this.props.redirect);
@@ -486,10 +490,10 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
+          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
           [{
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]',
+            'redundantAttribute': 'expr12',
+            'selector': '[expr12]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -510,8 +514,8 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr14',
-            'selector': '[expr14]'
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]'
           }]
         );
       },

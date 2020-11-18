@@ -1,4 +1,5 @@
 var ROUTER = Symbol("router");
+var IS_ROUTER = Symbol("is-router");
 var UNROUTE_METHOD = Symbol("unroute");
 var LAST_ROUTED = Symbol("last-routed");
 
@@ -79,4 +80,4 @@ function release(claimer) {
     loadingDone = true;
 }
 
-export { LAST_ROUTED as L, ROUTER as R, UNROUTE_METHOD as U, claimed as a, claim as c, release as r };
+export { IS_ROUTER as I, LAST_ROUTED as L, ROUTER as R, UNROUTE_METHOD as U, claimed as a, claim as c, release as r };

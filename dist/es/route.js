@@ -1,5 +1,5 @@
 import { __ } from 'riot';
-import { R as ROUTER, c as claim, L as LAST_ROUTED, U as UNROUTE_METHOD, a as claimed, r as release } from './loading-bar-3e233626.js';
+import { I as IS_ROUTER, R as ROUTER, c as claim, L as LAST_ROUTED, U as UNROUTE_METHOD, a as claimed, r as release } from './loading-bar-f0ee8038.js';
 
 var ONBEFOREROUTE = Symbol("onbeforeroute");
 var ONUNROUTE = Symbol("onunroute");
@@ -208,7 +208,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     const claimer = Object.create(null);
     claim(claimer);
 
-    const router = this[__.globals.PARENT_KEY_SYMBOL].router;
+    const router = this[ROUTER];
     router[LAST_ROUTED] = this;
 
     const slot = this.slots[0];
@@ -272,11 +272,18 @@ var RouteComponent = {
     _path: null,
 
     onMounted() {
-        const router = this[__.globals.PARENT_KEY_SYMBOL].router;
-        if (router == null) {
+        let routerEl = this.root;
+        while (routerEl != null) {
+            if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
+                break;
+            }
+        }
+        const router = routerEl != null ? routerEl[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+        if (routerEl == null) {
             return;
         }
         this._valid = true;
+        this[ROUTER] = router;
 
         if (this.props.redirect) {
             router[ROUTER].redirect(this.props.path, this.props.redirect);

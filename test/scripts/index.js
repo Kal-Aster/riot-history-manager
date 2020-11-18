@@ -4969,6 +4969,7 @@ define(['require'], function (require) { 'use strict';
   });
 
   var ROUTER = Symbol("router");
+  var IS_ROUTER = Symbol("is-router");
   var UNROUTE_METHOD = Symbol("unroute");
   var LAST_ROUTED = Symbol("last-routed");
 
@@ -5054,6 +5055,7 @@ define(['require'], function (require) { 'use strict';
 
     'exports': {
       onBeforeMount() {
+          this.root[IS_ROUTER] = true;
           this[UNROUTE_METHOD] = () => {};
           this[ROUTER] = cjs.Router.create();
       },
@@ -5067,22 +5069,17 @@ define(['require'], function (require) { 'use strict';
           });
       },
 
+      onUnmounted() {
+          delete this.root[IS_ROUTER];
+      },
+
       [LAST_ROUTED]: null
     },
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template('<slot expr33="expr33"></slot>', [{
         'type': bindingTypes.SLOT,
-
-        'attributes': [{
-          'type': expressionTypes.ATTRIBUTE,
-          'name': 'router',
-
-          'evaluate': function(scope) {
-            return scope;
-          }
-        }],
-
+        'attributes': [],
         'name': 'default',
         'redundantAttribute': 'expr33',
         'selector': '[expr33]'
@@ -5299,7 +5296,7 @@ define(['require'], function (require) { 'use strict';
       const claimer = Object.create(null);
       claim(claimer);
 
-      const router = this[__.globals.PARENT_KEY_SYMBOL].router;
+      const router = this[ROUTER];
       router[LAST_ROUTED] = this;
 
       const slot = this.slots[0];
@@ -5363,11 +5360,18 @@ define(['require'], function (require) { 'use strict';
       _path: null,
 
       onMounted() {
-          const router = this[__.globals.PARENT_KEY_SYMBOL].router;
-          if (router == null) {
+          let routerEl = this.root;
+          while (routerEl != null) {
+              if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
+                  break;
+              }
+          }
+          const router = routerEl != null ? routerEl[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+          if (routerEl == null) {
               return;
           }
           this._valid = true;
+          this[ROUTER] = router;
 
           if (this.props.redirect) {
               router[ROUTER].redirect(this.props.path, this.props.redirect);
@@ -5588,6 +5592,9 @@ define(['require'], function (require) { 'use strict';
           cjs.Router.start("home").then(() => console.log("started"));
       },
 
+      testcontext() {
+      },
+
       components: {
           homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-c37c91c7'], resolve, reject) })),
           "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-c3bcf306'], resolve, reject) }))
@@ -5765,7 +5772,16 @@ define(['require'], function (require) { 'use strict';
                   },
 
                   'slots': [],
-                  'attributes': [],
+
+                  'attributes': [{
+                    'type': expressionTypes.ATTRIBUTE,
+                    'name': 'test',
+
+                    'evaluate': function(scope) {
+                      return window.console.log("here") || scope.testcontext;
+                    }
+                  }],
+
                   'redundantAttribute': 'expr31',
                   'selector': '[expr31]'
                 }]

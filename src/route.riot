@@ -1,7 +1,7 @@
 <route>
     <script>
         import { __ } from "riot";
-        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED } from "./constants";
+        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED, IS_ROUTER } from "./constants";
         import * as loadingBar from "./loading-bar";
         import { dispatchEventOver } from "./custom-event-handling";
 
@@ -41,7 +41,7 @@
             const claimer = Object.create(null);
             loadingBar.claim(claimer);
 
-            const router = this[__.globals.PARENT_KEY_SYMBOL].router;
+            const router = this[ROUTER];
             router[LAST_ROUTED] = this;
 
             const slot = this.slots[0];
@@ -95,18 +95,25 @@
                 onloadingcomplete(routeComponent, currentMount, route, router, claimer);
             }
         }).bind(routeComponent); }
-
+        
         export default {
             _valid: false,
             _onroute: null,
             _path: null,
             onMounted() {
-                const router = this[__.globals.PARENT_KEY_SYMBOL].router;
-                if (router == null) {
+                let routerEl = this.root;
+                while (routerEl != null) {
+                    if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
+                        break;
+                    }
+                }
+                const router = routerEl != null ? routerEl[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+                if (routerEl == null) {
                     return;
                 }
                 this._valid = true;
-
+                this[ROUTER] = router;
+        
                 if (this.props.redirect) {
                     router[ROUTER].redirect(this.props.path, this.props.redirect);
                 } else {

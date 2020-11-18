@@ -1,13 +1,14 @@
 'use strict';
 
 var historyManager = require('history-manager');
-var loadingBar = require('./loading-bar-b1a5cbaa.js');
+var loadingBar = require('./loading-bar-04e175f2.js');
 
 var RouterComponent = {
   'css': null,
 
   'exports': {
     onBeforeMount() {
+        this.root[loadingBar.IS_ROUTER] = true;
         this[loadingBar.UNROUTE_METHOD] = () => {};
         this[loadingBar.ROUTER] = historyManager.Router.create();
     },
@@ -21,25 +22,20 @@ var RouterComponent = {
         });
     },
 
+    onUnmounted() {
+        delete this.root[loadingBar.IS_ROUTER];
+    },
+
     [loadingBar.LAST_ROUTED]: null
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<slot expr5="expr5"></slot>', [{
+    return template('<slot expr3="expr3"></slot>', [{
       'type': bindingTypes.SLOT,
-
-      'attributes': [{
-        'type': expressionTypes.ATTRIBUTE,
-        'name': 'router',
-
-        'evaluate': function(scope) {
-          return scope;
-        }
-      }],
-
+      'attributes': [],
       'name': 'default',
-      'redundantAttribute': 'expr5',
-      'selector': '[expr5]'
+      'redundantAttribute': 'expr3',
+      'selector': '[expr3]'
     }]);
   },
 

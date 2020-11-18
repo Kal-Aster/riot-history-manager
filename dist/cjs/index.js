@@ -2,7 +2,7 @@
 
 var riot = require('riot');
 require('history-manager');
-require('./loading-bar-b1a5cbaa.js');
+require('./loading-bar-04e175f2.js');
 var router = require('./router.js');
 var route = require('./route.js');
 var navigate = require('./navigate.js');

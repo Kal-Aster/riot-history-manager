@@ -1,7 +1,7 @@
 'use strict';
 
 var riot = require('riot');
-var loadingBar = require('./loading-bar-b1a5cbaa.js');
+var loadingBar = require('./loading-bar-04e175f2.js');
 
 var ONBEFOREROUTE = Symbol("onbeforeroute");
 var ONUNROUTE = Symbol("onunroute");
@@ -210,7 +210,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     const claimer = Object.create(null);
     loadingBar.claim(claimer);
 
-    const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
+    const router = this[loadingBar.ROUTER];
     router[loadingBar.LAST_ROUTED] = this;
 
     const slot = this.slots[0];
@@ -274,11 +274,18 @@ var RouteComponent = {
     _path: null,
 
     onMounted() {
-        const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
-        if (router == null) {
+        let routerEl = this.root;
+        while (routerEl != null) {
+            if ((routerEl = routerEl.parentElement)[loadingBar.IS_ROUTER]) {
+                break;
+            }
+        }
+        const router = routerEl != null ? routerEl[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+        if (routerEl == null) {
             return;
         }
         this._valid = true;
+        this[loadingBar.ROUTER] = router;
 
         if (this.props.redirect) {
             router[loadingBar.ROUTER].redirect(this.props.path, this.props.redirect);

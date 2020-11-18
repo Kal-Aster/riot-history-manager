@@ -12,7 +12,7 @@
             <homepage need-loading />
         </route>
         <route path="me">
-            <replace-test need-loading />
+            <replace-test test={ window.console.log("here") || testcontext } need-loading />
         </route>
         <route path="users/:id">{
             route.location.href
@@ -46,6 +46,8 @@
         export default {
             onMounted() {
                 Router.start("home").then(() => console.log("started"));
+            },
+            testcontext() {
             },
             components: {
                 homepage: lazy(() => import('./homepage.riot')),

@@ -2619,6 +2619,7 @@
 	});
 
 	var ROUTER = Symbol("router");
+	var IS_ROUTER = Symbol("is-router");
 	var UNROUTE_METHOD = Symbol("unroute");
 	var LAST_ROUTED = Symbol("last-routed");
 
@@ -2704,6 +2705,7 @@
 
 	  'exports': {
 	    onBeforeMount() {
+	        this.root[IS_ROUTER] = true;
 	        this[UNROUTE_METHOD] = () => {};
 	        this[ROUTER] = cjs.Router.create();
 	    },
@@ -2717,25 +2719,20 @@
 	        });
 	    },
 
+	    onUnmounted() {
+	        delete this.root[IS_ROUTER];
+	    },
+
 	    [LAST_ROUTED]: null
 	  },
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-	    return template('<slot expr18="expr18"></slot>', [{
+	    return template('<slot expr20="expr20"></slot>', [{
 	      'type': bindingTypes.SLOT,
-
-	      'attributes': [{
-	        'type': expressionTypes.ATTRIBUTE,
-	        'name': 'router',
-
-	        'evaluate': function(scope) {
-	          return scope;
-	        }
-	      }],
-
+	      'attributes': [],
 	      'name': 'default',
-	      'redundantAttribute': 'expr18',
-	      'selector': '[expr18]'
+	      'redundantAttribute': 'expr20',
+	      'selector': '[expr20]'
 	    }]);
 	  },
 
@@ -5219,7 +5216,7 @@
 	    const claimer = Object.create(null);
 	    claim(claimer);
 
-	    const router = this[__.globals.PARENT_KEY_SYMBOL].router;
+	    const router = this[ROUTER];
 	    router[LAST_ROUTED] = this;
 
 	    const slot = this.slots[0];
@@ -5283,11 +5280,18 @@
 	    _path: null,
 
 	    onMounted() {
-	        const router = this[__.globals.PARENT_KEY_SYMBOL].router;
-	        if (router == null) {
+	        let routerEl = this.root;
+	        while (routerEl != null) {
+	            if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
+	                break;
+	            }
+	        }
+	        const router = routerEl != null ? routerEl[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+	        if (routerEl == null) {
 	            return;
 	        }
 	        this._valid = true;
+	        this[ROUTER] = router;
 
 	        if (this.props.redirect) {
 	            router[ROUTER].redirect(this.props.path, this.props.redirect);
@@ -5374,10 +5378,10 @@
 
 	  'template': function(template, expressionTypes, bindingTypes, getComponent) {
 	    return template(
-	      '<a expr19="expr19" ref="-navigate-a"><slot expr20="expr20"></slot></a>',
+	      '<a expr18="expr18" ref="-navigate-a"><slot expr19="expr19"></slot></a>',
 	      [{
-	        'redundantAttribute': 'expr19',
-	        'selector': '[expr19]',
+	        'redundantAttribute': 'expr18',
+	        'selector': '[expr18]',
 
 	        'expressions': [{
 	          'type': expressionTypes.ATTRIBUTE,
@@ -5398,8 +5402,8 @@
 	        'type': bindingTypes.SLOT,
 	        'attributes': [],
 	        'name': 'default',
-	        'redundantAttribute': 'expr20',
-	        'selector': '[expr20]'
+	        'redundantAttribute': 'expr19',
+	        'selector': '[expr19]'
 	      }]
 	    );
 	  },

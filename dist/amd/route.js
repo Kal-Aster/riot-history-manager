@@ -1,4 +1,4 @@
-define(['riot', './loading-bar-0213775c'], function (riot, loadingBar) { 'use strict';
+define(['riot', './loading-bar-e86c6d04'], function (riot, loadingBar) { 'use strict';
 
     var ONBEFOREROUTE = Symbol("onbeforeroute");
     var ONUNROUTE = Symbol("onunroute");
@@ -207,7 +207,7 @@ define(['riot', './loading-bar-0213775c'], function (riot, loadingBar) { 'use st
         const claimer = Object.create(null);
         loadingBar.claim(claimer);
 
-        const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
+        const router = this[loadingBar.ROUTER];
         router[loadingBar.LAST_ROUTED] = this;
 
         const slot = this.slots[0];
@@ -271,11 +271,18 @@ define(['riot', './loading-bar-0213775c'], function (riot, loadingBar) { 'use st
         _path: null,
 
         onMounted() {
-            const router = this[riot.__.globals.PARENT_KEY_SYMBOL].router;
-            if (router == null) {
+            let routerEl = this.root;
+            while (routerEl != null) {
+                if ((routerEl = routerEl.parentElement)[loadingBar.IS_ROUTER]) {
+                    break;
+                }
+            }
+            const router = routerEl != null ? routerEl[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
+            if (routerEl == null) {
                 return;
             }
             this._valid = true;
+            this[loadingBar.ROUTER] = router;
 
             if (this.props.redirect) {
                 router[loadingBar.ROUTER].redirect(this.props.path, this.props.redirect);
