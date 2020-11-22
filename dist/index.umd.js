@@ -1,13 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('history-manager'), require('riot')) :
-    typeof define === 'function' && define.amd ? define(['history-manager', 'riot'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.historyManager, global.riot));
-}(this, (function (historyManager, riot) { 'use strict';
-
-    var ROUTER = Symbol("router");
-    var IS_ROUTER = Symbol("is-router");
-    var UNROUTE_METHOD = Symbol("unroute");
-    var LAST_ROUTED = Symbol("last-routed");
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('history-manager'), require('riot')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'history-manager', 'riot'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.riotHistoryManager = {}, global.historyManager, global.riot));
+}(this, (function (exports, historyManager, riot) { 'use strict';
 
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
@@ -86,6 +81,18 @@
         loadingDone = true;
     }
 
+    var loadingBar$1 = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        claim: claim,
+        claimed: claimed,
+        release: release
+    });
+
+    var ROUTER = Symbol("router");
+    var IS_ROUTER = Symbol("is-router");
+    var UNROUTE_METHOD = Symbol("unroute");
+    var LAST_ROUTED = Symbol("last-routed");
+
     var RouterComponent = {
       'css': null,
 
@@ -113,12 +120,12 @@
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr17="expr17"></slot>', [{
+        return template('<slot expr12="expr12"></slot>', [{
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr17',
-          'selector': '[expr17]'
+          'redundantAttribute': 'expr12',
+          'selector': '[expr12]'
         }]);
       },
 
@@ -500,10 +507,10 @@
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr15="expr15" ref="-navigate-a"><slot expr16="expr16"></slot></a>',
+          '<a expr13="expr13" ref="-navigate-a"><slot expr14="expr14"></slot></a>',
           [{
-            'redundantAttribute': 'expr15',
-            'selector': '[expr15]',
+            'redundantAttribute': 'expr13',
+            'selector': '[expr13]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -524,8 +531,8 @@
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr16',
-            'selector': '[expr16]'
+            'redundantAttribute': 'expr14',
+            'selector': '[expr14]'
           }]
         );
       },
@@ -536,5 +543,15 @@
     riot.register("router", RouterComponent);
     riot.register("route", RouteComponent);
     riot.register("navigate", NavigateComponent);
+    var components = {
+        router: RouterComponent,
+        route: RouteComponent,
+        navigate: NavigateComponent
+    };
+
+    exports.components = components;
+    exports.loadingBar = loadingBar$1;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

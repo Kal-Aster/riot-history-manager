@@ -2353,6 +2353,83 @@ define(['require'], function (require) { 'use strict';
     globals
   };
 
+  var loadingBar = document.body.appendChild(document.createElement("div"));
+  var loadingBarContainer = document.body.appendChild(document.createElement("div"));
+  loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
+  loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
+  loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+  var actualClaimedBy = null;
+  var nextFrame = -1;
+  var loadingProgress = 0;
+  var loadingDone = false;
+  var progressVel = function (progress) {
+      return (8192 - (1.08 * progress * progress)) / 819.2;
+  };
+  var visibilityTime = 300;
+  var doneTime = visibilityTime;
+  var claimedWhenVisible = 0;
+  function startLoading() {
+      if (nextFrame) {
+          cancelAnimationFrame(nextFrame);
+      }
+      var lastTime;
+      var eventDispatched = false;
+      var step = function () {
+          if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
+              loadingProgress = 100;
+              loadingBarContainer.style.display = "none";
+              window.dispatchEvent(new Event("routerload"));
+              return;
+          }
+          var last = lastTime;
+          var delta = ((lastTime = Date.now()) - last);
+          if (loadingProgress >= 100) {
+              if (!eventDispatched) {
+                  window.dispatchEvent(new Event("routerload"));
+                  eventDispatched = true;
+              }
+              if ((doneTime -= delta) <= 0) {
+                  doneTime = visibilityTime;
+                  loadingBarContainer.style.display = "none";
+              }
+              else {
+                  requestAnimationFrame(step);
+              }
+              return;
+          }
+          if (loadingDone) {
+              loadingProgress += delta / 2;
+          }
+          else {
+              loadingProgress += delta * progressVel(loadingProgress) / 100;
+          }
+          loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+          nextFrame = requestAnimationFrame(step);
+      };
+      loadingBarContainer.style.display = "block";
+      lastTime = Date.now();
+      step();
+  }
+  function claim(claimer) {
+      if (claimer == null) {
+          return;
+      }
+      actualClaimedBy = claimer;
+      claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+      loadingProgress = 5;
+      loadingDone = false;
+      startLoading();
+  }
+  function claimed(claimer) {
+      return claimer != null && claimer === actualClaimedBy;
+  }
+  function release(claimer) {
+      if (claimer == null || actualClaimedBy !== claimer) {
+          return;
+      }
+      loadingDone = true;
+  }
+
   function createCommonjsModule(fn, basedir, module) {
   	return module = {
   		path: basedir,
@@ -4973,83 +5050,6 @@ define(['require'], function (require) { 'use strict';
   var UNROUTE_METHOD = Symbol("unroute");
   var LAST_ROUTED = Symbol("last-routed");
 
-  var loadingBar = document.body.appendChild(document.createElement("div"));
-  var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-  loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
-  loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
-  loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
-  var actualClaimedBy = null;
-  var nextFrame = -1;
-  var loadingProgress = 0;
-  var loadingDone = false;
-  var progressVel = function (progress) {
-      return (8192 - (1.08 * progress * progress)) / 819.2;
-  };
-  var visibilityTime = 300;
-  var doneTime = visibilityTime;
-  var claimedWhenVisible = 0;
-  function startLoading() {
-      if (nextFrame) {
-          cancelAnimationFrame(nextFrame);
-      }
-      var lastTime;
-      var eventDispatched = false;
-      var step = function () {
-          if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
-              loadingProgress = 100;
-              loadingBarContainer.style.display = "none";
-              window.dispatchEvent(new Event("routerload"));
-              return;
-          }
-          var last = lastTime;
-          var delta = ((lastTime = Date.now()) - last);
-          if (loadingProgress >= 100) {
-              if (!eventDispatched) {
-                  window.dispatchEvent(new Event("routerload"));
-                  eventDispatched = true;
-              }
-              if ((doneTime -= delta) <= 0) {
-                  doneTime = visibilityTime;
-                  loadingBarContainer.style.display = "none";
-              }
-              else {
-                  requestAnimationFrame(step);
-              }
-              return;
-          }
-          if (loadingDone) {
-              loadingProgress += delta / 2;
-          }
-          else {
-              loadingProgress += delta * progressVel(loadingProgress) / 100;
-          }
-          loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
-          nextFrame = requestAnimationFrame(step);
-      };
-      loadingBarContainer.style.display = "block";
-      lastTime = Date.now();
-      step();
-  }
-  function claim(claimer) {
-      if (claimer == null) {
-          return;
-      }
-      actualClaimedBy = claimer;
-      claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
-      loadingProgress = 5;
-      loadingDone = false;
-      startLoading();
-  }
-  function claimed(claimer) {
-      return claimer != null && claimer === actualClaimedBy;
-  }
-  function release(claimer) {
-      if (claimer == null || actualClaimedBy !== claimer) {
-          return;
-      }
-      loadingDone = true;
-  }
-
   var RouterComponent = {
     'css': null,
 
@@ -5077,12 +5077,12 @@ define(['require'], function (require) { 'use strict';
     },
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
-      return template('<slot expr33="expr33"></slot>', [{
+      return template('<slot expr32="expr32"></slot>', [{
         'type': bindingTypes.SLOT,
         'attributes': [],
         'name': 'default',
-        'redundantAttribute': 'expr33',
-        'selector': '[expr33]'
+        'redundantAttribute': 'expr32',
+        'selector': '[expr32]'
       }]);
     },
 
@@ -5464,10 +5464,10 @@ define(['require'], function (require) { 'use strict';
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<a expr34="expr34" ref="-navigate-a"><slot expr35="expr35"></slot></a>',
+        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
         [{
-          'redundantAttribute': 'expr34',
-          'selector': '[expr34]',
+          'redundantAttribute': 'expr30',
+          'selector': '[expr30]',
 
           'expressions': [{
             'type': expressionTypes.ATTRIBUTE,
@@ -5488,8 +5488,8 @@ define(['require'], function (require) { 'use strict';
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr35',
-          'selector': '[expr35]'
+          'redundantAttribute': 'expr31',
+          'selector': '[expr31]'
         }]
       );
     },
@@ -5602,14 +5602,14 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-c37c91c7'], resolve, reject) })),
+          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-958266fb'], resolve, reject) })),
           "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-c3bcf306'], resolve, reject) }))
       }
     },
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<navigate expr21="expr21" href="home"></navigate><navigate expr22="expr22" href="me"></navigate><navigate expr23="expr23" replace></navigate><div></div><navigate expr24="expr24" context="home"></navigate><navigate expr25="expr25" context="profile"></navigate><div></div><router expr26="expr26"></router>',
+        '<navigate expr18="expr18" href="home"></navigate><navigate expr19="expr19" href="me"></navigate><navigate expr20="expr20" replace></navigate><div></div><navigate expr21="expr21" context="home"></navigate><navigate expr22="expr22" context="profile"></navigate><div></div><router expr23="expr23"></router>',
         [{
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5625,8 +5625,8 @@ define(['require'], function (require) { 'use strict';
           }],
 
           'attributes': [],
-          'redundantAttribute': 'expr21',
-          'selector': '[expr21]'
+          'redundantAttribute': 'expr18',
+          'selector': '[expr18]'
         }, {
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5642,8 +5642,8 @@ define(['require'], function (require) { 'use strict';
           }],
 
           'attributes': [],
-          'redundantAttribute': 'expr22',
-          'selector': '[expr22]'
+          'redundantAttribute': 'expr19',
+          'selector': '[expr19]'
         }, {
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5667,8 +5667,8 @@ define(['require'], function (require) { 'use strict';
             }
           }],
 
-          'redundantAttribute': 'expr23',
-          'selector': '[expr23]'
+          'redundantAttribute': 'expr20',
+          'selector': '[expr20]'
         }, {
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5684,8 +5684,8 @@ define(['require'], function (require) { 'use strict';
           }],
 
           'attributes': [],
-          'redundantAttribute': 'expr24',
-          'selector': '[expr24]'
+          'redundantAttribute': 'expr21',
+          'selector': '[expr21]'
         }, {
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5701,8 +5701,8 @@ define(['require'], function (require) { 'use strict';
           }],
 
           'attributes': [],
-          'redundantAttribute': 'expr25',
-          'selector': '[expr25]'
+          'redundantAttribute': 'expr22',
+          'selector': '[expr22]'
         }, {
           'type': bindingTypes.TAG,
           'getComponent': getComponent,
@@ -5713,7 +5713,7 @@ define(['require'], function (require) { 'use strict';
 
           'slots': [{
             'id': 'default',
-            'html': '<route expr27="expr27" path redirect="home"></route><route expr28="expr28" path="home"></route><route expr30="expr30" path="me"></route><route expr32="expr32" path="users/:id"></route>',
+            'html': '<route expr24="expr24" path redirect="home"></route><route expr25="expr25" path="home"></route><route expr27="expr27" path="me"></route><route expr29="expr29" path="users/:id"></route>',
 
             'bindings': [{
               'type': bindingTypes.TAG,
@@ -5725,8 +5725,8 @@ define(['require'], function (require) { 'use strict';
 
               'slots': [],
               'attributes': [],
-              'redundantAttribute': 'expr27',
-              'selector': '[expr27]'
+              'redundantAttribute': 'expr24',
+              'selector': '[expr24]'
             }, {
               'type': bindingTypes.TAG,
               'getComponent': getComponent,
@@ -5737,7 +5737,7 @@ define(['require'], function (require) { 'use strict';
 
               'slots': [{
                 'id': 'default',
-                'html': '<homepage expr29="expr29" need-loading></homepage>',
+                'html': '<homepage expr26="expr26" need-loading></homepage>',
 
                 'bindings': [{
                   'type': bindingTypes.TAG,
@@ -5749,14 +5749,14 @@ define(['require'], function (require) { 'use strict';
 
                   'slots': [],
                   'attributes': [],
-                  'redundantAttribute': 'expr29',
-                  'selector': '[expr29]'
+                  'redundantAttribute': 'expr26',
+                  'selector': '[expr26]'
                 }]
               }],
 
               'attributes': [],
-              'redundantAttribute': 'expr28',
-              'selector': '[expr28]'
+              'redundantAttribute': 'expr25',
+              'selector': '[expr25]'
             }, {
               'type': bindingTypes.TAG,
               'getComponent': getComponent,
@@ -5767,7 +5767,7 @@ define(['require'], function (require) { 'use strict';
 
               'slots': [{
                 'id': 'default',
-                'html': '<replace-test expr31="expr31" need-loading></replace-test>',
+                'html': '<replace-test expr28="expr28" need-loading></replace-test>',
 
                 'bindings': [{
                   'type': bindingTypes.TAG,
@@ -5788,14 +5788,14 @@ define(['require'], function (require) { 'use strict';
                     }
                   }],
 
-                  'redundantAttribute': 'expr31',
-                  'selector': '[expr31]'
+                  'redundantAttribute': 'expr28',
+                  'selector': '[expr28]'
                 }]
               }],
 
               'attributes': [],
-              'redundantAttribute': 'expr30',
-              'selector': '[expr30]'
+              'redundantAttribute': 'expr27',
+              'selector': '[expr27]'
             }, {
               'type': bindingTypes.TAG,
               'getComponent': getComponent,
@@ -5821,14 +5821,14 @@ define(['require'], function (require) { 'use strict';
               }],
 
               'attributes': [],
-              'redundantAttribute': 'expr32',
-              'selector': '[expr32]'
+              'redundantAttribute': 'expr29',
+              'selector': '[expr29]'
             }]
           }],
 
           'attributes': [],
-          'redundantAttribute': 'expr26',
-          'selector': '[expr26]'
+          'redundantAttribute': 'expr23',
+          'selector': '[expr23]'
         }]
       );
     },

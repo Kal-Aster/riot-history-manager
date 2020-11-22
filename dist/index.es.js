@@ -1,5 +1,133 @@
-import { __ } from 'riot';
-import { I as IS_ROUTER, R as ROUTER, c as claim, L as LAST_ROUTED, U as UNROUTE_METHOD, a as claimed, r as release } from './loading-bar-f0ee8038.js';
+import { Router } from 'history-manager';
+import { __, register } from 'riot';
+
+var loadingBar = document.body.appendChild(document.createElement("div"));
+var loadingBarContainer = document.body.appendChild(document.createElement("div"));
+loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
+loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
+loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+var actualClaimedBy = null;
+var nextFrame = -1;
+var loadingProgress = 0;
+var loadingDone = false;
+var progressVel = function (progress) {
+    return (8192 - (1.08 * progress * progress)) / 819.2;
+};
+var visibilityTime = 300;
+var doneTime = visibilityTime;
+var claimedWhenVisible = 0;
+function startLoading() {
+    if (nextFrame) {
+        cancelAnimationFrame(nextFrame);
+    }
+    var lastTime;
+    var eventDispatched = false;
+    var step = function () {
+        if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
+            loadingProgress = 100;
+            loadingBarContainer.style.display = "none";
+            window.dispatchEvent(new Event("routerload"));
+            return;
+        }
+        var last = lastTime;
+        var delta = ((lastTime = Date.now()) - last);
+        if (loadingProgress >= 100) {
+            if (!eventDispatched) {
+                window.dispatchEvent(new Event("routerload"));
+                eventDispatched = true;
+            }
+            if ((doneTime -= delta) <= 0) {
+                doneTime = visibilityTime;
+                loadingBarContainer.style.display = "none";
+            }
+            else {
+                requestAnimationFrame(step);
+            }
+            return;
+        }
+        if (loadingDone) {
+            loadingProgress += delta / 2;
+        }
+        else {
+            loadingProgress += delta * progressVel(loadingProgress) / 100;
+        }
+        loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+        nextFrame = requestAnimationFrame(step);
+    };
+    loadingBarContainer.style.display = "block";
+    lastTime = Date.now();
+    step();
+}
+function claim(claimer) {
+    if (claimer == null) {
+        return;
+    }
+    actualClaimedBy = claimer;
+    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+    loadingProgress = 5;
+    loadingDone = false;
+    startLoading();
+}
+function claimed(claimer) {
+    return claimer != null && claimer === actualClaimedBy;
+}
+function release(claimer) {
+    if (claimer == null || actualClaimedBy !== claimer) {
+        return;
+    }
+    loadingDone = true;
+}
+
+var loadingBar$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    claim: claim,
+    claimed: claimed,
+    release: release
+});
+
+var ROUTER = Symbol("router");
+var IS_ROUTER = Symbol("is-router");
+var UNROUTE_METHOD = Symbol("unroute");
+var LAST_ROUTED = Symbol("last-routed");
+
+var RouterComponent = {
+  'css': null,
+
+  'exports': {
+    onBeforeMount() {
+        this.root[IS_ROUTER] = true;
+        this[UNROUTE_METHOD] = () => {};
+        this[ROUTER] = Router.create();
+    },
+
+    onMounted() {
+        this[ROUTER].route("(.*)", () => {
+            claim(this); release(this);
+            this[LAST_ROUTED] = null;
+            this[UNROUTE_METHOD]();
+            this[UNROUTE_METHOD] = () => {};
+        });
+    },
+
+    onUnmounted() {
+        delete this.root[IS_ROUTER];
+    },
+
+    [LAST_ROUTED]: null
+  },
+
+  'template': function(template, expressionTypes, bindingTypes, getComponent) {
+    return template('<slot expr3="expr3"></slot>', [{
+      'type': bindingTypes.SLOT,
+      'attributes': [],
+      'name': 'default',
+      'redundantAttribute': 'expr3',
+      'selector': '[expr3]'
+    }]);
+  },
+
+  'name': 'router'
+};
 
 var ONBEFOREROUTE = Symbol("onbeforeroute");
 var ONUNROUTE = Symbol("onunroute");
@@ -310,4 +438,109 @@ var RouteComponent = {
   'name': 'route'
 };
 
-export default RouteComponent;
+var NavigateComponent = {
+  'css': `navigate a[ref=-navigate-a],[is="navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+
+  'exports': {
+    onMounted() {
+        this.root.style.cursor = "pointer";
+        if (this.root.style.display === "") {
+            this.root.style.display = "inline";
+        }
+
+        this.root.setAttribute("route-listener", "true");
+        this.root.addEventListener("route", () => {
+            this.update();
+        });
+        
+        this.root.firstElementChild.addEventListener("click", event => {
+            event.preventDefault();
+            let href = this.href(false);
+            if (href != null) {
+                Router.go(href, { replace: this.replace() });
+            } else {
+                let context = this.context();
+                if (context) {
+                    Router.restoreContext(context);
+                }
+            }
+            return false;
+        });
+    },
+
+    onBeforeUpdate() {
+        this._href = null;
+    },
+
+    replace() {
+        if (typeof this.props.replace !== "boolean") {
+            return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
+        }
+        return this.props.replace;
+    },
+
+    href(toA = true) {
+        if (typeof this.props.href !== "string") {
+            if (toA) {
+                const context = this.context();
+                return context != null ? Router.getContextDefaultOf(context) : null;
+            }
+            return null;
+        }
+        if (this._href == null) {
+            this._href = Router.getLocation().hrefIf(this.props.href);
+            // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
+        }
+        return this._href; // (toA ? Router.base : "") + this._href;
+    },
+
+    context() {
+        if (typeof this.props.context !== "string") {
+            return null;
+        }
+        return this.props.context;
+    }
+  },
+
+  'template': function(template, expressionTypes, bindingTypes, getComponent) {
+    return template('<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>', [{
+      'redundantAttribute': 'expr4',
+      'selector': '[expr4]',
+
+      'expressions': [{
+        'type': expressionTypes.ATTRIBUTE,
+        'name': 'href',
+
+        'evaluate': function(scope) {
+          return "#" + scope.href();
+        }
+      }, {
+        'type': expressionTypes.ATTRIBUTE,
+        'name': 'style',
+
+        'evaluate': function(scope) {
+          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+        }
+      }]
+    }, {
+      'type': bindingTypes.SLOT,
+      'attributes': [],
+      'name': 'default',
+      'redundantAttribute': 'expr5',
+      'selector': '[expr5]'
+    }]);
+  },
+
+  'name': 'navigate'
+};
+
+register("router", RouterComponent);
+register("route", RouteComponent);
+register("navigate", NavigateComponent);
+var components = {
+    router: RouterComponent,
+    route: RouteComponent,
+    navigate: NavigateComponent
+};
+
+export { components, loadingBar$1 as loadingBar };

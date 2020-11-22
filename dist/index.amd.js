@@ -1,9 +1,4 @@
-define(['history-manager', 'riot'], function (historyManager, riot) { 'use strict';
-
-    var ROUTER = Symbol("router");
-    var IS_ROUTER = Symbol("is-router");
-    var UNROUTE_METHOD = Symbol("unroute");
-    var LAST_ROUTED = Symbol("last-routed");
+define(['exports', 'history-manager', 'riot'], function (exports, historyManager, riot) { 'use strict';
 
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
@@ -82,6 +77,18 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
         loadingDone = true;
     }
 
+    var loadingBar$1 = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        claim: claim,
+        claimed: claimed,
+        release: release
+    });
+
+    var ROUTER = Symbol("router");
+    var IS_ROUTER = Symbol("is-router");
+    var UNROUTE_METHOD = Symbol("unroute");
+    var LAST_ROUTED = Symbol("last-routed");
+
     var RouterComponent = {
       'css': null,
 
@@ -109,12 +116,12 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template('<slot expr14="expr14"></slot>', [{
+        return template('<slot expr6="expr6"></slot>', [{
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr14',
-          'selector': '[expr14]'
+          'redundantAttribute': 'expr6',
+          'selector': '[expr6]'
         }]);
       },
 
@@ -495,35 +502,32 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
       },
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
-        return template(
-          '<a expr12="expr12" ref="-navigate-a"><slot expr13="expr13"></slot></a>',
-          [{
-            'redundantAttribute': 'expr12',
-            'selector': '[expr12]',
+        return template('<a expr7="expr7" ref="-navigate-a"><slot expr8="expr8"></slot></a>', [{
+          'redundantAttribute': 'expr7',
+          'selector': '[expr7]',
 
-            'expressions': [{
-              'type': expressionTypes.ATTRIBUTE,
-              'name': 'href',
+          'expressions': [{
+            'type': expressionTypes.ATTRIBUTE,
+            'name': 'href',
 
-              'evaluate': function(scope) {
-                return "#" + scope.href();
-              }
-            }, {
-              'type': expressionTypes.ATTRIBUTE,
-              'name': 'style',
-
-              'evaluate': function(scope) {
-                return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-              }
-            }]
+            'evaluate': function(scope) {
+              return "#" + scope.href();
+            }
           }, {
-            'type': bindingTypes.SLOT,
-            'attributes': [],
-            'name': 'default',
-            'redundantAttribute': 'expr13',
-            'selector': '[expr13]'
+            'type': expressionTypes.ATTRIBUTE,
+            'name': 'style',
+
+            'evaluate': function(scope) {
+              return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+            }
           }]
-        );
+        }, {
+          'type': bindingTypes.SLOT,
+          'attributes': [],
+          'name': 'default',
+          'redundantAttribute': 'expr8',
+          'selector': '[expr8]'
+        }]);
       },
 
       'name': 'navigate'
@@ -532,5 +536,15 @@ define(['history-manager', 'riot'], function (historyManager, riot) { 'use stric
     riot.register("router", RouterComponent);
     riot.register("route", RouteComponent);
     riot.register("navigate", NavigateComponent);
+    var components = {
+        router: RouterComponent,
+        route: RouteComponent,
+        navigate: NavigateComponent
+    };
+
+    exports.components = components;
+    exports.loadingBar = loadingBar$1;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
 
 });

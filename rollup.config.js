@@ -1,58 +1,47 @@
 const riot = require('rollup-plugin-riot');
 const commonjs = require('@rollup/plugin-commonjs');
 const typescript = require('@rollup/plugin-typescript');
-const multiInput = require("rollup-plugin-multi-input").default;
 const nodeResolve = require("@rollup/plugin-node-resolve").default;
+
+const globals = {
+    "riot": "riot",
+    "history-manager": "historyManager"
+};
+const external = Object.keys(globals);
 
 export default [
     {
-        input: ["src/**/!(*.d.ts)"],
-        external: [ "riot", "history-manager" ],
+        input: "src/index.ts",
+        external,
         plugins: [
-            multiInput(),
             nodeResolve(),
             commonjs(),
             typescript(),
             riot()
         ],
         output: {
-            dir: "dist/amd",
-            format: "amd"
-        }
-    },
-    {
-        input: ["src/**/!(*.d.ts)"],
-        external: [ "riot", "history-manager" ],
-        plugins: [
-            multiInput(),
-            nodeResolve(),
-            commonjs(),
-            typescript(),
-            riot()
-        ],
-        output: {
-            dir: "dist/cjs",
+            file: "dist/index.js",
             format: "cjs",
             exports: "auto"
         }
     },
     {
-        input: ["src/**/!(*.d.ts)"],
-        external: [ "riot", "history-manager" ],
+        input: "src/index.ts",
+        external,
         plugins: [
-            multiInput(),
             nodeResolve(),
             commonjs(),
             typescript(),
             riot()
         ],
         output: {
-            dir: "dist/es",
+            file: "dist/index.es.js",
             format: "es"
         }
     },
     {
         input: "src/index.ts",
+        external,
         plugins: [
             nodeResolve(),
             commonjs(),
@@ -60,13 +49,12 @@ export default [
             riot()
         ],
         output: {
-            file: "dist/amd+libs.js",
+            file: "dist/index.amd.js",
             format: "amd"
         }
     },
     {
         input: "src/index.ts",
-        external: [ "riot", "history-manager" ],
         plugins: [
             nodeResolve(),
             commonjs(),
@@ -74,13 +62,13 @@ export default [
             riot()
         ],
         output: {
-            file: "dist/amd.js",
+            file: "dist/index.amd+libs.js",
             format: "amd"
         }
     },
     {
         input: "src/index.ts",
-        external: [ "riot", "history-manager" ],
+        external,
         plugins: [
             nodeResolve(),
             commonjs(),
@@ -88,12 +76,10 @@ export default [
             riot()
         ],
         output: {
-            file: "dist/umd.js",
+            name: "riotHistoryManager",
+            file: "dist/index.umd.js",
             format: "umd",
-            globals: {
-                "riot": "riot",
-                "history-manager": "historyManager"
-            }
+            globals
         }
     },
     {
@@ -105,7 +91,8 @@ export default [
             riot()
         ],
         output: {
-            file: "dist/umd+libs.js",
+            name: "riotHistoryManager",
+            file: "dist/index.umd+libs.js",
             format: "umd"
         }
     },

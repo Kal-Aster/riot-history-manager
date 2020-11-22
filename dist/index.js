@@ -1,7 +1,137 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var historyManager = require('history-manager');
 var riot = require('riot');
-var loadingBar = require('./loading-bar-04e175f2.js');
+
+var loadingBar = document.body.appendChild(document.createElement("div"));
+var loadingBarContainer = document.body.appendChild(document.createElement("div"));
+loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
+loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
+loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+var actualClaimedBy = null;
+var nextFrame = -1;
+var loadingProgress = 0;
+var loadingDone = false;
+var progressVel = function (progress) {
+    return (8192 - (1.08 * progress * progress)) / 819.2;
+};
+var visibilityTime = 300;
+var doneTime = visibilityTime;
+var claimedWhenVisible = 0;
+function startLoading() {
+    if (nextFrame) {
+        cancelAnimationFrame(nextFrame);
+    }
+    var lastTime;
+    var eventDispatched = false;
+    var step = function () {
+        if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
+            loadingProgress = 100;
+            loadingBarContainer.style.display = "none";
+            window.dispatchEvent(new Event("routerload"));
+            return;
+        }
+        var last = lastTime;
+        var delta = ((lastTime = Date.now()) - last);
+        if (loadingProgress >= 100) {
+            if (!eventDispatched) {
+                window.dispatchEvent(new Event("routerload"));
+                eventDispatched = true;
+            }
+            if ((doneTime -= delta) <= 0) {
+                doneTime = visibilityTime;
+                loadingBarContainer.style.display = "none";
+            }
+            else {
+                requestAnimationFrame(step);
+            }
+            return;
+        }
+        if (loadingDone) {
+            loadingProgress += delta / 2;
+        }
+        else {
+            loadingProgress += delta * progressVel(loadingProgress) / 100;
+        }
+        loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+        nextFrame = requestAnimationFrame(step);
+    };
+    loadingBarContainer.style.display = "block";
+    lastTime = Date.now();
+    step();
+}
+function claim(claimer) {
+    if (claimer == null) {
+        return;
+    }
+    actualClaimedBy = claimer;
+    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+    loadingProgress = 5;
+    loadingDone = false;
+    startLoading();
+}
+function claimed(claimer) {
+    return claimer != null && claimer === actualClaimedBy;
+}
+function release(claimer) {
+    if (claimer == null || actualClaimedBy !== claimer) {
+        return;
+    }
+    loadingDone = true;
+}
+
+var loadingBar$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    claim: claim,
+    claimed: claimed,
+    release: release
+});
+
+var ROUTER = Symbol("router");
+var IS_ROUTER = Symbol("is-router");
+var UNROUTE_METHOD = Symbol("unroute");
+var LAST_ROUTED = Symbol("last-routed");
+
+var RouterComponent = {
+  'css': null,
+
+  'exports': {
+    onBeforeMount() {
+        this.root[IS_ROUTER] = true;
+        this[UNROUTE_METHOD] = () => {};
+        this[ROUTER] = historyManager.Router.create();
+    },
+
+    onMounted() {
+        this[ROUTER].route("(.*)", () => {
+            claim(this); release(this);
+            this[LAST_ROUTED] = null;
+            this[UNROUTE_METHOD]();
+            this[UNROUTE_METHOD] = () => {};
+        });
+    },
+
+    onUnmounted() {
+        delete this.root[IS_ROUTER];
+    },
+
+    [LAST_ROUTED]: null
+  },
+
+  'template': function(template, expressionTypes, bindingTypes, getComponent) {
+    return template('<slot expr0="expr0"></slot>', [{
+      'type': bindingTypes.SLOT,
+      'attributes': [],
+      'name': 'default',
+      'redundantAttribute': 'expr0',
+      'selector': '[expr0]'
+    }]);
+  },
+
+  'name': 'router'
+};
 
 var ONBEFOREROUTE = Symbol("onbeforeroute");
 var ONUNROUTE = Symbol("onunroute");
@@ -188,21 +318,21 @@ function onunroute(routeComponent, currentMount, route, router, shouldResetUnrou
         // currentEl.style.display = "none";
     }
     if (shouldResetUnroute) {
-        router[loadingBar.UNROUTE_METHOD] = () => {};
+        router[UNROUTE_METHOD] = () => {};
     }
 }
 
 function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
-    if (router[loadingBar.LAST_ROUTED] !== routeComponent) {
+    if (router[LAST_ROUTED] !== routeComponent) {
         onunroute(routeComponent, currentMount, route, router, false);
         return;
     }
     const currentEl = currentMount.el;
-    if (loadingBar.claimed(claimer)) {
-        loadingBar.release(claimer);
+    if (claimed(claimer)) {
+        release(claimer);
     }
-    router[loadingBar.UNROUTE_METHOD]();
-    router[loadingBar.UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
+    router[UNROUTE_METHOD]();
+    router[UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
     currentEl.style.display = "block";
     {
         const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
@@ -214,10 +344,10 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     const route = { location, keymap, redirection };
 
     const claimer = Object.create(null);
-    loadingBar.claim(claimer);
+    claim(claimer);
 
-    const router = this[loadingBar.ROUTER];
-    router[loadingBar.LAST_ROUTED] = this;
+    const router = this[ROUTER];
+    router[LAST_ROUTED] = this;
 
     const slot = this.slots[0];
     const currentEl = document.createElement("div");
@@ -282,7 +412,7 @@ var RouteComponent = {
     onMounted() {
         let routerEl = this.root;
         while (routerEl != null) {
-            if ((routerEl = routerEl.parentElement)[loadingBar.IS_ROUTER]) {
+            if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
                 break;
             }
         }
@@ -291,12 +421,12 @@ var RouteComponent = {
             return;
         }
         this._valid = true;
-        this[loadingBar.ROUTER] = router;
+        this[ROUTER] = router;
 
         if (this.props.redirect) {
-            router[loadingBar.ROUTER].redirect(this.props.path, this.props.redirect);
+            router[ROUTER].redirect(this.props.path, this.props.redirect);
         } else {
-            router[loadingBar.ROUTER].route(this._path = this.props.path, this._onroute = onroute(this));
+            router[ROUTER].route(this._path = this.props.path, this._onroute = onroute(this));
         }
     },
 
@@ -304,7 +434,7 @@ var RouteComponent = {
         if (this._onroute == null) {
             return;
         }
-        this[riot.__.globlas.PARENT_KEY_SYMBOL].router[loadingBar.ROUTER].unroute(this._path, this._onroute);
+        this[riot.__.globlas.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
     }
   },
 
@@ -312,4 +442,110 @@ var RouteComponent = {
   'name': 'route'
 };
 
-module.exports = RouteComponent;
+var NavigateComponent = {
+  'css': `navigate a[ref=-navigate-a],[is="navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+
+  'exports': {
+    onMounted() {
+        this.root.style.cursor = "pointer";
+        if (this.root.style.display === "") {
+            this.root.style.display = "inline";
+        }
+
+        this.root.setAttribute("route-listener", "true");
+        this.root.addEventListener("route", () => {
+            this.update();
+        });
+        
+        this.root.firstElementChild.addEventListener("click", event => {
+            event.preventDefault();
+            let href = this.href(false);
+            if (href != null) {
+                historyManager.Router.go(href, { replace: this.replace() });
+            } else {
+                let context = this.context();
+                if (context) {
+                    historyManager.Router.restoreContext(context);
+                }
+            }
+            return false;
+        });
+    },
+
+    onBeforeUpdate() {
+        this._href = null;
+    },
+
+    replace() {
+        if (typeof this.props.replace !== "boolean") {
+            return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
+        }
+        return this.props.replace;
+    },
+
+    href(toA = true) {
+        if (typeof this.props.href !== "string") {
+            if (toA) {
+                const context = this.context();
+                return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
+            }
+            return null;
+        }
+        if (this._href == null) {
+            this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
+            // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
+        }
+        return this._href; // (toA ? Router.base : "") + this._href;
+    },
+
+    context() {
+        if (typeof this.props.context !== "string") {
+            return null;
+        }
+        return this.props.context;
+    }
+  },
+
+  'template': function(template, expressionTypes, bindingTypes, getComponent) {
+    return template('<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>', [{
+      'redundantAttribute': 'expr1',
+      'selector': '[expr1]',
+
+      'expressions': [{
+        'type': expressionTypes.ATTRIBUTE,
+        'name': 'href',
+
+        'evaluate': function(scope) {
+          return "#" + scope.href();
+        }
+      }, {
+        'type': expressionTypes.ATTRIBUTE,
+        'name': 'style',
+
+        'evaluate': function(scope) {
+          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+        }
+      }]
+    }, {
+      'type': bindingTypes.SLOT,
+      'attributes': [],
+      'name': 'default',
+      'redundantAttribute': 'expr2',
+      'selector': '[expr2]'
+    }]);
+  },
+
+  'name': 'navigate'
+};
+
+riot.register("router", RouterComponent);
+riot.register("route", RouteComponent);
+riot.register("navigate", NavigateComponent);
+var components = {
+    router: RouterComponent,
+    route: RouteComponent,
+    navigate: NavigateComponent
+};
+
+exports.components = components;
+exports.loadingBar = loadingBar$1;
