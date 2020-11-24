@@ -2375,6 +2375,7 @@ define(['require'], function (require) { 'use strict';
       var lastTime;
       var eventDispatched = false;
       var step = function () {
+          nextFrame = -1;
           if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
               loadingProgress = 100;
               loadingBarContainer.style.display = "none";
@@ -2420,9 +2421,10 @@ define(['require'], function (require) { 'use strict';
       loadingDone = false;
       startLoading();
   }
-  function claimed(claimer) {
+  function claimedBy(claimer) {
       return claimer != null && claimer === actualClaimedBy;
   }
+  var claimed = claimedBy;
   function release(claimer) {
       if (claimer == null || actualClaimedBy !== claimer) {
           return;
@@ -5260,11 +5262,13 @@ define(['require'], function (require) { 'use strict';
       delete event.stopPropagation;
   }
 
-  function onunroute(routeComponent, currentMount, route, router, shouldResetUnroute) {
+  function onunroute(routeComponent, currentMount, route, router, shouldFireEvent, shouldResetUnroute) {
       const currentEl = currentMount.el;
       {
-          const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-          dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+          if (shouldFireEvent) {
+              const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+              dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+          }
           const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
           currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
       }
@@ -5280,19 +5284,36 @@ define(['require'], function (require) { 'use strict';
 
   function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
       if (router[LAST_ROUTED] !== routeComponent) {
-          onunroute(routeComponent, currentMount, route, router, false);
+          onunroute(routeComponent, currentMount, route, router, false, false);
           return;
       }
       const currentEl = currentMount.el;
       if (claimed(claimer)) {
           release(claimer);
       }
-      router[UNROUTE_METHOD]();
-      router[UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
-      currentEl.style.display = "block";
-      {
-          const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
-          dispatchEventOver(currentEl.children, routeEvent, null, []);
+      const routerUNROUTE = router[UNROUTE_METHOD];
+      let reachedRouterLoad = false;
+      const thisUNROUTE = () => {
+          onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
+      };
+      router[UNROUTE_METHOD] = () => {
+          window.removeEventListener("routerload", onrouterload);
+          routerUNROUTE();
+          thisUNROUTE();
+      };
+
+      window.addEventListener("routerload", onrouterload);
+
+      function onrouterload() {
+          window.removeEventListener("routerload", onrouterload);
+          reachedRouterLoad = true;
+          routerUNROUTE();
+          router[UNROUTE_METHOD] = thisUNROUTE;
+          currentEl.style.display = "block";
+          {
+              const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+              dispatchEventOver(currentEl.children, routeEvent, null, []);
+          }
       }
   }
 
@@ -5464,10 +5485,10 @@ define(['require'], function (require) { 'use strict';
 
     'template': function(template, expressionTypes, bindingTypes, getComponent) {
       return template(
-        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
+        '<a expr60="expr60" ref="-navigate-a"><slot expr61="expr61"></slot></a>',
         [{
-          'redundantAttribute': 'expr30',
-          'selector': '[expr30]',
+          'redundantAttribute': 'expr60',
+          'selector': '[expr60]',
 
           'expressions': [{
             'type': expressionTypes.ATTRIBUTE,
@@ -5488,8 +5509,8 @@ define(['require'], function (require) { 'use strict';
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr31',
-          'selector': '[expr31]'
+          'redundantAttribute': 'expr61',
+          'selector': '[expr61]'
         }]
       );
     },

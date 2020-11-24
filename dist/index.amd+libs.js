@@ -22,6 +22,7 @@ define(['exports'], function (exports) { 'use strict';
         var lastTime;
         var eventDispatched = false;
         var step = function () {
+            nextFrame = -1;
             if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
                 loadingProgress = 100;
                 loadingBarContainer.style.display = "none";
@@ -67,21 +68,27 @@ define(['exports'], function (exports) { 'use strict';
         loadingDone = false;
         startLoading();
     }
-    function claimed(claimer) {
+    function claimedBy(claimer) {
         return claimer != null && claimer === actualClaimedBy;
     }
+    var claimed = claimedBy;
     function release(claimer) {
         if (claimer == null || actualClaimedBy !== claimer) {
             return;
         }
         loadingDone = true;
     }
+    function isLoading() {
+        return nextFrame !== -1;
+    }
 
     var loadingBar$1 = /*#__PURE__*/Object.freeze({
         __proto__: null,
         claim: claim,
+        claimedBy: claimedBy,
         claimed: claimed,
-        release: release
+        release: release,
+        isLoading: isLoading
     });
 
     function createCommonjsModule(fn, basedir, module) {
@@ -5184,11 +5191,13 @@ define(['exports'], function (exports) { 'use strict';
         delete event.stopPropagation;
     }
 
-    function onunroute(routeComponent, currentMount, route, router, shouldResetUnroute) {
+    function onunroute(routeComponent, currentMount, route, router, shouldFireEvent, shouldResetUnroute) {
         const currentEl = currentMount.el;
         {
-            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+            if (shouldFireEvent) {
+                const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+                dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+            }
             const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
             currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
         }
@@ -5204,19 +5213,36 @@ define(['exports'], function (exports) { 'use strict';
 
     function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
         if (router[LAST_ROUTED] !== routeComponent) {
-            onunroute(routeComponent, currentMount, route, router, false);
+            onunroute(routeComponent, currentMount, route, router, false, false);
             return;
         }
         const currentEl = currentMount.el;
         if (claimed(claimer)) {
             release(claimer);
         }
-        router[UNROUTE_METHOD]();
-        router[UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
-        currentEl.style.display = "block";
-        {
-            const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
-            dispatchEventOver(currentEl.children, routeEvent, null, []);
+        const routerUNROUTE = router[UNROUTE_METHOD];
+        let reachedRouterLoad = false;
+        const thisUNROUTE = () => {
+            onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
+        };
+        router[UNROUTE_METHOD] = () => {
+            window.removeEventListener("routerload", onrouterload);
+            routerUNROUTE();
+            thisUNROUTE();
+        };
+
+        window.addEventListener("routerload", onrouterload);
+
+        function onrouterload() {
+            window.removeEventListener("routerload", onrouterload);
+            reachedRouterLoad = true;
+            routerUNROUTE();
+            router[UNROUTE_METHOD] = thisUNROUTE;
+            currentEl.style.display = "block";
+            {
+                const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+                dispatchEventOver(currentEl.children, routeEvent, null, []);
+            }
         }
     }
 
@@ -5388,10 +5414,10 @@ define(['exports'], function (exports) { 'use strict';
 
       'template': function(template, expressionTypes, bindingTypes, getComponent) {
         return template(
-          '<a expr10="expr10" ref="-navigate-a"><slot expr11="expr11"></slot></a>',
+          '<a expr54="expr54" ref="-navigate-a"><slot expr55="expr55"></slot></a>',
           [{
-            'redundantAttribute': 'expr10',
-            'selector': '[expr10]',
+            'redundantAttribute': 'expr54',
+            'selector': '[expr54]',
 
             'expressions': [{
               'type': expressionTypes.ATTRIBUTE,
@@ -5412,8 +5438,8 @@ define(['exports'], function (exports) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr11',
-            'selector': '[expr11]'
+            'redundantAttribute': 'expr55',
+            'selector': '[expr55]'
           }]
         );
       },

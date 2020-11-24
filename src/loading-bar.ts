@@ -29,6 +29,7 @@ function startLoading(): void {
     let lastTime: number;
     let eventDispatched: boolean = false;
     let step: () => void = () => {
+        nextFrame = -1;
         if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
             loadingProgress = 100;
             loadingBarContainer.style.display = "none";
@@ -81,9 +82,10 @@ export function claim(claimer: any): void {
     lastClaim = Date.now();
     startLoading();
 }
-export function claimed(claimer: any): boolean {
+export function claimedBy(claimer: any): boolean {
     return claimer != null && claimer === actualClaimedBy;
 }
+export const claimed: typeof claimedBy = claimedBy;
 export function release(claimer: any): void {
     // se chi ha chiamato questa funzione è lo stesso che ha chiamato
     // per ultimo la funzione precedente, allora termina il caricamento
@@ -92,4 +94,7 @@ export function release(claimer: any): void {
     }
     // console.log("claim end at", Date.now() - lastClaim + "ms");
     loadingDone = true;
+}
+export function isLoading(): boolean {
+    return nextFrame !== -1;
 }

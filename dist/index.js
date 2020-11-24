@@ -27,6 +27,7 @@ function startLoading() {
     var lastTime;
     var eventDispatched = false;
     var step = function () {
+        nextFrame = -1;
         if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
             loadingProgress = 100;
             loadingBarContainer.style.display = "none";
@@ -72,21 +73,27 @@ function claim(claimer) {
     loadingDone = false;
     startLoading();
 }
-function claimed(claimer) {
+function claimedBy(claimer) {
     return claimer != null && claimer === actualClaimedBy;
 }
+var claimed = claimedBy;
 function release(claimer) {
     if (claimer == null || actualClaimedBy !== claimer) {
         return;
     }
     loadingDone = true;
 }
+function isLoading() {
+    return nextFrame !== -1;
+}
 
 var loadingBar$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
     claim: claim,
+    claimedBy: claimedBy,
     claimed: claimed,
-    release: release
+    release: release,
+    isLoading: isLoading
 });
 
 var ROUTER = Symbol("router");
@@ -304,11 +311,13 @@ function dispatchEventOver(children, event, collectLoaders, collectRouter) {
     delete event.stopPropagation;
 }
 
-function onunroute(routeComponent, currentMount, route, router, shouldResetUnroute) {
+function onunroute(routeComponent, currentMount, route, router, shouldFireEvent, shouldResetUnroute) {
     const currentEl = currentMount.el;
     {
-        const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
-        dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+        if (shouldFireEvent) {
+            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+            dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
+        }
         const scope = Object.create(routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
         currentMount.unmount( scope, routeComponent[riot.__.globals.PARENT_KEY_SYMBOL] );
     }
@@ -324,19 +333,36 @@ function onunroute(routeComponent, currentMount, route, router, shouldResetUnrou
 
 function onloadingcomplete(routeComponent, currentMount, route, router, claimer) {
     if (router[LAST_ROUTED] !== routeComponent) {
-        onunroute(routeComponent, currentMount, route, router, false);
+        onunroute(routeComponent, currentMount, route, router, false, false);
         return;
     }
     const currentEl = currentMount.el;
     if (claimed(claimer)) {
         release(claimer);
     }
-    router[UNROUTE_METHOD]();
-    router[UNROUTE_METHOD] = () => { onunroute(routeComponent, currentMount, route, router, true); };
-    currentEl.style.display = "block";
-    {
-        const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
-        dispatchEventOver(currentEl.children, routeEvent, null, []);
+    const routerUNROUTE = router[UNROUTE_METHOD];
+    let reachedRouterLoad = false;
+    const thisUNROUTE = () => {
+        onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
+    };
+    router[UNROUTE_METHOD] = () => {
+        window.removeEventListener("routerload", onrouterload);
+        routerUNROUTE();
+        thisUNROUTE();
+    };
+
+    window.addEventListener("routerload", onrouterload);
+
+    function onrouterload() {
+        window.removeEventListener("routerload", onrouterload);
+        reachedRouterLoad = true;
+        routerUNROUTE();
+        router[UNROUTE_METHOD] = thisUNROUTE;
+        currentEl.style.display = "block";
+        {
+            const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+            dispatchEventOver(currentEl.children, routeEvent, null, []);
+        }
     }
 }
 
@@ -507,32 +533,35 @@ var NavigateComponent = {
   },
 
   'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>', [{
-      'redundantAttribute': 'expr1',
-      'selector': '[expr1]',
+    return template(
+      '<a expr48="expr48" ref="-navigate-a"><slot expr49="expr49"></slot></a>',
+      [{
+        'redundantAttribute': 'expr48',
+        'selector': '[expr48]',
 
-      'expressions': [{
-        'type': expressionTypes.ATTRIBUTE,
-        'name': 'href',
+        'expressions': [{
+          'type': expressionTypes.ATTRIBUTE,
+          'name': 'href',
 
-        'evaluate': function(scope) {
-          return "#" + scope.href();
-        }
+          'evaluate': function(scope) {
+            return "#" + scope.href();
+          }
+        }, {
+          'type': expressionTypes.ATTRIBUTE,
+          'name': 'style',
+
+          'evaluate': function(scope) {
+            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
+          }
+        }]
       }, {
-        'type': expressionTypes.ATTRIBUTE,
-        'name': 'style',
-
-        'evaluate': function(scope) {
-          return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-        }
+        'type': bindingTypes.SLOT,
+        'attributes': [],
+        'name': 'default',
+        'redundantAttribute': 'expr49',
+        'selector': '[expr49]'
       }]
-    }, {
-      'type': bindingTypes.SLOT,
-      'attributes': [],
-      'name': 'default',
-      'redundantAttribute': 'expr2',
-      'selector': '[expr2]'
-    }]);
+    );
   },
 
   'name': 'navigate'
