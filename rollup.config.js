@@ -3,8 +3,12 @@ const commonjs = require('@rollup/plugin-commonjs');
 const typescript = require('@rollup/plugin-typescript');
 const nodeResolve = require("@rollup/plugin-node-resolve").default;
 
+const basicGlobals = {
+    "riot": "riot"
+};
+const basicExternal = Object.keys(basicGlobals);
 const globals = {
-    "riot": "riot",
+    ...basicGlobals,
     "history-manager": "historyManager"
 };
 const external = Object.keys(globals);
@@ -15,86 +19,44 @@ export default [
         external,
         plugins: [
             nodeResolve(),
-            commonjs(),
             typescript(),
+            commonjs(),
             riot()
         ],
-        output: {
-            file: "dist/index.js",
-            format: "cjs",
-            exports: "auto"
-        }
+        output: [
+            {
+                name: "riotHistoryManager",
+                file: "dist/index.js",
+                format: "umd",
+                globals
+            },
+            {
+                file: "dist/index.es.js",
+                format: "es"
+            }
+        ]
     },
     {
         input: "src/index.ts",
-        external,
+        external: basicExternal,
         plugins: [
             nodeResolve(),
-            commonjs(),
             typescript(),
+            commonjs(),
             riot()
         ],
-        output: {
-            file: "dist/index.es.js",
-            format: "es"
-        }
-    },
-    {
-        input: "src/index.ts",
-        external,
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            typescript(),
-            riot()
-        ],
-        output: {
-            file: "dist/index.amd.js",
-            format: "amd"
-        }
-    },
-    {
-        input: "src/index.ts",
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            typescript(),
-            riot()
-        ],
-        output: {
-            file: "dist/index.amd+libs.js",
-            format: "amd"
-        }
-    },
-    {
-        input: "src/index.ts",
-        external,
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            typescript(),
-            riot()
-        ],
-        output: {
-            name: "riotHistoryManager",
-            file: "dist/index.umd.js",
-            format: "umd",
-            globals
-        }
-    },
-    {
-        input: "src/index.ts",
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            typescript(),
-            riot()
-        ],
-        output: {
-            name: "riotHistoryManager",
-            file: "dist/index.umd+libs.js",
-            format: "umd"
-        }
+        output: [
+            {
+                name: "riotHistoryManager",
+                file: "dist/index+libs.js",
+                format: "umd",
+                globals: basicGlobals
+            },
+            {
+                file: "dist/index.es+libs.js",
+                format: "es"
+            }
+        ]
     },
     {
         input: "test/src/index.js",

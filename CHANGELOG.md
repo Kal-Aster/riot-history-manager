@@ -1,15 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.4.1] - 2020-11-24
-- remove delay from actual display of route and "routerload" event dispatch
-- change `loading-bar.claimed` to `loading-bar.claimedBy` (previous one still available)
-- add `loading-bar.isLoading`
+## [1.4.2] - 2021-01-31
+- change "dist" structure
+- edit entry points in "package.json"
+- add "files" in "package.json"
+- update dependencies
 
 ## [any] - Unreleased
 - "requestvisibility" documentation
 
 - customable `z-index` of loading bar
+
+## [1.4.1] - 2020-11-24
+- remove delay from actual display of route and "routerload" event dispatch
+- change `loading-bar.claimed` to `loading-bar.claimedBy` (previous one still available)
+- add `loading-bar.isLoading`
 
 ## [1.4.0] - 2020-11-23
 - change bundle configuration

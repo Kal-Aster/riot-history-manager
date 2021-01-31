@@ -123,14 +123,24 @@ var RouterComponent = {
     [LAST_ROUTED]: null
   },
 
-  'template': function(template, expressionTypes, bindingTypes, getComponent) {
-    return template('<slot expr3="expr3"></slot>', [{
-      'type': bindingTypes.SLOT,
-      'attributes': [],
-      'name': 'default',
-      'redundantAttribute': 'expr3',
-      'selector': '[expr3]'
-    }]);
+  'template': function(
+    template,
+    expressionTypes,
+    bindingTypes,
+    getComponent
+  ) {
+    return template(
+      '<slot expr2="expr2"></slot>',
+      [
+        {
+          'type': bindingTypes.SLOT,
+          'attributes': [],
+          'name': 'default',
+          'redundantAttribute': 'expr2',
+          'selector': '[expr2]'
+        }
+      ]
+    );
   },
 
   'name': 'router'
@@ -528,35 +538,56 @@ var NavigateComponent = {
     }
   },
 
-  'template': function(template, expressionTypes, bindingTypes, getComponent) {
+  'template': function(
+    template,
+    expressionTypes,
+    bindingTypes,
+    getComponent
+  ) {
     return template(
-      '<a expr50="expr50" ref="-navigate-a"><slot expr51="expr51"></slot></a>',
-      [{
-        'redundantAttribute': 'expr50',
-        'selector': '[expr50]',
+      '<a expr0="expr0" ref="-navigate-a"><slot expr1="expr1"></slot></a>',
+      [
+        {
+          'redundantAttribute': 'expr0',
+          'selector': '[expr0]',
 
-        'expressions': [{
-          'type': expressionTypes.ATTRIBUTE,
-          'name': 'href',
+          'expressions': [
+            {
+              'type': expressionTypes.ATTRIBUTE,
+              'name': 'href',
 
-          'evaluate': function(scope) {
-            return "#" + scope.href();
-          }
-        }, {
-          'type': expressionTypes.ATTRIBUTE,
-          'name': 'style',
+              'evaluate': function(
+                scope
+              ) {
+                return "#" + scope.href();
+              }
+            },
+            {
+              'type': expressionTypes.ATTRIBUTE,
+              'name': 'style',
 
-          'evaluate': function(scope) {
-            return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-          }
-        }]
-      }, {
-        'type': bindingTypes.SLOT,
-        'attributes': [],
-        'name': 'default',
-        'redundantAttribute': 'expr51',
-        'selector': '[expr51]'
-      }]
+              'evaluate': function(
+                scope
+              ) {
+                return [
+                  'display: ',
+                  scope.root.style.display,
+                  '; width: 100%; height: 100%;'
+                ].join(
+                  ''
+                );
+              }
+            }
+          ]
+        },
+        {
+          'type': bindingTypes.SLOT,
+          'attributes': [],
+          'name': 'default',
+          'redundantAttribute': 'expr1',
+          'selector': '[expr1]'
+        }
+      ]
     );
   },
 

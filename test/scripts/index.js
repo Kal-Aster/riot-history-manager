@@ -1,6 +1,6 @@
 define(['require'], function (require) { 'use strict';
 
-  /* Riot v5.0.0, @license MIT */
+  /* Riot v5.2.0, @license MIT */
   /**
    * Convert a string from camel case to dash-case
    * @param   {string} string - probably a component tag name
@@ -87,6 +87,58 @@ define(['require'], function (require) { 'use strict';
 
   const replaceChild = (newNode, replaced) => replaced && replaced.parentNode && replaced.parentNode.replaceChild(newNode, replaced);
 
+  // Riot.js constants that can be used accross more modules
+  const COMPONENTS_IMPLEMENTATION_MAP = new Map(),
+        DOM_COMPONENT_INSTANCE_PROPERTY = Symbol('riot-component'),
+        PLUGINS_SET = new Set(),
+        IS_DIRECTIVE = 'is',
+        VALUE_ATTRIBUTE = 'value',
+        MOUNT_METHOD_KEY = 'mount',
+        UPDATE_METHOD_KEY = 'update',
+        UNMOUNT_METHOD_KEY = 'unmount',
+        SHOULD_UPDATE_KEY = 'shouldUpdate',
+        ON_BEFORE_MOUNT_KEY = 'onBeforeMount',
+        ON_MOUNTED_KEY = 'onMounted',
+        ON_BEFORE_UPDATE_KEY = 'onBeforeUpdate',
+        ON_UPDATED_KEY = 'onUpdated',
+        ON_BEFORE_UNMOUNT_KEY = 'onBeforeUnmount',
+        ON_UNMOUNTED_KEY = 'onUnmounted',
+        PROPS_KEY = 'props',
+        STATE_KEY = 'state',
+        SLOTS_KEY = 'slots',
+        ROOT_KEY = 'root',
+        IS_PURE_SYMBOL = Symbol.for('pure'),
+        PARENT_KEY_SYMBOL = Symbol('parent'),
+        ATTRIBUTES_KEY_SYMBOL = Symbol('attributes'),
+        TEMPLATE_KEY_SYMBOL = Symbol('template');
+
+  var globals = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    COMPONENTS_IMPLEMENTATION_MAP: COMPONENTS_IMPLEMENTATION_MAP,
+    DOM_COMPONENT_INSTANCE_PROPERTY: DOM_COMPONENT_INSTANCE_PROPERTY,
+    PLUGINS_SET: PLUGINS_SET,
+    IS_DIRECTIVE: IS_DIRECTIVE,
+    VALUE_ATTRIBUTE: VALUE_ATTRIBUTE,
+    MOUNT_METHOD_KEY: MOUNT_METHOD_KEY,
+    UPDATE_METHOD_KEY: UPDATE_METHOD_KEY,
+    UNMOUNT_METHOD_KEY: UNMOUNT_METHOD_KEY,
+    SHOULD_UPDATE_KEY: SHOULD_UPDATE_KEY,
+    ON_BEFORE_MOUNT_KEY: ON_BEFORE_MOUNT_KEY,
+    ON_MOUNTED_KEY: ON_MOUNTED_KEY,
+    ON_BEFORE_UPDATE_KEY: ON_BEFORE_UPDATE_KEY,
+    ON_UPDATED_KEY: ON_UPDATED_KEY,
+    ON_BEFORE_UNMOUNT_KEY: ON_BEFORE_UNMOUNT_KEY,
+    ON_UNMOUNTED_KEY: ON_UNMOUNTED_KEY,
+    PROPS_KEY: PROPS_KEY,
+    STATE_KEY: STATE_KEY,
+    SLOTS_KEY: SLOTS_KEY,
+    ROOT_KEY: ROOT_KEY,
+    IS_PURE_SYMBOL: IS_PURE_SYMBOL,
+    PARENT_KEY_SYMBOL: PARENT_KEY_SYMBOL,
+    ATTRIBUTES_KEY_SYMBOL: ATTRIBUTES_KEY_SYMBOL,
+    TEMPLATE_KEY_SYMBOL: TEMPLATE_KEY_SYMBOL
+  });
+
   const EACH = 0;
   const IF = 1;
   const SIMPLE = 2;
@@ -111,18 +163,84 @@ define(['require'], function (require) { 'use strict';
     VALUE
   };
 
+  const HEAD_SYMBOL = Symbol('head');
+  const TAIL_SYMBOL = Symbol('tail');
+
+  /**
+   * Create the <template> fragments comment nodes
+   * @return {Object} {{head: Comment, tail: Comment}}
+   */
+
+  function createHeadTailPlaceholders() {
+    const head = document.createComment('fragment head');
+    const tail = document.createComment('fragment tail');
+    head[HEAD_SYMBOL] = true;
+    tail[TAIL_SYMBOL] = true;
+    return {
+      head,
+      tail
+    };
+  }
+
   /**
    * Create the template meta object in case of <template> fragments
    * @param   {TemplateChunk} componentTemplate - template chunk object
    * @returns {Object} the meta property that will be passed to the mount function of the TemplateChunk
    */
+
   function createTemplateMeta(componentTemplate) {
     const fragment = componentTemplate.dom.cloneNode(true);
+    const {
+      head,
+      tail
+    } = createHeadTailPlaceholders();
     return {
       avoidDOMInjection: true,
       fragment,
-      children: Array.from(fragment.childNodes)
+      head,
+      tail,
+      children: [head, ...Array.from(fragment.childNodes), tail]
     };
+  }
+
+  /**
+   * Get the current <template> fragment children located in between the head and tail comments
+   * @param {Comment} head - head comment node
+   * @param {Comment} tail - tail comment node
+   * @return {Array[]} children list of the nodes found in this template fragment
+   */
+
+  function getFragmentChildren(_ref) {
+    let {
+      head,
+      tail
+    } = _ref;
+    const nodes = walkNodes([head], head.nextSibling, n => n === tail, false);
+    nodes.push(tail);
+    return nodes;
+  }
+  /**
+   * Recursive function to walk all the <template> children nodes
+   * @param {Array[]} children - children nodes collection
+   * @param {ChildNode} node - current node
+   * @param {Function} check - exit function check
+   * @param {boolean} isFilterActive - filter flag to skip nodes managed by other bindings
+   * @returns {Array[]} children list of the nodes found in this template fragment
+   */
+
+  function walkNodes(children, node, check, isFilterActive) {
+    const {
+      nextSibling
+    } = node; // filter tail and head nodes together with all the nodes in between
+    // this is needed only to fix a really ugly edge case https://github.com/riot/riot/issues/2892
+
+    if (!isFilterActive && !node[HEAD_SYMBOL] && !node[TAIL_SYMBOL]) {
+      children.push(node);
+    }
+
+    if (!nextSibling || check(node)) return children;
+    return walkNodes(children, nextSibling, check, // activate the filters to skip nodes between <template> fragments that will be managed by other bindings
+    isFilterActive && !node[TAIL_SYMBOL] || nextSibling[HEAD_SYMBOL]);
   }
 
   /**
@@ -178,7 +296,7 @@ define(['require'], function (require) { 'use strict';
    */
 
   function isObject(value) {
-    return !isNil(value) && checkType(value, 'object');
+    return !isNil(value) && value.constructor === Object;
   }
   /**
    * Check if a value is null or undefined
@@ -213,7 +331,6 @@ define(['require'], function (require) { 'use strict';
   /* eslint-disable */
 
   /**
-   * @param {Node} parentNode The container where children live
    * @param {Node[]} a The list of current/live children
    * @param {Node[]} b The list of future children
    * @param {(entry: Node, action: number) => Node} get
@@ -222,7 +339,7 @@ define(['require'], function (require) { 'use strict';
    * @returns {Node[]} The same list of future children.
    */
 
-  var udomdiff = ((parentNode, a, b, get, before) => {
+  var udomdiff = ((a, b, get, before) => {
     const bLength = b.length;
     let aEnd = a.length;
     let bEnd = bLength;
@@ -334,7 +451,7 @@ define(['require'], function (require) { 'use strict';
   });
 
   const UNMOUNT_SCOPE = Symbol('unmount');
-  const EachBinding = Object.seal({
+  const EachBinding = {
     // dynamic binding properties
     // childrenMap: null,
     // node: null,
@@ -362,8 +479,7 @@ define(['require'], function (require) { 'use strict';
         childrenMap
       } = this;
       const collection = scope === UNMOUNT_SCOPE ? null : this.evaluate(scope);
-      const items = collection ? Array.from(collection) : [];
-      const parent = placeholder.parentNode; // prepare the diffing
+      const items = collection ? Array.from(collection) : []; // prepare the diffing
 
       const {
         newChildrenMap,
@@ -371,12 +487,14 @@ define(['require'], function (require) { 'use strict';
         futureNodes
       } = createPatch(items, scope, parentScope, this); // patch the DOM only if there are new nodes
 
-      udomdiff(parent, nodes, futureNodes, patch(Array.from(childrenMap.values()), parentScope), placeholder); // trigger the mounts and the updates
+      udomdiff(nodes, futureNodes, patch(Array.from(childrenMap.values()), parentScope), placeholder); // trigger the mounts and the updates
 
       batches.forEach(fn => fn()); // update the children map
 
       this.childrenMap = newChildrenMap;
-      this.nodes = futureNodes;
+      this.nodes = futureNodes; // make sure that the loop edge nodes are marked
+
+      markEdgeNodes(this.nodes);
       return this;
     },
 
@@ -385,10 +503,10 @@ define(['require'], function (require) { 'use strict';
       return this;
     }
 
-  });
+  };
   /**
    * Patch the DOM while diffing
-   * @param   {TemplateChunk[]} redundant - redundant tepmplate chunks
+   * @param   {any[]} redundant - list of all the children (template, nodes, context) added via each
    * @param   {*} parentScope - scope of the parent template
    * @returns {Function} patch function used by domdiff
    */
@@ -396,16 +514,25 @@ define(['require'], function (require) { 'use strict';
   function patch(redundant, parentScope) {
     return (item, info) => {
       if (info < 0) {
-        const element = redundant.pop();
+        // get the last element added to the childrenMap saved previously
+        const element = redundant[redundant.length - 1];
 
         if (element) {
+          // get the nodes and the template in stored in the last child of the childrenMap
           const {
             template,
+            nodes,
             context
-          } = element; // notice that we pass null as last argument because
+          } = element; // remove the last node (notice <template> tags might have more children nodes)
+
+          nodes.pop(); // notice that we pass null as last argument because
           // the root node and its children will be removed by domdiff
 
-          template.unmount(context, parentScope, null);
+          if (nodes.length === 0) {
+            // we have cleared all the children nodes and we can unmount this template
+            redundant.pop();
+            template.unmount(context, parentScope, null);
+          }
         }
       }
 
@@ -446,6 +573,19 @@ define(['require'], function (require) { 'use strict';
     return scope;
   }
   /**
+   * Mark the first and last nodes in order to ignore them in case we need to retrieve the <template> fragment nodes
+   * @param {Array[]} nodes - each binding nodes list
+   * @returns {undefined} void function
+   */
+
+
+  function markEdgeNodes(nodes) {
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (first) first[HEAD_SYMBOL] = true;
+    if (last) last[TAIL_SYMBOL] = true;
+  }
+  /**
    * Loop the current template items
    * @param   {Array} items - expression collection value
    * @param   {*} scope - template scope
@@ -481,15 +621,16 @@ define(['require'], function (require) { 'use strict';
       });
       const key = getKey ? getKey(context) : index;
       const oldItem = childrenMap.get(key);
+      const nodes = [];
 
       if (mustFilterItem(condition, context)) {
         return;
       }
 
-      const componentTemplate = oldItem ? oldItem.template : template.clone();
-      const el = oldItem ? componentTemplate.el : root.cloneNode();
       const mustMount = !oldItem;
-      const meta = isTemplateTag && mustMount ? createTemplateMeta(componentTemplate) : {};
+      const componentTemplate = oldItem ? oldItem.template : template.clone();
+      const el = componentTemplate.el || root.cloneNode();
+      const meta = isTemplateTag && mustMount ? createTemplateMeta(componentTemplate) : componentTemplate.meta;
 
       if (mustMount) {
         batches.push(() => componentTemplate.mount(el, context, parentScope, meta));
@@ -500,16 +641,17 @@ define(['require'], function (require) { 'use strict';
 
 
       if (isTemplateTag) {
-        const children = meta.children || componentTemplate.children;
-        futureNodes.push(...children);
+        nodes.push(...(mustMount ? meta.children : getFragmentChildren(meta)));
       } else {
-        futureNodes.push(el);
+        nodes.push(el);
       } // delete the old item from the children map
 
 
-      childrenMap.delete(key); // update the children map
+      childrenMap.delete(key);
+      futureNodes.push(...nodes); // update the children map
 
       newChildrenMap.set(key, {
+        nodes,
         template: componentTemplate,
         context,
         index
@@ -554,7 +696,7 @@ define(['require'], function (require) { 'use strict';
    * Binding responsible for the `if` directive
    */
 
-  const IfBinding = Object.seal({
+  const IfBinding = {
     // dynamic binding properties
     // node: null,
     // evaluate: null,
@@ -600,7 +742,7 @@ define(['require'], function (require) { 'use strict';
       return this;
     }
 
-  });
+  };
   function create$1(node, _ref) {
     let {
       evaluate,
@@ -878,7 +1020,7 @@ define(['require'], function (require) { 'use strict';
     [VALUE]: valueExpression
   };
 
-  const Expression = Object.seal({
+  const Expression = {
     // Static props
     // node: null,
     // value: null,
@@ -925,7 +1067,7 @@ define(['require'], function (require) { 'use strict';
       return this;
     }
 
-  });
+  };
   /**
    * IO() function to handle the DOM updates
    * @param {Expression} expression - expression object
@@ -968,58 +1110,6 @@ define(['require'], function (require) { 'use strict';
     return Object.assign({}, flattenCollectionMethods(expressions.map(expression => create$2(node, expression)), ['mount', 'update', 'unmount']));
   }
 
-  // Riot.js constants that can be used accross more modules
-  const COMPONENTS_IMPLEMENTATION_MAP = new Map(),
-        DOM_COMPONENT_INSTANCE_PROPERTY = Symbol('riot-component'),
-        PLUGINS_SET = new Set(),
-        IS_DIRECTIVE = 'is',
-        VALUE_ATTRIBUTE = 'value',
-        MOUNT_METHOD_KEY = 'mount',
-        UPDATE_METHOD_KEY = 'update',
-        UNMOUNT_METHOD_KEY = 'unmount',
-        SHOULD_UPDATE_KEY = 'shouldUpdate',
-        ON_BEFORE_MOUNT_KEY = 'onBeforeMount',
-        ON_MOUNTED_KEY = 'onMounted',
-        ON_BEFORE_UPDATE_KEY = 'onBeforeUpdate',
-        ON_UPDATED_KEY = 'onUpdated',
-        ON_BEFORE_UNMOUNT_KEY = 'onBeforeUnmount',
-        ON_UNMOUNTED_KEY = 'onUnmounted',
-        PROPS_KEY = 'props',
-        STATE_KEY = 'state',
-        SLOTS_KEY = 'slots',
-        ROOT_KEY = 'root',
-        IS_PURE_SYMBOL = Symbol.for('pure'),
-        PARENT_KEY_SYMBOL = Symbol('parent'),
-        ATTRIBUTES_KEY_SYMBOL = Symbol('attributes'),
-        TEMPLATE_KEY_SYMBOL = Symbol('template');
-
-  var globals = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    COMPONENTS_IMPLEMENTATION_MAP: COMPONENTS_IMPLEMENTATION_MAP,
-    DOM_COMPONENT_INSTANCE_PROPERTY: DOM_COMPONENT_INSTANCE_PROPERTY,
-    PLUGINS_SET: PLUGINS_SET,
-    IS_DIRECTIVE: IS_DIRECTIVE,
-    VALUE_ATTRIBUTE: VALUE_ATTRIBUTE,
-    MOUNT_METHOD_KEY: MOUNT_METHOD_KEY,
-    UPDATE_METHOD_KEY: UPDATE_METHOD_KEY,
-    UNMOUNT_METHOD_KEY: UNMOUNT_METHOD_KEY,
-    SHOULD_UPDATE_KEY: SHOULD_UPDATE_KEY,
-    ON_BEFORE_MOUNT_KEY: ON_BEFORE_MOUNT_KEY,
-    ON_MOUNTED_KEY: ON_MOUNTED_KEY,
-    ON_BEFORE_UPDATE_KEY: ON_BEFORE_UPDATE_KEY,
-    ON_UPDATED_KEY: ON_UPDATED_KEY,
-    ON_BEFORE_UNMOUNT_KEY: ON_BEFORE_UNMOUNT_KEY,
-    ON_UNMOUNTED_KEY: ON_UNMOUNTED_KEY,
-    PROPS_KEY: PROPS_KEY,
-    STATE_KEY: STATE_KEY,
-    SLOTS_KEY: SLOTS_KEY,
-    ROOT_KEY: ROOT_KEY,
-    IS_PURE_SYMBOL: IS_PURE_SYMBOL,
-    PARENT_KEY_SYMBOL: PARENT_KEY_SYMBOL,
-    ATTRIBUTES_KEY_SYMBOL: ATTRIBUTES_KEY_SYMBOL,
-    TEMPLATE_KEY_SYMBOL: TEMPLATE_KEY_SYMBOL
-  });
-
   function extendParentScope(attributes, scope, parentScope) {
     if (!attributes || !attributes.length) return parentScope;
     const expressions = attributes.map(attr => Object.assign({}, attr, {
@@ -1032,7 +1122,7 @@ define(['require'], function (require) { 'use strict';
 
   const getRealParent = (scope, parentScope) => scope[PARENT_KEY_SYMBOL] || parentScope;
 
-  const SlotBinding = Object.seal({
+  const SlotBinding = {
     // dynamic binding properties
     // node: null,
     // name: null,
@@ -1059,7 +1149,8 @@ define(['require'], function (require) { 'use strict';
 
       if (this.template) {
         this.template.mount(this.node, this.getTemplateScope(scope, realParent), realParent);
-        this.template.children = moveSlotInnerContent(this.node);
+        this.template.children = Array.from(this.node.childNodes);
+        moveSlotInnerContent(this.node);
       }
 
       removeChild(this.node);
@@ -1083,27 +1174,18 @@ define(['require'], function (require) { 'use strict';
       return this;
     }
 
-  });
+  };
   /**
    * Move the inner content of the slots outside of them
    * @param   {HTMLElement} slot - slot node
-   * @param   {HTMLElement} children - array to fill with the child nodes detected
-   * @returns {HTMLElement[]} list of the node moved
+   * @returns {undefined} it's a void method ¯\_(ツ)_/¯
    */
 
-  function moveSlotInnerContent(slot, children) {
-    if (children === void 0) {
-      children = [];
-    }
-
-    const child = slot.firstChild;
-
-    if (child) {
-      insertBefore(child, slot);
-      return [child, ...moveSlotInnerContent(slot)];
-    }
-
-    return children;
+  function moveSlotInnerContent(slot) {
+    const child = slot && slot.firstChild;
+    if (!child) return;
+    insertBefore(child, slot);
+    moveSlotInnerContent(slot);
   }
   /**
    * Create a single slot binding
@@ -1190,7 +1272,7 @@ define(['require'], function (require) { 'use strict';
     }, '');
   }
 
-  const TagBinding = Object.seal({
+  const TagBinding = {
     // dynamic binding properties
     // node: null,
     // evaluate: null,
@@ -1229,7 +1311,7 @@ define(['require'], function (require) { 'use strict';
       return this;
     }
 
-  });
+  };
   function create$4(node, _ref2) {
     let {
       evaluate,
@@ -1428,7 +1510,9 @@ define(['require'], function (require) { 'use strict';
       if (!avoidDOMInjection && this.fragment) injectDOM(el, this.fragment); // create the bindings
 
       this.bindings = this.bindingsData.map(binding => create$5(this.el, binding, templateTagOffset));
-      this.bindings.forEach(b => b.mount(scope, parentScope));
+      this.bindings.forEach(b => b.mount(scope, parentScope)); // store the template meta properties
+
+      this.meta = meta;
       return this;
     },
 
@@ -1456,9 +1540,13 @@ define(['require'], function (require) { 'use strict';
         this.bindings.forEach(b => b.unmount(scope, parentScope, mustRemoveRoot));
 
         switch (true) {
+          // pure components should handle the DOM unmount updates by themselves
+          case this.el[IS_PURE_SYMBOL]:
+            break;
           // <template> tags should be treated a bit differently
           // we need to clear their children only if it's explicitly required by the caller
           // via mustRemoveRoot !== null
+
           case this.children && mustRemoveRoot !== null:
             clearChildren(this.children);
             break;
@@ -1486,6 +1574,7 @@ define(['require'], function (require) { 'use strict';
      */
     clone() {
       return Object.assign({}, this, {
+        meta: {},
         el: null
       });
     }
@@ -1982,7 +2071,9 @@ define(['require'], function (require) { 'use strict';
       // intercept the mount calls to bind the DOM node to the pure object created
       // see also https://github.com/riot/riot/issues/2806
       if (method === MOUNT_METHOD_KEY) {
-        const [el] = args;
+        const [el] = args; // mark this node as pure element
+
+        el[IS_PURE_SYMBOL] = true;
         bindDOMNodeToComponentObject(el, component);
       }
 
@@ -2170,7 +2261,7 @@ define(['require'], function (require) { 'use strict';
       attributes,
       props
     } = _ref6;
-    return autobindMethods(runPlugins(defineProperties(Object.create(component), {
+    return autobindMethods(runPlugins(defineProperties(isObject(component) ? Object.create(component) : component, {
       mount(element, state, parentScope) {
         if (state === void 0) {
           state = {};
@@ -2432,22 +2523,6 @@ define(['require'], function (require) { 'use strict';
       loadingDone = true;
   }
 
-  function createCommonjsModule(fn, basedir, module) {
-  	return module = {
-  		path: basedir,
-  		exports: {},
-  		require: function (path, base) {
-  			return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
-  		}
-  	}, fn(module, module.exports), module.exports;
-  }
-
-  function commonjsRequire () {
-  	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
-  }
-
-  var tslib_es6088f17e5 = createCommonjsModule(function (module, exports) {
-
   /*! *****************************************************************************
   Copyright (c) Microsoft Corporation.
 
@@ -2463,15 +2538,15 @@ define(['require'], function (require) { 'use strict';
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** */
 
-  exports.__assign = function() {
-      exports.__assign = Object.assign || function __assign(t) {
+  var __assign = function() {
+      __assign = Object.assign || function __assign(t) {
           for (var s, i = 1, n = arguments.length; i < n; i++) {
               s = arguments[i];
               for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
           }
           return t;
       };
-      return exports.__assign.apply(this, arguments);
+      return __assign.apply(this, arguments);
   };
 
   function __values(o) {
@@ -2502,10 +2577,6 @@ define(['require'], function (require) { 'use strict';
       }
       return ar;
   }
-
-  exports.__read = __read;
-  exports.__values = __values;
-  });
 
   /**
    * Tokenize input string.
@@ -2801,12 +2872,6 @@ define(['require'], function (require) { 'use strict';
       return stringToRegexp(path, keys, options);
   }
 
-  var pathToRegexp_1 = pathToRegexp;
-
-  var indexF599a34d = {
-  	pathToRegexp: pathToRegexp_1
-  };
-
   var LEADING_DELIMITER = /^[\\\/]+/;
   var TRAILING_DELIMITER = /[\\\/]+$/;
   var DELIMITER_NOT_IN_PARENTHESES = /[\\\/]+(?![^(]*[)])/g;
@@ -2825,37 +2890,269 @@ define(['require'], function (require) { 'use strict';
       if (typeof path === "string") {
           path = prepare(path);
       }
-      return indexF599a34d.pathToRegexp(path, keys);
+      return pathToRegexp(path, keys);
   }
 
-  var PathGenerator = /*#__PURE__*/Object.freeze({
-      __proto__: null,
-      prepare: prepare,
-      generate: generate
-  });
-
-  var PathGenerator_1 = PathGenerator;
-  var generate_1 = generate;
-  var prepare_1 = prepare;
-
-  var PathGenerator4901c320 = {
-  	PathGenerator: PathGenerator_1,
-  	generate: generate_1,
-  	prepare: prepare_1
-  };
-
-  function createCommonjsModule$1(fn, basedir, module) {
-  	return module = {
-  	  path: basedir,
-  	  exports: {},
-  	  require: function (path, base) {
-        return commonjsRequire$1(path, (base === undefined || base === null) ? module.path : base);
+  var ContextManager = (function () {
+      function ContextManager() {
+          this._contexts = new Map();
+          this._hrefs = [];
+          this._index = -1;
+          this._length = 0;
       }
-  	}, fn(module, module.exports), module.exports;
-  }
+      ContextManager.prototype.clean = function () {
+          if (this._index < this._length - 1) {
+              var index_1 = this._index;
+              var newHREFs_1 = [];
+              this._hrefs.some(function (c_hrefs) {
+                  var newCHrefs = [];
+                  var result = c_hrefs[1].some(function (href) {
+                      if (index_1-- >= 0) {
+                          newCHrefs.push(href);
+                          return false;
+                      }
+                      return true;
+                  });
+                  if (newCHrefs.length) {
+                      newHREFs_1.push([c_hrefs[0], newCHrefs]);
+                  }
+                  return result;
+              });
+              this._hrefs = newHREFs_1;
+              this._length = this._index + 1;
+          }
+      };
+      ContextManager.prototype.currentContext = function () {
+          if (this._hrefs.length === 0) {
+              return null;
+          }
+          var index = this._index;
+          var context;
+          if (this._hrefs.some(function (_a) {
+              var _b = __read(_a, 2), c = _b[0], hrefs = _b[1];
+              context = c;
+              index -= hrefs.length;
+              return index < 0;
+          })) {
+              return context;
+          }
+          return null;
+      };
+      ContextManager.prototype.contextOf = function (href, skipFallback) {
+          var e_1, _a;
+          if (skipFallback === void 0) { skipFallback = true; }
+          var foundContext = null;
+          href = href.split("#")[0].split("?")[0];
+          try {
+              for (var _b = __values(this._contexts.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
+                  var _d = __read(_c.value, 2), context = _d[0], _e = __read(_d[1], 1), hrefs = _e[0];
+                  if (hrefs.some(function (c_href) {
+                      if (c_href.fallback && skipFallback) {
+                          return false;
+                      }
+                      return c_href.path.test(href);
+                  })) {
+                      foundContext = context;
+                      break;
+                  }
+              }
+          }
+          catch (e_1_1) { e_1 = { error: e_1_1 }; }
+          finally {
+              try {
+                  if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+              }
+              finally { if (e_1) throw e_1.error; }
+          }
+          return foundContext;
+      };
+      ContextManager.prototype.insert = function (href, replace) {
+          if (replace === void 0) { replace = false; }
+          this.clean();
+          var foundContext = this.contextOf(href, this._length > 0);
+          var previousContext = this._hrefs.length > 0 ? this._hrefs[this._hrefs.length - 1] : null;
+          if (foundContext == null) {
+              if (this._hrefs.length > 0) {
+                  this._hrefs[this._hrefs.length - 1][1].push(href);
+                  this._length++;
+                  this._index++;
+              }
+          }
+          else {
+              var i_1 = -1;
+              if (this._hrefs.some(function (c_hrefs, index) {
+                  if (c_hrefs[0] === foundContext) {
+                      i_1 = index;
+                      return true;
+                  }
+                  return false;
+              })) {
+                  var c_hrefs = this._hrefs.splice(i_1, 1)[0];
+                  if (href !== c_hrefs[1][c_hrefs[1].length - 1]) {
+                      c_hrefs[1].push(href);
+                      this._length++;
+                      this._index++;
+                  }
+                  this._hrefs.push(c_hrefs);
+              }
+              else {
+                  this._hrefs.push([foundContext, [href]]);
+                  this._length++;
+                  this._index++;
+              }
+          }
+          if (replace && this._hrefs.length > 0) {
+              var lastContext = this._hrefs[this._hrefs.length - 1];
+              if (lastContext === previousContext) {
+                  if (lastContext[1].length > 1) {
+                      do {
+                          lastContext[1].splice(-2, 1);
+                          this._length--;
+                          this._index--;
+                      } while (lastContext[1].length > 1 &&
+                          lastContext[1][lastContext[1].length - 2] === href);
+                  }
+              }
+              else if (previousContext != null) {
+                  previousContext[1].splice(-1, 1);
+                  this._length--;
+                  this._index--;
+              }
+          }
+      };
+      ContextManager.prototype.goBackward = function () {
+          this._index = Math.max(--this._index, 0);
+          return this.get();
+      };
+      ContextManager.prototype.goForward = function () {
+          this._index = Math.min(++this._index, this._length - 1);
+          return this.get();
+      };
+      ContextManager.prototype.get = function (index) {
+          if (index === void 0) { index = this._index; }
+          var href;
+          if (this._hrefs.some(function (_a) {
+              var _b = __read(_a, 2); _b[0]; var hrefs = _b[1];
+              var length = hrefs.length;
+              if (index >= length) {
+                  index -= length;
+                  return false;
+              }
+              href = hrefs[index];
+              return true;
+          })) {
+              return href;
+          }
+          return null;
+      };
+      ContextManager.prototype.index = function (value) {
+          if (value === void 0) {
+              return this._index;
+          }
+          value = parseInt(value, 10);
+          if (isNaN(value)) {
+              throw new Error("value must be a number");
+          }
+          this._index = value;
+      };
+      ContextManager.prototype.length = function () {
+          return this._length;
+      };
+      ContextManager.prototype.getContextNames = function () {
+          return Array.from(this._contexts.keys());
+      };
+      ContextManager.prototype.getDefaultOf = function (context) {
+          var c = this._contexts.get(context);
+          if (!c) {
+              return null;
+          }
+          var href = c[1];
+          if (href == null) {
+              return null;
+          }
+          return href;
+      };
+      ContextManager.prototype.restore = function (context) {
+          var _this = this;
+          var tmpHREFs = this._hrefs;
+          this.clean();
+          if (this._hrefs.length) {
+              var lastContext = this._hrefs[this._hrefs.length - 1];
+              if (lastContext[0] === context) {
+                  var path = this._contexts.get(context)[1] || lastContext[1][0];
+                  var numPages = lastContext[1].splice(1).length;
+                  this._length -= numPages;
+                  this._index -= numPages;
+                  lastContext[1][0] = path;
+                  return true;
+              }
+          }
+          if (!this._hrefs.some(function (c, i) {
+              if (c[0] === context) {
+                  if (i < _this._hrefs.length - 1) {
+                      _this._hrefs.push(_this._hrefs.splice(i, 1)[0]);
+                  }
+                  return true;
+              }
+              return false;
+          })) {
+              var c = this._contexts.get(context);
+              if (c == null) {
+                  this._hrefs = tmpHREFs;
+                  return false;
+              }
+              var href = c[1];
+              if (href != null) {
+                  this.insert(href);
+                  return true;
+              }
+              return false;
+          }
+          return true;
+      };
+      ContextManager.prototype.addContextPath = function (context_name, path, fallback) {
+          if (fallback === void 0) { fallback = false; }
+          var pathRegexp = generate(path);
+          var context = this._contexts.get(context_name);
+          if (context == null) {
+              this._contexts.set(context_name, context = [[], null]);
+          }
+          context[0].push({
+              path: pathRegexp,
+              fallback: fallback
+          });
+          return pathRegexp;
+      };
+      ContextManager.prototype.setContextDefaultHref = function (context_name, href) {
+          var context = this._contexts.get(context_name);
+          if (context == null) {
+              this._contexts.set(context_name, context = [[], null]);
+          }
+          context[1] = href;
+      };
+      ContextManager.prototype.setContext = function (context) {
+          var _this = this;
+          context.paths.forEach(function (path) {
+              _this.addContextPath(context.name, path.path, path.fallback);
+          });
+          if (context.default !== undefined) {
+              this.setContextDefaultHref(context.name, context.default);
+          }
+      };
+      ContextManager.prototype.hrefs = function () {
+          var hrefs = [];
+          this._hrefs.forEach(function (_a) {
+              var _b = __read(_a, 2); _b[0]; var c_hrefs = _b[1];
+              hrefs.push.apply(hrefs, c_hrefs);
+          });
+          return hrefs;
+      };
+      return ContextManager;
+  }());
 
-  function commonjsRequire$1 () {
-  	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
+  function createCommonjsModule(fn) {
+    var module = { exports: {} };
+  	return fn(module, module.exports), module.exports;
   }
 
   var strictUriEncode = str => encodeURIComponent(str).replace(/[!'()*]/g, x => `%${x.charCodeAt(0).toString(16).toUpperCase()}`);
@@ -2975,7 +3272,7 @@ define(['require'], function (require) { 'use strict';
   	];
   };
 
-  var queryString = createCommonjsModule$1(function (module, exports) {
+  var queryString = createCommonjsModule(function (module, exports) {
 
 
 
@@ -3357,12 +3654,6 @@ define(['require'], function (require) { 'use strict';
   };
   });
 
-  var queryString_1 = queryString;
-
-  var index241ea07e = {
-  	queryString: queryString_1
-  };
-
   var DIVIDER = "#R!:";
   var catchPopState = null;
   window.addEventListener("popstate", function (event) {
@@ -3413,35 +3704,19 @@ define(['require'], function (require) { 'use strict';
   function optsToStr(opts) {
       var filteredOpts = {};
       Object.entries(opts).forEach(function (_a) {
-          var _b = tslib_es6088f17e5.__read(_a, 2), key = _b[0], value = _b[1];
+          var _b = __read(_a, 2), key = _b[0], value = _b[1];
           if (value !== undefined) {
               filteredOpts[key] = value;
           }
       });
-      return index241ea07e.queryString.stringify(filteredOpts);
+      return queryString.stringify(filteredOpts);
   }
   function get$1() {
-      return index241ea07e.queryString.parse(splitHref()[1]);
+      return queryString.parse(splitHref()[1]);
   }
   function set$1(opts) {
       var newHref = splitHref()[0] + DIVIDER + optsToStr(opts);
       return goTo(newHref, true);
-  }
-  function add(opt, value) {
-      var opts = get$1();
-      if (opts[opt] === undefined || opts[opt] !== value) {
-          opts[opt] = value || null;
-          return set$1(opts);
-      }
-      return new Promise(function (resolve) { resolve(); });
-  }
-  function remove(opt) {
-      var opts = get$1();
-      if (opts[opt] !== undefined) {
-          delete opts[opt];
-          return set$1(opts);
-      }
-      return new Promise(function (resolve) { resolve(); });
   }
   function goWith(href, opts, replace) {
       if (replace === void 0) { replace = false; }
@@ -3455,30 +3730,6 @@ define(['require'], function (require) { 'use strict';
       set$1({});
   }
 
-  var OptionsManager = /*#__PURE__*/Object.freeze({
-      __proto__: null,
-      get: get$1,
-      set: set$1,
-      add: add,
-      remove: remove,
-      goWith: goWith,
-      clearHref: clearHref
-  });
-
-  var OptionsManager_1 = OptionsManager;
-  var clearHref_1 = clearHref;
-  var get_1 = get$1;
-  var goWith_1 = goWith;
-  var set_1 = set$1;
-
-  var OptionsManager3fd4d9f6 = {
-  	OptionsManager: OptionsManager_1,
-  	clearHref: clearHref_1,
-  	get: get_1,
-  	goWith: goWith_1,
-  	set: set_1
-  };
-
   var BASE = window.location.href.split("#")[0] + "#";
   function base(value) {
       if (value != null) {
@@ -3486,307 +3737,22 @@ define(['require'], function (require) { 'use strict';
       }
       return BASE;
   }
-  function get$2() {
-      return PathGenerator4901c320.prepare(OptionsManager3fd4d9f6.clearHref().split(BASE).slice(1).join(BASE));
+  function get$1$1() {
+      return prepare(clearHref().split(BASE).slice(1).join(BASE));
   }
   function construct(href) {
       switch (href[0]) {
           case "?": {
-              href = get$2().split("?")[0] + href;
+              href = get$1$1().split("?")[0] + href;
               break;
           }
           case "#": {
-              href = get$2().split("#")[0] + href;
+              href = get$1$1().split("#")[0] + href;
               break;
           }
       }
       return BASE + href;
   }
-
-  var URLManager = /*#__PURE__*/Object.freeze({
-      __proto__: null,
-      base: base,
-      get: get$2,
-      construct: construct
-  });
-
-  var ContextManager = (function () {
-      function ContextManager() {
-          this._contexts = new Map();
-          this._hrefs = [];
-          this._index = -1;
-          this._length = 0;
-      }
-      ContextManager.prototype.clean = function () {
-          if (this._index < this._length - 1) {
-              var index_1 = this._index;
-              var newHREFs_1 = [];
-              this._hrefs.some(function (c_hrefs) {
-                  var newCHrefs = [];
-                  var result = c_hrefs[1].some(function (href) {
-                      if (index_1-- >= 0) {
-                          newCHrefs.push(href);
-                          return false;
-                      }
-                      return true;
-                  });
-                  if (newCHrefs.length) {
-                      newHREFs_1.push([c_hrefs[0], newCHrefs]);
-                  }
-                  return result;
-              });
-              this._hrefs = newHREFs_1;
-              this._length = this._index + 1;
-          }
-      };
-      ContextManager.prototype.currentContext = function () {
-          if (this._hrefs.length === 0) {
-              return null;
-          }
-          var index = this._index;
-          var context;
-          if (this._hrefs.some(function (_a) {
-              var _b = tslib_es6088f17e5.__read(_a, 2), c = _b[0], hrefs = _b[1];
-              context = c;
-              index -= hrefs.length;
-              return index < 0;
-          })) {
-              return context;
-          }
-          return null;
-      };
-      ContextManager.prototype.contextOf = function (href, skipFallback) {
-          var e_1, _a;
-          if (skipFallback === void 0) { skipFallback = true; }
-          var foundContext = null;
-          href = href.split("#")[0].split("?")[0];
-          try {
-              for (var _b = tslib_es6088f17e5.__values(this._contexts.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
-                  var _d = tslib_es6088f17e5.__read(_c.value, 2), context = _d[0], _e = tslib_es6088f17e5.__read(_d[1], 1), hrefs = _e[0];
-                  if (hrefs.some(function (c_href) {
-                      if (c_href.fallback && skipFallback) {
-                          return false;
-                      }
-                      return c_href.path.test(href);
-                  })) {
-                      foundContext = context;
-                      break;
-                  }
-              }
-          }
-          catch (e_1_1) { e_1 = { error: e_1_1 }; }
-          finally {
-              try {
-                  if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-              }
-              finally { if (e_1) throw e_1.error; }
-          }
-          return foundContext;
-      };
-      ContextManager.prototype.insert = function (href, replace) {
-          if (replace === void 0) { replace = false; }
-          this.clean();
-          var foundContext = this.contextOf(href, this._length > 0);
-          var previousContext = this._hrefs.length > 0 ? this._hrefs[this._hrefs.length - 1] : null;
-          if (foundContext == null) {
-              if (this._hrefs.length > 0) {
-                  this._hrefs[this._hrefs.length - 1][1].push(href);
-                  this._length++;
-                  this._index++;
-              }
-          }
-          else {
-              var i_1 = -1;
-              if (this._hrefs.some(function (c_hrefs, index) {
-                  if (c_hrefs[0] === foundContext) {
-                      i_1 = index;
-                      return true;
-                  }
-                  return false;
-              })) {
-                  var c_hrefs = this._hrefs.splice(i_1, 1)[0];
-                  if (href !== c_hrefs[1][c_hrefs[1].length - 1]) {
-                      c_hrefs[1].push(href);
-                      this._length++;
-                      this._index++;
-                  }
-                  this._hrefs.push(c_hrefs);
-              }
-              else {
-                  this._hrefs.push([foundContext, [href]]);
-                  this._length++;
-                  this._index++;
-              }
-          }
-          if (replace && this._hrefs.length > 0) {
-              var lastContext = this._hrefs[this._hrefs.length - 1];
-              if (lastContext === previousContext) {
-                  if (lastContext[1].length > 1) {
-                      do {
-                          lastContext[1].splice(-2, 1);
-                          this._length--;
-                          this._index--;
-                      } while (lastContext[1].length > 1 &&
-                          lastContext[1][lastContext[1].length - 2] === href);
-                  }
-              }
-              else if (previousContext != null) {
-                  previousContext[1].splice(-1, 1);
-                  this._length--;
-                  this._index--;
-              }
-          }
-      };
-      ContextManager.prototype.goBackward = function () {
-          this._index = Math.max(--this._index, 0);
-          return this.get();
-      };
-      ContextManager.prototype.goForward = function () {
-          this._index = Math.min(++this._index, this._length - 1);
-          return this.get();
-      };
-      ContextManager.prototype.get = function (index) {
-          if (index === void 0) { index = this._index; }
-          var href;
-          if (this._hrefs.some(function (_a) {
-              var _b = tslib_es6088f17e5.__read(_a, 2), c = _b[0], hrefs = _b[1];
-              var length = hrefs.length;
-              if (index >= length) {
-                  index -= length;
-                  return false;
-              }
-              href = hrefs[index];
-              return true;
-          })) {
-              return href;
-          }
-          return null;
-      };
-      ContextManager.prototype.index = function (value) {
-          if (value === void 0) {
-              return this._index;
-          }
-          value = parseInt(value, 10);
-          if (isNaN(value)) {
-              throw new Error("value must be a number");
-          }
-          this._index = value;
-      };
-      ContextManager.prototype.length = function () {
-          return this._length;
-      };
-      ContextManager.prototype.getContextNames = function () {
-          return Array.from(this._contexts.keys());
-      };
-      ContextManager.prototype.getDefaultOf = function (context) {
-          var c = this._contexts.get(context);
-          if (!c) {
-              return null;
-          }
-          var href = c[1];
-          if (href == null) {
-              return null;
-          }
-          return href;
-      };
-      ContextManager.prototype.restore = function (context) {
-          var _this = this;
-          var tmpHREFs = this._hrefs;
-          this.clean();
-          if (this._hrefs.length) {
-              var lastContext = this._hrefs[this._hrefs.length - 1];
-              if (lastContext[0] === context) {
-                  var path = this._contexts.get(context)[1] || lastContext[1][0];
-                  var numPages = lastContext[1].splice(1).length;
-                  this._length -= numPages;
-                  this._index -= numPages;
-                  lastContext[1][0] = path;
-                  return true;
-              }
-          }
-          if (!this._hrefs.some(function (c, i) {
-              if (c[0] === context) {
-                  if (i < _this._hrefs.length - 1) {
-                      _this._hrefs.push(_this._hrefs.splice(i, 1)[0]);
-                  }
-                  return true;
-              }
-              return false;
-          })) {
-              var c = this._contexts.get(context);
-              if (c == null) {
-                  this._hrefs = tmpHREFs;
-                  return false;
-              }
-              var href = c[1];
-              if (href != null) {
-                  this.insert(href);
-                  return true;
-              }
-              return false;
-          }
-          return true;
-      };
-      ContextManager.prototype.addContextPath = function (context_name, path, fallback) {
-          if (fallback === void 0) { fallback = false; }
-          var pathRegexp = PathGenerator4901c320.generate(path);
-          var context = this._contexts.get(context_name);
-          if (context == null) {
-              this._contexts.set(context_name, context = [[], null]);
-          }
-          context[0].push({
-              path: pathRegexp,
-              fallback: fallback
-          });
-          return pathRegexp;
-      };
-      ContextManager.prototype.setContextDefaultHref = function (context_name, href) {
-          var context = this._contexts.get(context_name);
-          if (context == null) {
-              this._contexts.set(context_name, context = [[], null]);
-          }
-          context[1] = href;
-      };
-      ContextManager.prototype.setContext = function (context) {
-          var _this = this;
-          context.paths.forEach(function (path) {
-              _this.addContextPath(context.name, path.path, path.fallback);
-          });
-          if (context.default !== undefined) {
-              this.setContextDefaultHref(context.name, context.default);
-          }
-      };
-      ContextManager.prototype.hrefs = function () {
-          var hrefs = [];
-          this._hrefs.forEach(function (_a) {
-              var _b = tslib_es6088f17e5.__read(_a, 2), c = _b[0], c_hrefs = _b[1];
-              hrefs.push.apply(hrefs, c_hrefs);
-          });
-          return hrefs;
-      };
-      return ContextManager;
-  }());
-
-  var ContextManager$1 = /*#__PURE__*/Object.freeze({
-      __proto__: null,
-      ContextManager: ContextManager
-  });
-
-  var ContextManager_1 = ContextManager;
-  var ContextManager$1_1 = ContextManager$1;
-  var URLManager_1 = URLManager;
-  var base_1 = base;
-  var construct_1 = construct;
-  var get_1$1 = get$2;
-
-  var ContextManager6ca49066 = {
-  	ContextManager: ContextManager_1,
-  	ContextManager$1: ContextManager$1_1,
-  	URLManager: URLManager_1,
-  	base: base_1,
-  	construct: construct_1,
-  	get: get_1$1
-  };
 
   var started = false;
   var works = [];
@@ -3827,7 +3793,7 @@ define(['require'], function (require) { 'use strict';
               }
               if (i >= 0 && works.length === 0) {
                   while (onworkfinished.length > 0 && works.length === 0) {
-                      var _a = tslib_es6088f17e5.__read(onworkfinished.shift(), 2), callback = _a[0], context = _a[1];
+                      var _a = __read(onworkfinished.shift(), 2), callback = _a[0], context = _a[1];
                       callback.call(context || window);
                   }
               }
@@ -3874,7 +3840,7 @@ define(['require'], function (require) { 'use strict';
   }
   function goTo$1(href, replace) {
       if (replace === void 0) { replace = false; }
-      href = ContextManager6ca49066.construct(href);
+      href = construct(href);
       if (window.location.href === href) {
           window.dispatchEvent(new Event("popstate"));
           return;
@@ -3888,10 +3854,10 @@ define(['require'], function (require) { 'use strict';
   }
   function addFront(frontHref) {
       if (frontHref === void 0) { frontHref = "next"; }
-      var href = ContextManager6ca49066.get();
+      var href = get$1$1();
       var work = createWork();
       return new Promise(function (resolve) {
-          OptionsManager3fd4d9f6.goWith(ContextManager6ca49066.construct(frontHref), { back: undefined, front: null })
+          goWith(construct(frontHref), { back: undefined, front: null })
               .then(function () { return new Promise(function (resolve) {
               onCatchPopState$1(resolve, true);
               window.history.go(-1);
@@ -3908,7 +3874,7 @@ define(['require'], function (require) { 'use strict';
   }
   function addBack(backHref) {
       if (backHref === void 0) { backHref = ""; }
-      var href = ContextManager6ca49066.get();
+      var href = get$1$1();
       var work = createWork();
       return new Promise(function (resolve) {
           (new Promise(function (resolve) {
@@ -3924,7 +3890,7 @@ define(['require'], function (require) { 'use strict';
                   resolve();
               }
           }); })
-              .then(function () { return OptionsManager3fd4d9f6.set({ back: null, front: undefined }); })
+              .then(function () { return set$1({ back: null, front: undefined }); })
               .then(function () { return new Promise(function (resolve) {
               onCatchPopState$1(resolve, true);
               goTo$1(href);
@@ -3936,7 +3902,7 @@ define(['require'], function (require) { 'use strict';
       });
   }
   var hasBack = false;
-  var contextManager = new ContextManager6ca49066.ContextManager();
+  var contextManager = new ContextManager();
   function index() {
       return contextManager.index();
   }
@@ -4102,7 +4068,7 @@ define(['require'], function (require) { 'use strict';
   }
   function start(fallbackContext) {
       if (fallbackContext === void 0) { fallbackContext = contextManager.getContextNames()[0]; }
-      var href = ContextManager6ca49066.get();
+      var href = get$1$1();
       var context = contextManager.contextOf(href, false);
       var promiseResolve;
       var promise = new Promise(function (resolve) { promiseResolve = resolve; });
@@ -4137,10 +4103,10 @@ define(['require'], function (require) { 'use strict';
       }
   }
   function handlePopState() {
-      var options = OptionsManager3fd4d9f6.get();
+      var options = get$1();
       if (options.locked) {
           onCatchPopState$1(function () {
-              if (OptionsManager3fd4d9f6.get().locked) {
+              if (get$1().locked) {
                   handlePopState();
               }
           }, true);
@@ -4214,7 +4180,7 @@ define(['require'], function (require) { 'use strict';
           });
       }
       else {
-          var href_4 = ContextManager6ca49066.get();
+          var href_4 = get$1$1();
           var backHref_1 = contextManager.get();
           if (href_4 === backHref_1) {
               return onlanded();
@@ -4270,40 +4236,6 @@ define(['require'], function (require) { 'use strict';
       start: start
   });
 
-  var HistoryManager_1 = HistoryManager;
-  var acquire_1 = acquire;
-  var addContextPath_1 = addContextPath;
-  var assign_1 = assign;
-  var getContext_1 = getContext;
-  var getContextDefaultOf_1 = getContextDefaultOf;
-  var getHREFAt_1 = getHREFAt;
-  var go_1 = go;
-  var index_1 = index;
-  var onWorkFinished_1 = onWorkFinished;
-  var replace_1 = replace;
-  var restore_1 = restore;
-  var setContext_1 = setContext;
-  var setContextDefaultHref_1 = setContextDefaultHref;
-  var start_1 = start;
-
-  var HistoryManager377f9dde = {
-  	HistoryManager: HistoryManager_1,
-  	acquire: acquire_1,
-  	addContextPath: addContextPath_1,
-  	assign: assign_1,
-  	getContext: getContext_1,
-  	getContextDefaultOf: getContextDefaultOf_1,
-  	getHREFAt: getHREFAt_1,
-  	go: go_1,
-  	index: index_1,
-  	onWorkFinished: onWorkFinished_1,
-  	replace: replace_1,
-  	restore: restore_1,
-  	setContext: setContext_1,
-  	setContextDefaultHref: setContextDefaultHref_1,
-  	start: start_1
-  };
-
   var locks = [];
   var catchPopState$2 = null;
   window.addEventListener("popstate", function (event) {
@@ -4329,11 +4261,15 @@ define(['require'], function (require) { 'use strict';
       var id = Date.now();
       var historyLock;
       var promiseResolve;
+      var isPromiseResolved = false;
       var promise = new Promise(function (resolve) {
-          promiseResolve = resolve;
+          promiseResolve = function (lock) {
+              resolve(lock);
+              isPromiseResolved = true;
+          };
       });
-      HistoryManager377f9dde.onWorkFinished(function () {
-          historyLock = HistoryManager377f9dde.acquire();
+      onWorkFinished(function () {
+          historyLock = acquire();
           var lock = {
               lock: {
                   get id() {
@@ -4349,7 +4285,7 @@ define(['require'], function (require) { 'use strict';
                       if (!locks.length || historyLock.finishing) {
                           return;
                       }
-                      promise.then(function () {
+                      var fn = function () {
                           if (locks[locks.length - 1].lock.id === id) {
                               unlock();
                           }
@@ -4361,7 +4297,13 @@ define(['require'], function (require) { 'use strict';
                                   return false;
                               });
                           }
-                      });
+                      };
+                      if (isPromiseResolved) {
+                          fn();
+                      }
+                      else {
+                          promise.then(fn);
+                      }
                   }
               },
               fire: function () {
@@ -4374,9 +4316,12 @@ define(['require'], function (require) { 'use strict';
               },
               beginRelease: function (start_fn) {
                   historyLock.beginFinish();
-                  promise.then(function () {
+                  if (isPromiseResolved) {
                       start_fn();
-                  });
+                  }
+                  else {
+                      promise.then(function () { return start_fn(); });
+                  }
               }
           };
           historyLock.askFinish = function () {
@@ -4387,7 +4332,7 @@ define(['require'], function (require) { 'use strict';
               return true;
           };
           locks.push(lock);
-          OptionsManager3fd4d9f6.goWith(OptionsManager3fd4d9f6.clearHref(), tslib_es6088f17e5.__assign(tslib_es6088f17e5.__assign({}, OptionsManager3fd4d9f6.get()), { locked: lock.lock.id })).then(function () {
+          goWith(clearHref(), __assign(__assign({}, get$1()), { locked: lock.lock.id })).then(function () {
               promiseResolve(lock.lock);
           });
       });
@@ -4418,7 +4363,7 @@ define(['require'], function (require) { 'use strict';
       if (locks.length === 0) {
           return;
       }
-      var lockId = parseInt(OptionsManager3fd4d9f6.get().locked, 10);
+      var lockId = parseInt(get$1().locked, 10);
       if (isNaN(lockId)) {
           shouldUnlock = true;
           window.history.go(1);
@@ -4449,31 +4394,6 @@ define(['require'], function (require) { 'use strict';
       locked: locked
   });
 
-  var NavigationLock_1 = NavigationLock;
-  var lock_1 = lock;
-  var locked_1 = locked;
-  var unlock_1 = unlock;
-
-  var NavigationLockD1fe8181 = {
-  	NavigationLock: NavigationLock_1,
-  	lock: lock_1,
-  	locked: locked_1,
-  	unlock: unlock_1
-  };
-
-  var cjs = createCommonjsModule(function (module, exports) {
-
-  Object.defineProperty(exports, '__esModule', { value: true });
-
-
-
-
-
-
-
-
-
-
   var _a, _b, _c;
   var ROUTES = Symbol("routes");
   var REDIRECTIONS = Symbol("redirections");
@@ -4487,7 +4407,7 @@ define(['require'], function (require) { 'use strict';
   }
   var routers = [];
   function getLocation(href) {
-      if (href === void 0) { href = ContextManager6ca49066.get(); }
+      if (href === void 0) { href = get$1$1(); }
       var pathname = "";
       var hash = "";
       var query = "";
@@ -4504,7 +4424,7 @@ define(['require'], function (require) { 'use strict';
           query = split.join("?");
           query = query ? "?" + query : "";
       }
-      pathname = PathGenerator4901c320.prepare(pathname);
+      pathname = prepare(pathname);
       return {
           hrefIf: function (go) {
               var oldP = pathname;
@@ -4539,7 +4459,7 @@ define(['require'], function (require) { 'use strict';
                           break;
                       }
                       case "/": {
-                          pathname = PathGenerator4901c320.prepare(value);
+                          pathname = prepare(value);
                           hash = "";
                           query = "";
                           break;
@@ -4552,7 +4472,7 @@ define(['require'], function (require) { 'use strict';
               else {
                   var path = pathname.split("/");
                   path.pop();
-                  path.push(PathGenerator4901c320.prepare(value));
+                  path.push(prepare(value));
                   pathname = path.join("/");
                   hash = "";
                   query = "";
@@ -4565,7 +4485,7 @@ define(['require'], function (require) { 'use strict';
               if (typeof value !== "string") {
                   throw new Error("pathname should be a string");
               }
-              pathname = PathGenerator4901c320.prepare(value);
+              pathname = prepare(value);
           },
           get hash() {
               return hash;
@@ -4605,7 +4525,7 @@ define(['require'], function (require) { 'use strict';
                   return {};
               }
               if (!cachedQuery) {
-                  cachedQuery = index241ea07e.queryString.parse(query.replace(/^\?/, ""));
+                  cachedQuery = queryString.parse(query.replace(/^\?/, ""));
               }
               return cachedQuery;
           },
@@ -4624,9 +4544,9 @@ define(['require'], function (require) { 'use strict';
           addQueryParam: function (param, value) {
               var _d;
               if (value === void 0) { value = null; }
-              var newQuery = tslib_es6088f17e5.__assign(tslib_es6088f17e5.__assign({}, this.parsedQuery), (_d = {}, _d[param] = value, _d));
+              var newQuery = __assign(__assign({}, this.parsedQuery), (_d = {}, _d[param] = value, _d));
               cachedQuery = null;
-              query = index241ea07e.queryString.stringify(newQuery);
+              query = queryString.stringify(newQuery);
               if (query) {
                   query = "?" + query;
               }
@@ -4637,7 +4557,7 @@ define(['require'], function (require) { 'use strict';
               }
               var parsedQuery = this.parsedQuery;
               delete parsedQuery[param];
-              this.query = index241ea07e.queryString.stringify(parsedQuery);
+              this.query = queryString.stringify(parsedQuery);
           }
       };
   }
@@ -4686,12 +4606,12 @@ define(['require'], function (require) { 'use strict';
       }
   }
   window.addEventListener("historylanded", onland);
-  function _go(path, replace, emit) {
-      if (replace === void 0) { replace = false; }
+  function _go(path, replace$1, emit) {
+      if (replace$1 === void 0) { replace$1 = false; }
       if (emit === void 0) { emit = true; }
       var lastEmitRoute = emitRoute;
       emitRoute = emit;
-      return (replace ? HistoryManager377f9dde.replace(path) : HistoryManager377f9dde.assign(path)).catch(function () {
+      return (replace$1 ? replace(path) : assign(path)).catch(function () {
           emitRoute = lastEmitRoute;
       });
   }
@@ -4720,14 +4640,14 @@ define(['require'], function (require) { 'use strict';
       GenericRouter.prototype.redirect = function (path, redirection) {
           _throwIfDestroyed(this);
           var keys = [];
-          var regex = PathGenerator4901c320.generate(path, keys);
-          this[REDIRECTIONS].push({ regex: regex, keys: keys, redirection: PathGenerator4901c320.prepare(redirection) });
+          var regex = generate(path, keys);
+          this[REDIRECTIONS].push({ regex: regex, keys: keys, redirection: prepare(redirection) });
           return regex;
       };
       GenericRouter.prototype.unredirect = function (path) {
           _throwIfDestroyed(this);
           var keys = [];
-          var regex = PathGenerator4901c320.generate(path, keys);
+          var regex = generate(path, keys);
           var rIndex = -1;
           this[ROUTES].some(function (route, index) {
               var xSource = (regex.ignoreCase ? regex.source.toLowerCase() : regex.source);
@@ -4746,14 +4666,14 @@ define(['require'], function (require) { 'use strict';
       GenericRouter.prototype.route = function (path, callback) {
           _throwIfDestroyed(this);
           var keys = [];
-          var regex = PathGenerator4901c320.generate(path, keys);
+          var regex = generate(path, keys);
           this[ROUTES].push({ regex: regex, keys: keys, callback: callback });
           return regex;
       };
       GenericRouter.prototype.unroute = function (path) {
           _throwIfDestroyed(this);
           var keys = [];
-          var regex = PathGenerator4901c320.generate(path, keys);
+          var regex = generate(path, keys);
           var rIndex = -1;
           this[ROUTES].some(function (route, index) {
               var xSource = (regex.ignoreCase ? regex.source.toLowerCase() : regex.source);
@@ -4788,37 +4708,37 @@ define(['require'], function (require) { 'use strict';
   function unroute(path) {
       return main.unroute(path);
   }
-  function start(startingContext) {
-      return HistoryManager377f9dde.start(startingContext);
+  function start$1(startingContext) {
+      return start(startingContext);
   }
-  function index() {
-      return HistoryManager377f9dde.index();
+  function index$1() {
+      return index();
   }
   function getLocationAt(index) {
-      var href = HistoryManager377f9dde.getHREFAt(index);
+      var href = getHREFAt(index);
       if (href == null) {
           return null;
       }
       return getLocation(href);
   }
-  function addContextPath(context, href, isFallback) {
+  function addContextPath$1(context, href, isFallback) {
       if (isFallback === void 0) { isFallback = false; }
-      return HistoryManager377f9dde.addContextPath(context, href, isFallback);
+      return addContextPath(context, href, isFallback);
   }
-  function setContextDefaultHref(context, href) {
-      return HistoryManager377f9dde.setContextDefaultHref(context, href);
+  function setContextDefaultHref$1(context, href) {
+      return setContextDefaultHref(context, href);
   }
-  function setContext(context) {
-      return HistoryManager377f9dde.setContext(context);
+  function setContext$1(context) {
+      return setContext(context);
   }
-  function getContext(href) {
-      return HistoryManager377f9dde.getContext(href);
+  function getContext$1(href) {
+      return getContext(href);
   }
   function restoreContext(context, defaultHref) {
-      return HistoryManager377f9dde.restore(context);
+      return restore(context);
   }
-  function getContextDefaultOf(context) {
-      return HistoryManager377f9dde.getContextDefaultOf(context);
+  function getContextDefaultOf$1(context) {
+      return getContextDefaultOf(context);
   }
   function emit(single) {
       if (single === void 0) { single = false; }
@@ -4827,18 +4747,18 @@ define(['require'], function (require) { 'use strict';
       }
       return _emit();
   }
-  function create() {
+  function create$7() {
       return new GenericRouter();
   }
-  function go(path_index, options) {
+  function go$1(path_index, options) {
       var path_index_type = typeof path_index;
       if (path_index_type !== "string" && path_index_type !== "number") {
           throw new Error("router.go should receive an url string or a number");
       }
-      options = tslib_es6088f17e5.__assign({}, options);
+      options = __assign({}, options);
       return new Promise(function (promiseResolve, promiseReject) {
           var goingEvent = new CustomEvent("router:going", {
-              detail: tslib_es6088f17e5.__assign({ direction: path_index }, options),
+              detail: __assign({ direction: path_index }, options),
               cancelable: true
           });
           window.dispatchEvent(goingEvent);
@@ -4852,7 +4772,7 @@ define(['require'], function (require) { 'use strict';
           else {
               var lastEmitRoute_1 = emitRoute;
               emitRoute = options.emit == null ? true : options.emit;
-              HistoryManager377f9dde.go(path_index).then(promiseResolve, function () {
+              go(path_index).then(promiseResolve, function () {
                   emitRoute = lastEmitRoute_1;
               });
           }
@@ -4861,7 +4781,7 @@ define(['require'], function (require) { 'use strict';
   function setQueryParam(param, value, options) {
       var promiseResolve;
       var promise = new Promise(function (resolve) { promiseResolve = resolve; });
-      HistoryManager377f9dde.onWorkFinished(function () {
+      onWorkFinished(function () {
           var location = getLocation();
           if (value === undefined) {
               location.removeQueryParam(param);
@@ -4869,29 +4789,29 @@ define(['require'], function (require) { 'use strict';
           else {
               location.addQueryParam(param, value);
           }
-          go(location.href, options).then(promiseResolve);
+          go$1(location.href, options).then(promiseResolve);
       });
       return promise;
   }
-  function lock() {
-      return NavigationLockD1fe8181.lock();
+  function lock$1() {
+      return lock();
   }
-  function unlock(force) {
+  function unlock$1(force) {
       if (force === void 0) { force = true; }
-      return NavigationLockD1fe8181.unlock(force);
+      return unlock(force);
   }
   function destroy() {
       throw new Error("cannot destroy main Router");
   }
   function getBase() {
-      return ContextManager6ca49066.base();
+      return base();
   }
   function setBase(newBase) {
-      ContextManager6ca49066.base(newBase.replace(/[\/]+$/, ""));
+      base(newBase.replace(/[\/]+$/, ""));
       _emit();
   }
-  function isLocked() {
-      return NavigationLockD1fe8181.locked();
+  function isLocked$1() {
+      return locked();
   }
 
   var Router = /*#__PURE__*/Object.freeze({
@@ -4901,150 +4821,26 @@ define(['require'], function (require) { 'use strict';
       unredirect: unredirect,
       route: route,
       unroute: unroute,
-      start: start,
-      index: index,
+      start: start$1,
+      index: index$1,
       getLocationAt: getLocationAt,
-      addContextPath: addContextPath,
-      setContextDefaultHref: setContextDefaultHref,
-      setContext: setContext,
-      getContext: getContext,
+      addContextPath: addContextPath$1,
+      setContextDefaultHref: setContextDefaultHref$1,
+      setContext: setContext$1,
+      getContext: getContext$1,
       restoreContext: restoreContext,
-      getContextDefaultOf: getContextDefaultOf,
+      getContextDefaultOf: getContextDefaultOf$1,
       emit: emit,
-      create: create,
-      go: go,
+      create: create$7,
+      go: go$1,
       setQueryParam: setQueryParam,
-      lock: lock,
-      unlock: unlock,
+      lock: lock$1,
+      unlock: unlock$1,
       destroy: destroy,
       getBase: getBase,
       setBase: setBase,
-      isLocked: isLocked,
-      NavigationLock: NavigationLockD1fe8181.NavigationLock
-  });
-
-  var locks = [];
-  function lock$1(locking_fn) {
-      var released = false;
-      var releasing = false;
-      var onrelease = [];
-      var promise;
-      var lock = {
-          get released() {
-              return released;
-          },
-          get releasing() {
-              return releasing;
-          },
-          release: function () {
-              if (released) {
-                  return;
-              }
-              released = true;
-              releasing = false;
-              var i = locks.length - 1;
-              for (; i >= 0; i--) {
-                  if (locks[i] === lock) {
-                      locks.splice(i, 1);
-                      break;
-                  }
-              }
-              if (i >= 0) {
-                  onrelease.forEach(function (_a) {
-                      var _b = tslib_es6088f17e5.__read(_a, 2), callback = _b[0], context = _b[1];
-                      callback.call(context || null);
-                  });
-              }
-          },
-          beginRelease: function (start_fn) {
-              releasing = true;
-              start_fn();
-          },
-          onrelease: function (callback, context) {
-              if (context === void 0) { context = null; }
-              onrelease.push([callback, context || null]);
-          }
-      };
-      return promise = new Promise(function (resolve) {
-          ondone(function () {
-              var result = locking_fn.call(lock, lock);
-              locks.push(lock);
-              if (result !== false && result !== void 0) {
-                  lock.release();
-              }
-              resolve(lock);
-          });
-      });
-  }
-  function locked() {
-      return locks.length > 0 && locks.every(function (lock) { return !lock.releasing && !lock.released; });
-  }
-  var currentWork = -1;
-  var working = 0;
-  var ondoneCallbacks = [];
-  function completeWork() {
-      if (currentWork === -1) {
-          return;
-      }
-      if (--working === 0) {
-          currentWork = -1;
-          while (ondoneCallbacks.length && currentWork === -1) {
-              var _a = tslib_es6088f17e5.__read(ondoneCallbacks.shift(), 2), callback = _a[0], context = _a[1];
-              callback.call(context || null);
-          }
-      }
-  }
-  function ondoneWork(fn, context, workId) {
-      if (currentWork !== -1 && currentWork !== workId) {
-          ondoneCallbacks.push([fn, context || null]);
-          return;
-      }
-      fn.call(context || null);
-  }
-  function startWork(start_fn, id) {
-      if (id === void 0) { id = Date.now(); }
-      if (locked()) {
-          console.error("navigation is locked");
-          return -1;
-      }
-      var completed = false;
-      ondoneWork(function () {
-          currentWork = id;
-          working++;
-          start_fn(function () {
-              if (completed) {
-                  return;
-              }
-              completed = true;
-              completeWork();
-          }, id);
-      }, null, id);
-      return id;
-  }
-  function ondone(fn, context) {
-      if (working) {
-          ondoneCallbacks.push([fn, context || null]);
-          return;
-      }
-      fn.call(context || null);
-  }
-
-  var WorkManager = /*#__PURE__*/Object.freeze({
-      __proto__: null,
-      lock: lock$1,
-      locked: locked,
-      startWork: startWork,
-      ondone: ondone
-  });
-
-  exports.PathGenerator = PathGenerator4901c320.PathGenerator;
-  exports.OptionsManager = OptionsManager3fd4d9f6.OptionsManager;
-  exports.ContextManager = ContextManager6ca49066.ContextManager$1;
-  exports.URLManager = ContextManager6ca49066.URLManager;
-  exports.HistoryManager = HistoryManager377f9dde.HistoryManager;
-  exports.NavigationLock = NavigationLockD1fe8181.NavigationLock;
-  exports.Router = Router;
-  exports.WorkManager = WorkManager;
+      isLocked: isLocked$1,
+      NavigationLock: NavigationLock
   });
 
   var ROUTER = Symbol("router");
@@ -5059,7 +4855,7 @@ define(['require'], function (require) { 'use strict';
       onBeforeMount() {
           this.root[IS_ROUTER] = true;
           this[UNROUTE_METHOD] = () => {};
-          this[ROUTER] = cjs.Router.create();
+          this[ROUTER] = Router.create();
       },
 
       onMounted() {
@@ -5078,14 +4874,24 @@ define(['require'], function (require) { 'use strict';
       [LAST_ROUTED]: null
     },
 
-    'template': function(template, expressionTypes, bindingTypes, getComponent) {
-      return template('<slot expr32="expr32"></slot>', [{
-        'type': bindingTypes.SLOT,
-        'attributes': [],
-        'name': 'default',
-        'redundantAttribute': 'expr32',
-        'selector': '[expr32]'
-      }]);
+    'template': function(
+      template,
+      expressionTypes,
+      bindingTypes,
+      getComponent
+    ) {
+      return template(
+        '<slot expr20="expr20"></slot>',
+        [
+          {
+            'type': bindingTypes.SLOT,
+            'attributes': [],
+            'name': 'default',
+            'redundantAttribute': 'expr20',
+            'selector': '[expr20]'
+          }
+        ]
+      );
     },
 
     'name': 'router'
@@ -5438,11 +5244,11 @@ define(['require'], function (require) { 'use strict';
               event.preventDefault();
               let href = this.href(false);
               if (href != null) {
-                  cjs.Router.go(href, { replace: this.replace() });
+                  Router.go(href, { replace: this.replace() });
               } else {
                   let context = this.context();
                   if (context) {
-                      cjs.Router.restoreContext(context);
+                      Router.restoreContext(context);
                   }
               }
               return false;
@@ -5464,12 +5270,12 @@ define(['require'], function (require) { 'use strict';
           if (typeof this.props.href !== "string") {
               if (toA) {
                   const context = this.context();
-                  return context != null ? cjs.Router.getContextDefaultOf(context) : null;
+                  return context != null ? Router.getContextDefaultOf(context) : null;
               }
               return null;
           }
           if (this._href == null) {
-              this._href = cjs.Router.getLocation().hrefIf(this.props.href);
+              this._href = Router.getLocation().hrefIf(this.props.href);
               // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
           }
           return this._href; // (toA ? Router.base : "") + this._href;
@@ -5483,35 +5289,56 @@ define(['require'], function (require) { 'use strict';
       }
     },
 
-    'template': function(template, expressionTypes, bindingTypes, getComponent) {
+    'template': function(
+      template,
+      expressionTypes,
+      bindingTypes,
+      getComponent
+    ) {
       return template(
-        '<a expr60="expr60" ref="-navigate-a"><slot expr61="expr61"></slot></a>',
-        [{
-          'redundantAttribute': 'expr60',
-          'selector': '[expr60]',
+        '<a expr18="expr18" ref="-navigate-a"><slot expr19="expr19"></slot></a>',
+        [
+          {
+            'redundantAttribute': 'expr18',
+            'selector': '[expr18]',
 
-          'expressions': [{
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'href',
+            'expressions': [
+              {
+                'type': expressionTypes.ATTRIBUTE,
+                'name': 'href',
 
-            'evaluate': function(scope) {
-              return "#" + scope.href();
-            }
-          }, {
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'style',
+                'evaluate': function(
+                  scope
+                ) {
+                  return "#" + scope.href();
+                }
+              },
+              {
+                'type': expressionTypes.ATTRIBUTE,
+                'name': 'style',
 
-            'evaluate': function(scope) {
-              return ['display: ', scope.root.style.display, '; width: 100%; height: 100%;'].join('');
-            }
-          }]
-        }, {
-          'type': bindingTypes.SLOT,
-          'attributes': [],
-          'name': 'default',
-          'redundantAttribute': 'expr61',
-          'selector': '[expr61]'
-        }]
+                'evaluate': function(
+                  scope
+                ) {
+                  return [
+                    'display: ',
+                    scope.root.style.display,
+                    '; width: 100%; height: 100%;'
+                  ].join(
+                    ''
+                  );
+                }
+              }
+            ]
+          },
+          {
+            'type': bindingTypes.SLOT,
+            'attributes': [],
+            'name': 'default',
+            'redundantAttribute': 'expr19',
+            'selector': '[expr19]'
+          }
+        ]
       );
     },
 
@@ -5590,10 +5417,10 @@ define(['require'], function (require) { 'use strict';
     }
   }
 
-  window.Router = cjs.Router;
-  window.HistoryManager = cjs.HistoryManager;
+  window.Router = Router;
+  window.HistoryManager = HistoryManager;
 
-  cjs.Router.setContext({
+  Router.setContext({
       name: "home",
       paths: [
           { path: "" },
@@ -5601,7 +5428,7 @@ define(['require'], function (require) { 'use strict';
       ],
       default: ""
   });
-  cjs.Router.setContext({
+  Router.setContext({
       name: "profile",
       paths: [
           { path: "me" },
@@ -5616,241 +5443,323 @@ define(['require'], function (require) { 'use strict';
 
     'exports': {
       onMounted() {
-          cjs.Router.start("home").then(() => console.log("started"));
+          Router.start("home").then(() => console.log("started"));
       },
 
       testcontext() {
       },
 
       components: {
-          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-958266fb'], resolve, reject) })),
-          "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-c3bcf306'], resolve, reject) }))
+          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-b41d4762'], resolve, reject) })),
+          "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-6e6fc87b'], resolve, reject) }))
       }
     },
 
-    'template': function(template, expressionTypes, bindingTypes, getComponent) {
+    'template': function(
+      template,
+      expressionTypes,
+      bindingTypes,
+      getComponent
+    ) {
       return template(
-        '<navigate expr18="expr18" href="home"></navigate><navigate expr19="expr19" href="me"></navigate><navigate expr20="expr20" replace></navigate><div></div><navigate expr21="expr21" context="home"></navigate><navigate expr22="expr22" context="profile"></navigate><div></div><router expr23="expr23"></router>',
-        [{
-          'type': bindingTypes.TAG,
-          'getComponent': getComponent,
+        '<navigate expr6="expr6" href="home"></navigate><navigate expr7="expr7" href="me"></navigate><navigate expr8="expr8" replace></navigate><div></div><navigate expr9="expr9" context="home"></navigate><navigate expr10="expr10" context="profile"></navigate><div></div><router expr11="expr11"></router>',
+        [
+          {
+            'type': bindingTypes.TAG,
+            'getComponent': getComponent,
 
-          'evaluate': function(scope) {
-            return 'navigate';
-          },
+            'evaluate': function(
+              scope
+            ) {
+              return 'navigate';
+            },
 
-          'slots': [{
-            'id': 'default',
-            'html': 'to HOME',
-            'bindings': []
-          }],
-
-          'attributes': [],
-          'redundantAttribute': 'expr18',
-          'selector': '[expr18]'
-        }, {
-          'type': bindingTypes.TAG,
-          'getComponent': getComponent,
-
-          'evaluate': function(scope) {
-            return 'navigate';
-          },
-
-          'slots': [{
-            'id': 'default',
-            'html': 'to ME',
-            'bindings': []
-          }],
-
-          'attributes': [],
-          'redundantAttribute': 'expr19',
-          'selector': '[expr19]'
-        }, {
-          'type': bindingTypes.TAG,
-          'getComponent': getComponent,
-
-          'evaluate': function(scope) {
-            return 'navigate';
-          },
-
-          'slots': [{
-            'id': 'default',
-            'html': 'to USERS/:id',
-            'bindings': []
-          }],
-
-          'attributes': [{
-            'type': expressionTypes.ATTRIBUTE,
-            'name': 'href',
-
-            'evaluate': function(scope) {
-              return ['users/', Math.round(Math.random() * 32)].join('');
-            }
-          }],
-
-          'redundantAttribute': 'expr20',
-          'selector': '[expr20]'
-        }, {
-          'type': bindingTypes.TAG,
-          'getComponent': getComponent,
-
-          'evaluate': function(scope) {
-            return 'navigate';
-          },
-
-          'slots': [{
-            'id': 'default',
-            'html': 'Restore home',
-            'bindings': []
-          }],
-
-          'attributes': [],
-          'redundantAttribute': 'expr21',
-          'selector': '[expr21]'
-        }, {
-          'type': bindingTypes.TAG,
-          'getComponent': getComponent,
-
-          'evaluate': function(scope) {
-            return 'navigate';
-          },
-
-          'slots': [{
-            'id': 'default',
-            'html': 'Restore profile',
-            'bindings': []
-          }],
-
-          'attributes': [],
-          'redundantAttribute': 'expr22',
-          'selector': '[expr22]'
-        }, {
-          'type': bindingTypes.TAG,
-          'getComponent': getComponent,
-
-          'evaluate': function(scope) {
-            return 'router';
-          },
-
-          'slots': [{
-            'id': 'default',
-            'html': '<route expr24="expr24" path redirect="home"></route><route expr25="expr25" path="home"></route><route expr27="expr27" path="me"></route><route expr29="expr29" path="users/:id"></route>',
-
-            'bindings': [{
-              'type': bindingTypes.TAG,
-              'getComponent': getComponent,
-
-              'evaluate': function(scope) {
-                return 'route';
-              },
-
-              'slots': [],
-              'attributes': [],
-              'redundantAttribute': 'expr24',
-              'selector': '[expr24]'
-            }, {
-              'type': bindingTypes.TAG,
-              'getComponent': getComponent,
-
-              'evaluate': function(scope) {
-                return 'route';
-              },
-
-              'slots': [{
+            'slots': [
+              {
                 'id': 'default',
-                'html': '<homepage expr26="expr26" need-loading></homepage>',
+                'html': 'to HOME',
+                'bindings': []
+              }
+            ],
 
-                'bindings': [{
-                  'type': bindingTypes.TAG,
-                  'getComponent': getComponent,
+            'attributes': [],
+            'redundantAttribute': 'expr6',
+            'selector': '[expr6]'
+          },
+          {
+            'type': bindingTypes.TAG,
+            'getComponent': getComponent,
 
-                  'evaluate': function(scope) {
-                    return 'homepage';
+            'evaluate': function(
+              scope
+            ) {
+              return 'navigate';
+            },
+
+            'slots': [
+              {
+                'id': 'default',
+                'html': 'to ME',
+                'bindings': []
+              }
+            ],
+
+            'attributes': [],
+            'redundantAttribute': 'expr7',
+            'selector': '[expr7]'
+          },
+          {
+            'type': bindingTypes.TAG,
+            'getComponent': getComponent,
+
+            'evaluate': function(
+              scope
+            ) {
+              return 'navigate';
+            },
+
+            'slots': [
+              {
+                'id': 'default',
+                'html': 'to USERS/:id',
+                'bindings': []
+              }
+            ],
+
+            'attributes': [
+              {
+                'type': expressionTypes.ATTRIBUTE,
+                'name': 'href',
+
+                'evaluate': function(
+                  scope
+                ) {
+                  return [
+                    'users/',
+                    Math.round(Math.random() * 32)
+                  ].join(
+                    ''
+                  );
+                }
+              }
+            ],
+
+            'redundantAttribute': 'expr8',
+            'selector': '[expr8]'
+          },
+          {
+            'type': bindingTypes.TAG,
+            'getComponent': getComponent,
+
+            'evaluate': function(
+              scope
+            ) {
+              return 'navigate';
+            },
+
+            'slots': [
+              {
+                'id': 'default',
+                'html': 'Restore home',
+                'bindings': []
+              }
+            ],
+
+            'attributes': [],
+            'redundantAttribute': 'expr9',
+            'selector': '[expr9]'
+          },
+          {
+            'type': bindingTypes.TAG,
+            'getComponent': getComponent,
+
+            'evaluate': function(
+              scope
+            ) {
+              return 'navigate';
+            },
+
+            'slots': [
+              {
+                'id': 'default',
+                'html': 'Restore profile',
+                'bindings': []
+              }
+            ],
+
+            'attributes': [],
+            'redundantAttribute': 'expr10',
+            'selector': '[expr10]'
+          },
+          {
+            'type': bindingTypes.TAG,
+            'getComponent': getComponent,
+
+            'evaluate': function(
+              scope
+            ) {
+              return 'router';
+            },
+
+            'slots': [
+              {
+                'id': 'default',
+                'html': '<route expr12="expr12" path redirect="home"></route><route expr13="expr13" path="home"></route><route expr15="expr15" path="me"></route><route expr17="expr17" path="users/:id"></route>',
+
+                'bindings': [
+                  {
+                    'type': bindingTypes.TAG,
+                    'getComponent': getComponent,
+
+                    'evaluate': function(
+                      scope
+                    ) {
+                      return 'route';
+                    },
+
+                    'slots': [],
+                    'attributes': [],
+                    'redundantAttribute': 'expr12',
+                    'selector': '[expr12]'
                   },
+                  {
+                    'type': bindingTypes.TAG,
+                    'getComponent': getComponent,
 
-                  'slots': [],
-                  'attributes': [],
-                  'redundantAttribute': 'expr26',
-                  'selector': '[expr26]'
-                }]
-              }],
+                    'evaluate': function(
+                      scope
+                    ) {
+                      return 'route';
+                    },
 
-              'attributes': [],
-              'redundantAttribute': 'expr25',
-              'selector': '[expr25]'
-            }, {
-              'type': bindingTypes.TAG,
-              'getComponent': getComponent,
+                    'slots': [
+                      {
+                        'id': 'default',
+                        'html': '<homepage expr14="expr14" need-loading></homepage>',
 
-              'evaluate': function(scope) {
-                return 'route';
-              },
+                        'bindings': [
+                          {
+                            'type': bindingTypes.TAG,
+                            'getComponent': getComponent,
 
-              'slots': [{
-                'id': 'default',
-                'html': '<replace-test expr28="expr28" need-loading></replace-test>',
+                            'evaluate': function(
+                              scope
+                            ) {
+                              return 'homepage';
+                            },
 
-                'bindings': [{
-                  'type': bindingTypes.TAG,
-                  'getComponent': getComponent,
+                            'slots': [],
+                            'attributes': [],
+                            'redundantAttribute': 'expr14',
+                            'selector': '[expr14]'
+                          }
+                        ]
+                      }
+                    ],
 
-                  'evaluate': function(scope) {
-                    return 'replace-test';
+                    'attributes': [],
+                    'redundantAttribute': 'expr13',
+                    'selector': '[expr13]'
                   },
+                  {
+                    'type': bindingTypes.TAG,
+                    'getComponent': getComponent,
 
-                  'slots': [],
+                    'evaluate': function(
+                      scope
+                    ) {
+                      return 'route';
+                    },
 
-                  'attributes': [{
-                    'type': expressionTypes.ATTRIBUTE,
-                    'name': 'test',
+                    'slots': [
+                      {
+                        'id': 'default',
+                        'html': '<replace-test expr16="expr16" need-loading></replace-test>',
 
-                    'evaluate': function(scope) {
-                      return window.console.log("here", scope) || scope.testcontext;
-                    }
-                  }],
+                        'bindings': [
+                          {
+                            'type': bindingTypes.TAG,
+                            'getComponent': getComponent,
 
-                  'redundantAttribute': 'expr28',
-                  'selector': '[expr28]'
-                }]
-              }],
+                            'evaluate': function(
+                              scope
+                            ) {
+                              return 'replace-test';
+                            },
 
-              'attributes': [],
-              'redundantAttribute': 'expr27',
-              'selector': '[expr27]'
-            }, {
-              'type': bindingTypes.TAG,
-              'getComponent': getComponent,
+                            'slots': [],
 
-              'evaluate': function(scope) {
-                return 'route';
-              },
+                            'attributes': [
+                              {
+                                'type': expressionTypes.ATTRIBUTE,
+                                'name': 'test',
 
-              'slots': [{
-                'id': 'default',
-                'html': ' ',
+                                'evaluate': function(
+                                  scope
+                                ) {
+                                  return window.console.log("here", scope) || scope.testcontext;
+                                }
+                              }
+                            ],
 
-                'bindings': [{
-                  'expressions': [{
-                    'type': expressionTypes.TEXT,
-                    'childNodeIndex': 0,
+                            'redundantAttribute': 'expr16',
+                            'selector': '[expr16]'
+                          }
+                        ]
+                      }
+                    ],
 
-                    'evaluate': function(scope) {
-                      return scope.route.location.href;
-                    }
-                  }]
-                }]
-              }],
+                    'attributes': [],
+                    'redundantAttribute': 'expr15',
+                    'selector': '[expr15]'
+                  },
+                  {
+                    'type': bindingTypes.TAG,
+                    'getComponent': getComponent,
 
-              'attributes': [],
-              'redundantAttribute': 'expr29',
-              'selector': '[expr29]'
-            }]
-          }],
+                    'evaluate': function(
+                      scope
+                    ) {
+                      return 'route';
+                    },
 
-          'attributes': [],
-          'redundantAttribute': 'expr23',
-          'selector': '[expr23]'
-        }]
+                    'slots': [
+                      {
+                        'id': 'default',
+                        'html': ' ',
+
+                        'bindings': [
+                          {
+                            'expressions': [
+                              {
+                                'type': expressionTypes.TEXT,
+                                'childNodeIndex': 0,
+
+                                'evaluate': function(
+                                  scope
+                                ) {
+                                  return scope.route.location.href;
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+
+                    'attributes': [],
+                    'redundantAttribute': 'expr17',
+                    'selector': '[expr17]'
+                  }
+                ]
+              }
+            ],
+
+            'attributes': [],
+            'redundantAttribute': 'expr11',
+            'selector': '[expr11]'
+          }
+        ]
       );
     },
 
