@@ -81,6 +81,42 @@ function release(claimer) {
 function isLoading() {
     return nextFrame !== -1;
 }
+var rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
+var shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
+var hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
+function applyColor(r, g, b) {
+    loadingBar.style.background = "rgb(" + r + "," + g + "," + b + ")";
+    loadingBarContainer.style.background = "rgb(" + r + "," + g + "," + b + ",0.5)";
+}
+function setColor(color) {
+    if (typeof color !== "string") {
+        throw new TypeError("color must be string");
+    }
+    var match = color.match(rgbRegex);
+    if (match != null) {
+        var r = parseFloat(match[1]);
+        var g = parseFloat(match[2]);
+        var b = parseFloat(match[3]);
+        if (r > 255 || g > 255 || b > 255) {
+            throw new TypeError("invalid color rgb arguments");
+        }
+        applyColor(r, g, b);
+        return;
+    }
+    match = color.match(shortHexRegex);
+    if (match != null) {
+        color = "#" + match[1].repeat(2) + match[2].repeat(2) + match[3].repeat(2);
+    }
+    match = color.match(hexRegex);
+    if (match != null) {
+        var r = parseInt(match[1], 16);
+        var g = parseInt(match[2], 16);
+        var b = parseInt(match[3], 16);
+        applyColor(r, g, b);
+        return;
+    }
+    throw new TypeError("invalid color format");
+}
 
 var loadingBar$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -88,7 +124,8 @@ var loadingBar$1 = /*#__PURE__*/Object.freeze({
     claimedBy: claimedBy,
     claimed: claimed,
     release: release,
-    isLoading: isLoading
+    isLoading: isLoading,
+    setColor: setColor
 });
 
 /*! *****************************************************************************

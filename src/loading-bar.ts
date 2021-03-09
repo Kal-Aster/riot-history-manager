@@ -98,3 +98,42 @@ export function release(claimer: any): void {
 export function isLoading(): boolean {
     return nextFrame !== -1;
 }
+
+const rgbRegex: RegExp = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
+const shortHexRegex: RegExp = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
+const hexRegex: RegExp = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
+
+function applyColor(r: number, g: number, b: number): void {
+    loadingBar.style.background = `rgb(${r},${g},${b})`;
+    loadingBarContainer.style.background = `rgb(${r},${g},${b},0.5)`;
+}
+
+export function setColor(color: string): void {
+    if (typeof color !== "string") {
+        throw new TypeError("color must be string");
+    }
+    let match: RegExpMatchArray | null = color.match(rgbRegex);
+    if (match != null) {
+        const r: number = parseFloat(match[1]);
+        const g: number = parseFloat(match[2]);
+        const b: number = parseFloat(match[3]);
+        if (r > 255 || g > 255 || b > 255) {
+            throw new TypeError("invalid color rgb arguments");
+        }
+        applyColor(r, g, b);
+        return;
+    }
+    match = color.match(shortHexRegex);
+    if (match != null) {
+        color = "#" + match[1].repeat(2) + match[2].repeat(2) + match[3].repeat(2);
+    }
+    match = color.match(hexRegex);
+    if (match != null) {
+        const r: number = parseInt(match[1], 16);
+        const g: number = parseInt(match[2], 16);
+        const b: number = parseInt(match[3], 16);
+        applyColor(r, g, b);
+        return;
+    }
+    throw new TypeError("invalid color format");
+}

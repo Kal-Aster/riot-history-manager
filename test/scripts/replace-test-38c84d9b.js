@@ -5,11 +5,13 @@ define(['exports'], function (exports) { 'use strict';
 
       'exports': {
         onBeforeMount() {
+            let start = Date.now();
             setTimeout(() => {
                 this.root.querySelector("[ref=slowLoader]").dispatchEvent(new Event("load"));
-            }, 1000);
+                console.log("elapsed: " + (Date.now() - start) + "ms");
+            }, 600 + (Math.random() * 600));
             Promise.resolve().then(() => {
-                Router.go("/accedi", { replace: true });
+                // Router.go("/accedi", { replace: true });
                 this.root.querySelector("[ref=loader]").dispatchEvent(new Event("load"));
             });
         }

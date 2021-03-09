@@ -1,6 +1,8 @@
 import { register, mount } from "riot";
-import "../../src/index";
+import { loadingBar } from "../../src/index";
 import TestComponent from "./test.riot";
+
+loadingBar.setColor("#fff");
 
 register("test", TestComponent);
 mount("test");

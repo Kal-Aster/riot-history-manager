@@ -1,16 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.4.2] - 2021-01-31
-- change "dist" structure
-- edit entry points in "package.json"
-- add "files" in "package.json"
+## [1.5.0] - 2021-03-09
+- implement customizable loading bar color (via `loading-bar::setColor`)
+- update tests
 - update dependencies
 
 ## [any] - Unreleased
 - "requestvisibility" documentation
 
 - customable `z-index` of loading bar
+
+## [1.4.2] - 2021-01-31
+- change "dist" structure
+- edit entry points in "package.json"
+- add "files" in "package.json"
+- update dependencies
 
 ## [1.4.1] - 2020-11-24
 - remove delay from actual display of route and "routerload" event dispatch

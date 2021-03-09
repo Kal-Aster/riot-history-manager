@@ -1,16 +1,19 @@
 <homepage>
-    HOME { Math.round(Math.random() * 32) } <img src="image1.jpg" onclick={ () => { this.update() } } need-loading>
+    <div>
+        <img src="image1.jpg" onclick={ update.bind(this) } need-loading>
+    </div>
+    <div>HOME { Math.round(Math.random() * 32) }</div>
 
     <script>
         export default {
             onMounted() {
-                console.log("mounted");
+                console.log("homepage mounted");
             },
             onUnmounted() {
-                console.log("unmounted");
+                console.log("homepage unmounted");
             },
             onUpdated() {
-                console.log("updated");
+                console.log("homepage updated");
             }
         }
     </script>

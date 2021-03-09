@@ -1,6 +1,6 @@
 define(['require'], function (require) { 'use strict';
 
-  /* Riot v5.2.0, @license MIT */
+  /* Riot v5.3.1, @license MIT */
   /**
    * Convert a string from camel case to dash-case
    * @param   {string} string - probably a component tag name
@@ -88,9 +88,9 @@ define(['require'], function (require) { 'use strict';
   const replaceChild = (newNode, replaced) => replaced && replaced.parentNode && replaced.parentNode.replaceChild(newNode, replaced);
 
   // Riot.js constants that can be used accross more modules
-  const COMPONENTS_IMPLEMENTATION_MAP = new Map(),
-        DOM_COMPONENT_INSTANCE_PROPERTY = Symbol('riot-component'),
-        PLUGINS_SET = new Set(),
+  const COMPONENTS_IMPLEMENTATION_MAP$1 = new Map(),
+        DOM_COMPONENT_INSTANCE_PROPERTY$1 = Symbol('riot-component'),
+        PLUGINS_SET$1 = new Set(),
         IS_DIRECTIVE = 'is',
         VALUE_ATTRIBUTE = 'value',
         MOUNT_METHOD_KEY = 'mount',
@@ -107,16 +107,17 @@ define(['require'], function (require) { 'use strict';
         STATE_KEY = 'state',
         SLOTS_KEY = 'slots',
         ROOT_KEY = 'root',
-        IS_PURE_SYMBOL = Symbol.for('pure'),
+        IS_PURE_SYMBOL = Symbol('pure'),
+        IS_COMPONENT_UPDATING = Symbol('is_updating'),
         PARENT_KEY_SYMBOL = Symbol('parent'),
         ATTRIBUTES_KEY_SYMBOL = Symbol('attributes'),
         TEMPLATE_KEY_SYMBOL = Symbol('template');
 
   var globals = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    COMPONENTS_IMPLEMENTATION_MAP: COMPONENTS_IMPLEMENTATION_MAP,
-    DOM_COMPONENT_INSTANCE_PROPERTY: DOM_COMPONENT_INSTANCE_PROPERTY,
-    PLUGINS_SET: PLUGINS_SET,
+    COMPONENTS_IMPLEMENTATION_MAP: COMPONENTS_IMPLEMENTATION_MAP$1,
+    DOM_COMPONENT_INSTANCE_PROPERTY: DOM_COMPONENT_INSTANCE_PROPERTY$1,
+    PLUGINS_SET: PLUGINS_SET$1,
     IS_DIRECTIVE: IS_DIRECTIVE,
     VALUE_ATTRIBUTE: VALUE_ATTRIBUTE,
     MOUNT_METHOD_KEY: MOUNT_METHOD_KEY,
@@ -134,6 +135,7 @@ define(['require'], function (require) { 'use strict';
     SLOTS_KEY: SLOTS_KEY,
     ROOT_KEY: ROOT_KEY,
     IS_PURE_SYMBOL: IS_PURE_SYMBOL,
+    IS_COMPONENT_UPDATING: IS_COMPONENT_UPDATING,
     PARENT_KEY_SYMBOL: PARENT_KEY_SYMBOL,
     ATTRIBUTES_KEY_SYMBOL: ATTRIBUTES_KEY_SYMBOL,
     TEMPLATE_KEY_SYMBOL: TEMPLATE_KEY_SYMBOL
@@ -664,7 +666,7 @@ define(['require'], function (require) { 'use strict';
     };
   }
 
-  function create(node, _ref2) {
+  function create$6(node, _ref2) {
     let {
       evaluate,
       condition,
@@ -743,7 +745,7 @@ define(['require'], function (require) { 'use strict';
     }
 
   };
-  function create$1(node, _ref) {
+  function create$5(node, _ref) {
     let {
       evaluate,
       template
@@ -1079,7 +1081,7 @@ define(['require'], function (require) { 'use strict';
     return expressions[expression.type](expression.node, expression, value, expression.value);
   }
 
-  function create$2(node, data) {
+  function create$4(node, data) {
     return Object.assign({}, Expression, data, {
       node: data.type === TEXT ? getTextNode(node, data.childNodeIndex) : node
     });
@@ -1107,7 +1109,7 @@ define(['require'], function (require) { 'use strict';
     let {
       expressions
     } = _ref;
-    return Object.assign({}, flattenCollectionMethods(expressions.map(expression => create$2(node, expression)), ['mount', 'update', 'unmount']));
+    return Object.assign({}, flattenCollectionMethods(expressions.map(expression => create$4(node, expression)), ['mount', 'update', 'unmount']));
   }
 
   function extendParentScope(attributes, scope, parentScope) {
@@ -1145,7 +1147,7 @@ define(['require'], function (require) { 'use strict';
         parentNode
       } = this.node;
       const realParent = getRealParent(scope, parentScope);
-      this.template = templateData && create$6(templateData.html, templateData.bindings).createDOM(parentNode);
+      this.template = templateData && create$7(templateData.html, templateData.bindings).createDOM(parentNode);
 
       if (this.template) {
         this.template.mount(this.node, this.getTemplateScope(scope, realParent), realParent);
@@ -1234,7 +1236,7 @@ define(['require'], function (require) { 'use strict';
     } // otherwise we return a template chunk
 
 
-    return create$6(slotsToMarkup(slots), [...slotBindings(slots), {
+    return create$7(slotsToMarkup(slots), [...slotBindings(slots), {
       // the attributes should be registered as binding
       // if we fallback to a normal template chunk
       expressions: attributes.map(attr => {
@@ -1312,7 +1314,7 @@ define(['require'], function (require) { 'use strict';
     }
 
   };
-  function create$4(node, _ref2) {
+  function create$2(node, _ref2) {
     let {
       evaluate,
       getComponent,
@@ -1329,10 +1331,10 @@ define(['require'], function (require) { 'use strict';
   }
 
   var bindings = {
-    [IF]: create$1,
+    [IF]: create$5,
     [SIMPLE]: create$3,
-    [EACH]: create,
-    [TAG]: create$4,
+    [EACH]: create$6,
+    [TAG]: create$2,
     [SLOT]: createSlot
   };
 
@@ -1358,7 +1360,7 @@ define(['require'], function (require) { 'use strict';
    */
 
 
-  function create$5(root, binding, templateTagOffset) {
+  function create$1(root, binding, templateTagOffset) {
     const {
       selector,
       type,
@@ -1509,7 +1511,7 @@ define(['require'], function (require) { 'use strict';
 
       if (!avoidDOMInjection && this.fragment) injectDOM(el, this.fragment); // create the bindings
 
-      this.bindings = this.bindingsData.map(binding => create$5(this.el, binding, templateTagOffset));
+      this.bindings = this.bindingsData.map(binding => create$1(this.el, binding, templateTagOffset));
       this.bindings.forEach(b => b.mount(scope, parentScope)); // store the template meta properties
 
       this.meta = meta;
@@ -1587,7 +1589,7 @@ define(['require'], function (require) { 'use strict';
    * @returns {TemplateChunk} a new TemplateChunk copy
    */
 
-  function create$6(html, bindings) {
+  function create$7(html, bindings) {
     if (bindings === void 0) {
       bindings = [];
     }
@@ -1658,9 +1660,9 @@ define(['require'], function (require) { 'use strict';
 
   var DOMBindings = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    template: create$6,
-    createBinding: create$5,
-    createExpression: create$2,
+    template: create$7,
+    createBinding: create$1,
+    createExpression: create$4,
     bindingTypes: bindingTypes,
     expressionTypes: expressionTypes
   });
@@ -1823,7 +1825,7 @@ define(['require'], function (require) { 'use strict';
    */
 
 
-  function set(els, name, value) {
+  function set$1(els, name, value) {
     const attrs = typeof name === 'object' ? name : {
       [name]: value
     };
@@ -1854,7 +1856,7 @@ define(['require'], function (require) { 'use strict';
    * get([img1, img2], ['width', 'height']) // => [['200', '300'], ['500', '200']]
    */
 
-  function get(els, name) {
+  function get$2(els, name) {
     return parseNodes(els, name, 'getAttribute');
   }
 
@@ -1870,7 +1872,7 @@ define(['require'], function (require) { 'use strict';
       // and cache it internally
 
       style = $(STYLE_NODE_SELECTOR)[0] || document.createElement('style');
-      set(style, 'type', 'text/css');
+      set$1(style, 'type', 'text/css');
       /* istanbul ignore next */
 
       if (!style.parentNode) document.head.appendChild(style);
@@ -1955,7 +1957,7 @@ define(['require'], function (require) { 'use strict';
    */
 
   function getName(element) {
-    return get(element, IS_DIRECTIVE) || element.tagName.toLowerCase();
+    return get$2(element, IS_DIRECTIVE) || element.tagName.toLowerCase();
   }
 
   const COMPONENT_CORE_HELPERS = Object.freeze({
@@ -1988,6 +1990,13 @@ define(['require'], function (require) { 'use strict';
     createDOM: noop
   });
   /**
+   * Performance optimization for the recursive components
+   * @param  {RiotComponentShell} componentShell - riot compiler generated object
+   * @returns {Object} component like interface
+   */
+
+  const memoizedCreateComponent = memoize(createComponent);
+  /**
    * Evaluate the component properties either from its real attributes or from its initial user properties
    * @param   {HTMLElement} element - component root
    * @param   {Object}  initialProps - initial props
@@ -2009,7 +2018,7 @@ define(['require'], function (require) { 'use strict';
    */
 
 
-  const bindDOMNodeToComponentObject = (node, component) => node[DOM_COMPONENT_INSTANCE_PROPERTY] = component;
+  const bindDOMNodeToComponentObject = (node, component) => node[DOM_COMPONENT_INSTANCE_PROPERTY$1] = component;
   /**
    * Wrap the Riot.js core API methods using a mapping function
    * @param   {Function} mapFunction - lifting function
@@ -2026,14 +2035,18 @@ define(['require'], function (require) { 'use strict';
   /**
    * Factory function to create the component templates only once
    * @param   {Function} template - component template creation function
-   * @param   {Object} components - object containing the nested components
+   * @param   {RiotComponentShell} componentShell - riot compiler generated object
    * @returns {TemplateChunk} template chunk object
    */
 
 
-  function componentTemplateFactory(template, components) {
-    return template(create$6, expressionTypes, bindingTypes, name => {
-      return components[name] || COMPONENTS_IMPLEMENTATION_MAP.get(name);
+  function componentTemplateFactory(template, componentShell) {
+    const components = createSubcomponents(componentShell.exports ? componentShell.exports.components : {});
+    return template(create$7, expressionTypes, bindingTypes, name => {
+      // improve support for recursive components
+      if (name === componentShell.name) return memoizedCreateComponent(componentShell); // return the registered components
+
+      return components[name] || COMPONENTS_IMPLEMENTATION_MAP$1.get(name);
     });
   }
   /**
@@ -2083,28 +2096,29 @@ define(['require'], function (require) { 'use strict';
   }
   /**
    * Create the component interface needed for the @riotjs/dom-bindings tag bindings
-   * @param   {string} options.css - component css
-   * @param   {Function} options.template - functon that will return the dom-bindings template function
-   * @param   {Object} options.exports - component interface
-   * @param   {string} options.name - component name
+   * @param   {RiotComponentShell} componentShell - riot compiler generated object
+   * @param   {string} componentShell.css - component css
+   * @param   {Function} componentShell.template - function that will return the dom-bindings template function
+   * @param   {Object} componentShell.exports - component interface
+   * @param   {string} componentShell.name - component name
    * @returns {Object} component like interface
    */
 
 
-  function createComponent(_ref2) {
-    let {
+  function createComponent(componentShell) {
+    const {
       css,
       template,
       exports,
       name
-    } = _ref2;
-    const templateFn = template ? componentTemplateFactory(template, exports ? createSubcomponents(exports.components) : {}) : MOCKED_TEMPLATE_INTERFACE;
-    return (_ref3) => {
+    } = componentShell;
+    const templateFn = template ? componentTemplateFactory(template, componentShell) : MOCKED_TEMPLATE_INTERFACE;
+    return (_ref2) => {
       let {
         slots,
         attributes,
         props
-      } = _ref3;
+      } = _ref2;
       // pure components rendering will be managed by the end user
       if (exports && exports[IS_PURE_SYMBOL]) return createPureComponent(exports, {
         slots,
@@ -2151,13 +2165,13 @@ define(['require'], function (require) { 'use strict';
    * @returns {Object} a new component implementation object
    */
 
-  function defineComponent(_ref4) {
+  function defineComponent(_ref3) {
     let {
       css,
       template,
       componentAPI,
       name
-    } = _ref4;
+    } = _ref3;
     // add the component css into the DOM
     if (css && name) cssManager.add(name, css);
     return curry(enhanceComponentAPI)(defineProperties( // set the component defaults without overriding the original component API
@@ -2185,7 +2199,7 @@ define(['require'], function (require) { 'use strict';
       attributes = [];
     }
 
-    const expressions = attributes.map(a => create$2(node, a));
+    const expressions = attributes.map(a => create$4(node, a));
     const binding = {};
     return Object.assign(binding, Object.assign({
       expressions
@@ -2206,8 +2220,8 @@ define(['require'], function (require) { 'use strict';
       components = {};
     }
 
-    return Object.entries(callOrAssign(components)).reduce((acc, _ref5) => {
-      let [key, value] = _ref5;
+    return Object.entries(callOrAssign(components)).reduce((acc, _ref4) => {
+      let [key, value] = _ref4;
       acc[camelToDashCase(key)] = createComponent(value);
       return acc;
     }, {});
@@ -2220,7 +2234,7 @@ define(['require'], function (require) { 'use strict';
 
 
   function runPlugins(component) {
-    return [...PLUGINS_SET].reduce((c, fn) => fn(c) || c, component);
+    return [...PLUGINS_SET$1].reduce((c, fn) => fn(c) || c, component);
   }
   /**
    * Compute the component current state merging it with its previous state
@@ -2243,7 +2257,7 @@ define(['require'], function (require) { 'use strict';
 
   function addCssHook(element, name) {
     if (getName(element) !== name) {
-      set(element, IS_DIRECTIVE, name);
+      set$1(element, IS_DIRECTIVE, name);
     }
   }
   /**
@@ -2255,12 +2269,12 @@ define(['require'], function (require) { 'use strict';
    */
 
 
-  function enhanceComponentAPI(component, _ref6) {
+  function enhanceComponentAPI(component, _ref5) {
     let {
       slots,
       attributes,
       props
-    } = _ref6;
+    } = _ref5;
     return autobindMethods(runPlugins(defineProperties(isObject(component) ? Object.create(component) : component, {
       mount(element, state, parentScope) {
         if (state === void 0) {
@@ -2302,9 +2316,16 @@ define(['require'], function (require) { 'use strict';
         if (this[SHOULD_UPDATE_KEY](newProps, this[PROPS_KEY]) === false) return;
         defineProperty(this, PROPS_KEY, Object.freeze(Object.assign({}, this[PROPS_KEY], newProps)));
         this[STATE_KEY] = computeState(this[STATE_KEY], state);
-        this[ON_BEFORE_UPDATE_KEY](this[PROPS_KEY], this[STATE_KEY]);
-        this[TEMPLATE_KEY_SYMBOL].update(this, this[PARENT_KEY_SYMBOL]);
+        this[ON_BEFORE_UPDATE_KEY](this[PROPS_KEY], this[STATE_KEY]); // avoiding recursive updates
+        // see also https://github.com/riot/riot/issues/2895
+
+        if (!this[IS_COMPONENT_UPDATING]) {
+          this[IS_COMPONENT_UPDATING] = true;
+          this[TEMPLATE_KEY_SYMBOL].update(this, this[PARENT_KEY_SYMBOL]);
+        }
+
         this[ON_UPDATED_KEY](this[PROPS_KEY], this[STATE_KEY]);
+        this[IS_COMPONENT_UPDATING] = false;
         return this;
       },
 
@@ -2330,8 +2351,8 @@ define(['require'], function (require) { 'use strict';
 
   function mountComponent(element, initialProps, componentName) {
     const name = componentName || getName(element);
-    if (!COMPONENTS_IMPLEMENTATION_MAP.has(name)) panic(`The component named "${name}" was never registered`);
-    const component = COMPONENTS_IMPLEMENTATION_MAP.get(name)({
+    if (!COMPONENTS_IMPLEMENTATION_MAP$1.has(name)) panic(`The component named "${name}" was never registered`);
+    const component = COMPONENTS_IMPLEMENTATION_MAP$1.get(name)({
       props: initialProps
     });
     return component.mount(element);
@@ -2363,9 +2384,9 @@ define(['require'], function (require) { 'use strict';
   }
 
   const {
-    DOM_COMPONENT_INSTANCE_PROPERTY: DOM_COMPONENT_INSTANCE_PROPERTY$1,
-    COMPONENTS_IMPLEMENTATION_MAP: COMPONENTS_IMPLEMENTATION_MAP$1,
-    PLUGINS_SET: PLUGINS_SET$1
+    DOM_COMPONENT_INSTANCE_PROPERTY,
+    COMPONENTS_IMPLEMENTATION_MAP,
+    PLUGINS_SET
   } = globals;
   /**
    * Riot public api
@@ -2384,14 +2405,14 @@ define(['require'], function (require) { 'use strict';
       template,
       exports
     } = _ref;
-    if (COMPONENTS_IMPLEMENTATION_MAP$1.has(name)) panic(`The component "${name}" was already registered`);
-    COMPONENTS_IMPLEMENTATION_MAP$1.set(name, createComponent({
+    if (COMPONENTS_IMPLEMENTATION_MAP.has(name)) panic(`The component "${name}" was already registered`);
+    COMPONENTS_IMPLEMENTATION_MAP.set(name, createComponent({
       name,
       css,
       template,
       exports
     }));
-    return COMPONENTS_IMPLEMENTATION_MAP$1;
+    return COMPONENTS_IMPLEMENTATION_MAP;
   }
   /**
    * Mounting function that will work only for the components that were globally registered
@@ -2521,6 +2542,42 @@ define(['require'], function (require) { 'use strict';
           return;
       }
       loadingDone = true;
+  }
+  var rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
+  var shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
+  var hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
+  function applyColor(r, g, b) {
+      loadingBar.style.background = "rgb(" + r + "," + g + "," + b + ")";
+      loadingBarContainer.style.background = "rgb(" + r + "," + g + "," + b + ",0.5)";
+  }
+  function setColor(color) {
+      if (typeof color !== "string") {
+          throw new TypeError("color must be string");
+      }
+      var match = color.match(rgbRegex);
+      if (match != null) {
+          var r = parseFloat(match[1]);
+          var g = parseFloat(match[2]);
+          var b = parseFloat(match[3]);
+          if (r > 255 || g > 255 || b > 255) {
+              throw new TypeError("invalid color rgb arguments");
+          }
+          applyColor(r, g, b);
+          return;
+      }
+      match = color.match(shortHexRegex);
+      if (match != null) {
+          color = "#" + match[1].repeat(2) + match[2].repeat(2) + match[3].repeat(2);
+      }
+      match = color.match(hexRegex);
+      if (match != null) {
+          var r = parseInt(match[1], 16);
+          var g = parseInt(match[2], 16);
+          var b = parseInt(match[3], 16);
+          applyColor(r, g, b);
+          return;
+      }
+      throw new TypeError("invalid color format");
   }
 
   /*! *****************************************************************************
@@ -3711,10 +3768,10 @@ define(['require'], function (require) { 'use strict';
       });
       return queryString.stringify(filteredOpts);
   }
-  function get$1() {
+  function get() {
       return queryString.parse(splitHref()[1]);
   }
-  function set$1(opts) {
+  function set(opts) {
       var newHref = splitHref()[0] + DIVIDER + optsToStr(opts);
       return goTo(newHref, true);
   }
@@ -3726,8 +3783,8 @@ define(['require'], function (require) { 'use strict';
   function clearHref() {
       return splitHref()[0];
   }
-  if (Object.keys(get$1()).length > 0) {
-      set$1({});
+  if (Object.keys(get()).length > 0) {
+      set({});
   }
 
   var BASE = window.location.href.split("#")[0] + "#";
@@ -3737,17 +3794,17 @@ define(['require'], function (require) { 'use strict';
       }
       return BASE;
   }
-  function get$1$1() {
+  function get$1() {
       return prepare(clearHref().split(BASE).slice(1).join(BASE));
   }
   function construct(href) {
       switch (href[0]) {
           case "?": {
-              href = get$1$1().split("?")[0] + href;
+              href = get$1().split("?")[0] + href;
               break;
           }
           case "#": {
-              href = get$1$1().split("#")[0] + href;
+              href = get$1().split("#")[0] + href;
               break;
           }
       }
@@ -3854,7 +3911,7 @@ define(['require'], function (require) { 'use strict';
   }
   function addFront(frontHref) {
       if (frontHref === void 0) { frontHref = "next"; }
-      var href = get$1$1();
+      var href = get$1();
       var work = createWork();
       return new Promise(function (resolve) {
           goWith(construct(frontHref), { back: undefined, front: null })
@@ -3874,7 +3931,7 @@ define(['require'], function (require) { 'use strict';
   }
   function addBack(backHref) {
       if (backHref === void 0) { backHref = ""; }
-      var href = get$1$1();
+      var href = get$1();
       var work = createWork();
       return new Promise(function (resolve) {
           (new Promise(function (resolve) {
@@ -3890,7 +3947,7 @@ define(['require'], function (require) { 'use strict';
                   resolve();
               }
           }); })
-              .then(function () { return set$1({ back: null, front: undefined }); })
+              .then(function () { return set({ back: null, front: undefined }); })
               .then(function () { return new Promise(function (resolve) {
               onCatchPopState$1(resolve, true);
               goTo$1(href);
@@ -4068,7 +4125,7 @@ define(['require'], function (require) { 'use strict';
   }
   function start(fallbackContext) {
       if (fallbackContext === void 0) { fallbackContext = contextManager.getContextNames()[0]; }
-      var href = get$1$1();
+      var href = get$1();
       var context = contextManager.contextOf(href, false);
       var promiseResolve;
       var promise = new Promise(function (resolve) { promiseResolve = resolve; });
@@ -4103,10 +4160,10 @@ define(['require'], function (require) { 'use strict';
       }
   }
   function handlePopState() {
-      var options = get$1();
+      var options = get();
       if (options.locked) {
           onCatchPopState$1(function () {
-              if (get$1().locked) {
+              if (get().locked) {
                   handlePopState();
               }
           }, true);
@@ -4180,7 +4237,7 @@ define(['require'], function (require) { 'use strict';
           });
       }
       else {
-          var href_4 = get$1$1();
+          var href_4 = get$1();
           var backHref_1 = contextManager.get();
           if (href_4 === backHref_1) {
               return onlanded();
@@ -4332,7 +4389,7 @@ define(['require'], function (require) { 'use strict';
               return true;
           };
           locks.push(lock);
-          goWith(clearHref(), __assign(__assign({}, get$1()), { locked: lock.lock.id })).then(function () {
+          goWith(clearHref(), __assign(__assign({}, get()), { locked: lock.lock.id })).then(function () {
               promiseResolve(lock.lock);
           });
       });
@@ -4363,7 +4420,7 @@ define(['require'], function (require) { 'use strict';
       if (locks.length === 0) {
           return;
       }
-      var lockId = parseInt(get$1().locked, 10);
+      var lockId = parseInt(get().locked, 10);
       if (isNaN(lockId)) {
           shouldUnlock = true;
           window.history.go(1);
@@ -4407,7 +4464,7 @@ define(['require'], function (require) { 'use strict';
   }
   var routers = [];
   function getLocation(href) {
-      if (href === void 0) { href = get$1$1(); }
+      if (href === void 0) { href = get$1(); }
       var pathname = "";
       var hash = "";
       var query = "";
@@ -4747,7 +4804,7 @@ define(['require'], function (require) { 'use strict';
       }
       return _emit();
   }
-  function create$7() {
+  function create() {
       return new GenericRouter();
   }
   function go$1(path_index, options) {
@@ -4831,7 +4888,7 @@ define(['require'], function (require) { 'use strict';
       restoreContext: restoreContext,
       getContextDefaultOf: getContextDefaultOf$1,
       emit: emit,
-      create: create$7,
+      create: create,
       go: go$1,
       setQueryParam: setQueryParam,
       lock: lock$1,
@@ -5296,11 +5353,11 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr18="expr18" ref="-navigate-a"><slot expr19="expr19"></slot></a>',
+        '<a expr21="expr21" ref="-navigate-a"><slot expr22="expr22"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr18',
-            'selector': '[expr18]',
+            'redundantAttribute': 'expr21',
+            'selector': '[expr21]',
 
             'expressions': [
               {
@@ -5335,8 +5392,8 @@ define(['require'], function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr19',
-            'selector': '[expr19]'
+            'redundantAttribute': 'expr22',
+            'selector': '[expr22]'
           }
         ]
       );
@@ -5423,35 +5480,34 @@ define(['require'], function (require) { 'use strict';
   Router.setContext({
       name: "home",
       paths: [
-          { path: "" },
-          { path: "home" }
-      ],
-      default: ""
-  });
-  Router.setContext({
-      name: "profile",
-      paths: [
+          { path: "home" },
           { path: "me" },
           { path: "accedi", fallback: true },
           { path: "users/:id", fallback: true }
       ],
-      default: "me"
+      default: "home"
   });
 
   var TestComponent = {
     'css': null,
 
     'exports': {
+      _lastContext: null,
+      _lastPath: null,
+
       onMounted() {
+          Router.create().route("(.*)", (location) => {
+              let context = Router.getContext();
+              this._lastContext = context;
+              this._lastPath = location.pathname;
+              this.update({ context, path: this._lastPath });
+          });
           Router.start("home").then(() => console.log("started"));
       },
 
-      testcontext() {
-      },
-
       components: {
-          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-b41d4762'], resolve, reject) })),
-          "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-6e6fc87b'], resolve, reject) }))
+          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-8e84a6a6'], resolve, reject) })),
+          "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-38c84d9b'], resolve, reject) }))
       }
     },
 
@@ -5462,7 +5518,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<navigate expr6="expr6" href="home"></navigate><navigate expr7="expr7" href="me"></navigate><navigate expr8="expr8" replace></navigate><div></div><navigate expr9="expr9" context="home"></navigate><navigate expr10="expr10" context="profile"></navigate><div></div><router expr11="expr11"></router>',
+        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><navigate expr6="expr6" href="home"></navigate>&nbsp;\r\n        <navigate expr8="expr8" href="me"></navigate></div><router expr10="expr10"></router>',
         [
           {
             'type': bindingTypes.TAG,
@@ -5477,8 +5533,27 @@ define(['require'], function (require) { 'use strict';
             'slots': [
               {
                 'id': 'default',
-                'html': 'to HOME',
-                'bindings': []
+                'html': '<span expr7="expr7">Home</span>',
+
+                'bindings': [
+                  {
+                    'redundantAttribute': 'expr7',
+                    'selector': '[expr7]',
+
+                    'expressions': [
+                      {
+                        'type': expressionTypes.ATTRIBUTE,
+                        'name': 'style',
+
+                        'evaluate': function(
+                          scope
+                        ) {
+                          return scope.state.path === "home" || scope.state.path === "" ? "text-decoration: underline;": "";
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ],
 
@@ -5499,97 +5574,33 @@ define(['require'], function (require) { 'use strict';
             'slots': [
               {
                 'id': 'default',
-                'html': 'to ME',
-                'bindings': []
+                'html': '<span expr9="expr9">Profile</span>',
+
+                'bindings': [
+                  {
+                    'redundantAttribute': 'expr9',
+                    'selector': '[expr9]',
+
+                    'expressions': [
+                      {
+                        'type': expressionTypes.ATTRIBUTE,
+                        'name': 'style',
+
+                        'evaluate': function(
+                          scope
+                        ) {
+                          return scope.state.path === "me" ? "text-decoration: underline;": "";
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr7',
-            'selector': '[expr7]'
-          },
-          {
-            'type': bindingTypes.TAG,
-            'getComponent': getComponent,
-
-            'evaluate': function(
-              scope
-            ) {
-              return 'navigate';
-            },
-
-            'slots': [
-              {
-                'id': 'default',
-                'html': 'to USERS/:id',
-                'bindings': []
-              }
-            ],
-
-            'attributes': [
-              {
-                'type': expressionTypes.ATTRIBUTE,
-                'name': 'href',
-
-                'evaluate': function(
-                  scope
-                ) {
-                  return [
-                    'users/',
-                    Math.round(Math.random() * 32)
-                  ].join(
-                    ''
-                  );
-                }
-              }
-            ],
-
             'redundantAttribute': 'expr8',
             'selector': '[expr8]'
-          },
-          {
-            'type': bindingTypes.TAG,
-            'getComponent': getComponent,
-
-            'evaluate': function(
-              scope
-            ) {
-              return 'navigate';
-            },
-
-            'slots': [
-              {
-                'id': 'default',
-                'html': 'Restore home',
-                'bindings': []
-              }
-            ],
-
-            'attributes': [],
-            'redundantAttribute': 'expr9',
-            'selector': '[expr9]'
-          },
-          {
-            'type': bindingTypes.TAG,
-            'getComponent': getComponent,
-
-            'evaluate': function(
-              scope
-            ) {
-              return 'navigate';
-            },
-
-            'slots': [
-              {
-                'id': 'default',
-                'html': 'Restore profile',
-                'bindings': []
-              }
-            ],
-
-            'attributes': [],
-            'redundantAttribute': 'expr10',
-            'selector': '[expr10]'
           },
           {
             'type': bindingTypes.TAG,
@@ -5604,7 +5615,7 @@ define(['require'], function (require) { 'use strict';
             'slots': [
               {
                 'id': 'default',
-                'html': '<route expr12="expr12" path redirect="home"></route><route expr13="expr13" path="home"></route><route expr15="expr15" path="me"></route><route expr17="expr17" path="users/:id"></route>',
+                'html': '<route expr11="expr11" path redirect="home"></route><route expr12="expr12" path="home"></route><route expr14="expr14" path="me"></route><route expr19="expr19" path="users/:id"></route>',
 
                 'bindings': [
                   {
@@ -5618,6 +5629,45 @@ define(['require'], function (require) { 'use strict';
                     },
 
                     'slots': [],
+                    'attributes': [],
+                    'redundantAttribute': 'expr11',
+                    'selector': '[expr11]'
+                  },
+                  {
+                    'type': bindingTypes.TAG,
+                    'getComponent': getComponent,
+
+                    'evaluate': function(
+                      scope
+                    ) {
+                      return 'route';
+                    },
+
+                    'slots': [
+                      {
+                        'id': 'default',
+                        'html': '<homepage expr13="expr13" need-loading></homepage>',
+
+                        'bindings': [
+                          {
+                            'type': bindingTypes.TAG,
+                            'getComponent': getComponent,
+
+                            'evaluate': function(
+                              scope
+                            ) {
+                              return 'homepage';
+                            },
+
+                            'slots': [],
+                            'attributes': [],
+                            'redundantAttribute': 'expr13',
+                            'selector': '[expr13]'
+                          }
+                        ]
+                      }
+                    ],
+
                     'attributes': [],
                     'redundantAttribute': 'expr12',
                     'selector': '[expr12]'
@@ -5635,46 +5685,7 @@ define(['require'], function (require) { 'use strict';
                     'slots': [
                       {
                         'id': 'default',
-                        'html': '<homepage expr14="expr14" need-loading></homepage>',
-
-                        'bindings': [
-                          {
-                            'type': bindingTypes.TAG,
-                            'getComponent': getComponent,
-
-                            'evaluate': function(
-                              scope
-                            ) {
-                              return 'homepage';
-                            },
-
-                            'slots': [],
-                            'attributes': [],
-                            'redundantAttribute': 'expr14',
-                            'selector': '[expr14]'
-                          }
-                        ]
-                      }
-                    ],
-
-                    'attributes': [],
-                    'redundantAttribute': 'expr13',
-                    'selector': '[expr13]'
-                  },
-                  {
-                    'type': bindingTypes.TAG,
-                    'getComponent': getComponent,
-
-                    'evaluate': function(
-                      scope
-                    ) {
-                      return 'route';
-                    },
-
-                    'slots': [
-                      {
-                        'id': 'default',
-                        'html': '<replace-test expr16="expr16" need-loading></replace-test>',
+                        'html': '<replace-test expr15="expr15" need-loading></replace-test><div>Friends:</div><div style="padding-left: 1em;"><navigate expr16="expr16" href="users/2"></navigate><br/><navigate expr17="expr17" href="users/3"></navigate><br/><navigate expr18="expr18" href="users/4"></navigate></div>',
 
                         'bindings': [
                           {
@@ -5688,30 +5699,83 @@ define(['require'], function (require) { 'use strict';
                             },
 
                             'slots': [],
+                            'attributes': [],
+                            'redundantAttribute': 'expr15',
+                            'selector': '[expr15]'
+                          },
+                          {
+                            'type': bindingTypes.TAG,
+                            'getComponent': getComponent,
 
-                            'attributes': [
+                            'evaluate': function(
+                              scope
+                            ) {
+                              return 'navigate';
+                            },
+
+                            'slots': [
                               {
-                                'type': expressionTypes.ATTRIBUTE,
-                                'name': 'test',
-
-                                'evaluate': function(
-                                  scope
-                                ) {
-                                  return window.console.log("here", scope) || scope.testcontext;
-                                }
+                                'id': 'default',
+                                'html': 'Tizio',
+                                'bindings': []
                               }
                             ],
 
+                            'attributes': [],
                             'redundantAttribute': 'expr16',
                             'selector': '[expr16]'
+                          },
+                          {
+                            'type': bindingTypes.TAG,
+                            'getComponent': getComponent,
+
+                            'evaluate': function(
+                              scope
+                            ) {
+                              return 'navigate';
+                            },
+
+                            'slots': [
+                              {
+                                'id': 'default',
+                                'html': 'Caio',
+                                'bindings': []
+                              }
+                            ],
+
+                            'attributes': [],
+                            'redundantAttribute': 'expr17',
+                            'selector': '[expr17]'
+                          },
+                          {
+                            'type': bindingTypes.TAG,
+                            'getComponent': getComponent,
+
+                            'evaluate': function(
+                              scope
+                            ) {
+                              return 'navigate';
+                            },
+
+                            'slots': [
+                              {
+                                'id': 'default',
+                                'html': 'Sempronio',
+                                'bindings': []
+                              }
+                            ],
+
+                            'attributes': [],
+                            'redundantAttribute': 'expr18',
+                            'selector': '[expr18]'
                           }
                         ]
                       }
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr15',
-                    'selector': '[expr15]'
+                    'redundantAttribute': 'expr14',
+                    'selector': '[expr14]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5748,16 +5812,16 @@ define(['require'], function (require) { 'use strict';
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr17',
-                    'selector': '[expr17]'
+                    'redundantAttribute': 'expr19',
+                    'selector': '[expr19]'
                   }
                 ]
               }
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr11',
-            'selector': '[expr11]'
+            'redundantAttribute': 'expr10',
+            'selector': '[expr10]'
           }
         ]
       );
@@ -5765,6 +5829,8 @@ define(['require'], function (require) { 'use strict';
 
     'name': 'test'
   };
+
+  setColor("#fff");
 
   register("test", TestComponent);
   mount("test");
