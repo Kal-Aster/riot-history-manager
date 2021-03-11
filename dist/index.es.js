@@ -138,6 +138,10 @@ var RouterComponent = {
   'css': null,
 
   'exports': {
+    getSelfSlotProp() {
+        return { [ROUTER]: this };
+    },
+
     onBeforeMount() {
         this.root[IS_ROUTER] = true;
         this[UNROUTE_METHOD] = () => {};
@@ -171,7 +175,20 @@ var RouterComponent = {
       [
         {
           'type': bindingTypes.SLOT,
-          'attributes': [],
+
+          'attributes': [
+            {
+              'type': expressionTypes.ATTRIBUTE,
+              'name': null,
+
+              'evaluate': function(
+                scope
+              ) {
+                return scope.getSelfSlotProp();
+              }
+            }
+          ],
+
           'name': 'default',
           'redundantAttribute': 'expr0',
           'selector': '[expr0]'
@@ -479,19 +496,13 @@ var RouteComponent = {
     _path: null,
 
     onMounted() {
-        let routerEl = this.root;
-        while (routerEl != null) {
-            if ((routerEl = routerEl.parentElement)[IS_ROUTER]) {
-                break;
-            }
-        }
-        const router = routerEl != null ? routerEl[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY] : null;
-        if (routerEl == null) {
+        const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
+        if (router == null) {
             return;
         }
         this._valid = true;
         this[ROUTER] = router;
-
+        
         if (this.props.redirect) {
             router[ROUTER].redirect(this.props.path, this.props.redirect);
         } else {

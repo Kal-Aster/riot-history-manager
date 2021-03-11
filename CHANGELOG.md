@@ -1,15 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.5.0] - 2021-03-09
-- implement customizable loading bar color (via `loading-bar::setColor`)
-- update tests
-- update dependencies
+## [1.5.1] - 2021-03-11
+- get `route` from riot parent (allowing ```<template is="router">```)
 
 ## [any] - Unreleased
 - "requestvisibility" documentation
 
 - customable `z-index` of loading bar
+
+## [1.5.0] - 2021-03-09
+- implement customizable loading bar color (via `loading-bar::setColor`)
+- update tests
+- update dependencies
 
 ## [1.4.2] - 2021-01-31
 - change "dist" structure

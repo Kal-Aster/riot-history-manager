@@ -1,5 +1,5 @@
 <router>
-    <slot />
+    <slot { ...getSelfSlotProp() } />
 
     <script>
         import { Router } from "history-manager";
@@ -7,6 +7,9 @@
         import { claim, release } from "./loading-bar";
 
         export default {
+            getSelfSlotProp() {
+                return { [ROUTER]: this };
+            },
             onBeforeMount() {
                 this.root[IS_ROUTER] = true;
                 this[UNROUTE_METHOD] = () => {};

@@ -19,7 +19,7 @@
     <navigate href="users/{ Math.round(Math.random() * 32) }" replace>replace with USERS/:id</navigate>
     <div />
     <div />  -->
-    <router>
+    <template is="router">
         <route path="" redirect="home" />
         <route path="home">
             <homepage need-loading />
@@ -36,7 +36,7 @@
         <route path="users/:id">{
             route.location.href
         }</route>
-    </router>
+    </template>
  
     <script>
         import { Router, HistoryManager } from "history-manager";
