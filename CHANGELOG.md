@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] - 2021-03-15
+- fix `route` last to be aware of "routerload"
+
 ## [1.5.1] - 2021-03-11
 - get `route` from riot parent (allowing ```<template is="router">```)
 

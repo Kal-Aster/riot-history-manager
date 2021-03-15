@@ -5266,15 +5266,15 @@ define(['require'], function (require) { 'use strict';
           onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
       };
       router[UNROUTE_METHOD] = () => {
-          window.removeEventListener("routerload", onrouterload);
+          window.removeEventListener("routerload", onrouterload, true);
           routerUNROUTE();
           thisUNROUTE();
       };
 
-      window.addEventListener("routerload", onrouterload);
+      window.addEventListener("routerload", onrouterload, true);
 
       function onrouterload() {
-          window.removeEventListener("routerload", onrouterload);
+          window.removeEventListener("routerload", onrouterload, true);
           reachedRouterLoad = true;
           routerUNROUTE();
           router[UNROUTE_METHOD] = thisUNROUTE;
