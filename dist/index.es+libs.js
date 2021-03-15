@@ -2506,6 +2506,7 @@ var ROUTER = Symbol("router");
 var IS_ROUTER = Symbol("is-router");
 var UNROUTE_METHOD = Symbol("unroute");
 var LAST_ROUTED = Symbol("last-routed");
+var ROUTE_PLACEHOLDER = Symbol("route-placeholder");
 
 var RouterComponent = {
   'css': null,
@@ -2755,7 +2756,8 @@ function onunroute(routeComponent, currentMount, route, router, shouldFireEvent,
         currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
     }
     {
-        routeComponent.root.removeChild(currentEl);
+        const placeholder = routeComponent[ROUTE_PLACEHOLDER];
+        placeholder.parentElement.removeChild(currentEl);
         // if want to keep some route for faster loading, just `display: none` the element
         // currentEl.style.display = "none";
     }
@@ -2810,7 +2812,8 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
 
     const slot = this.slots[0];
     const currentEl = document.createElement("div");
-    this.root.appendChild(currentEl);
+    const placeholder = this[ROUTE_PLACEHOLDER];
+    placeholder.parentElement.insertBefore(currentEl, placeholder);
     const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
         currentEl,
         Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
@@ -2869,6 +2872,8 @@ var RouteComponent = {
     _path: null,
 
     onMounted() {
+        const placeholder = this[ROUTE_PLACEHOLDER] = document.createComment("");
+        this.root.replaceWith(placeholder);
         const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
         if (router == null) {
             return;

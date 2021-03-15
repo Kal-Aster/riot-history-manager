@@ -4996,6 +4996,7 @@ define(['require'], function (require) { 'use strict';
   var IS_ROUTER = Symbol("is-router");
   var UNROUTE_METHOD = Symbol("unroute");
   var LAST_ROUTED = Symbol("last-routed");
+  var ROUTE_PLACEHOLDER = Symbol("route-placeholder");
 
   var RouterComponent = {
     'css': null,
@@ -5034,7 +5035,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr20="expr20"></slot>',
+        '<slot expr22="expr22"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5053,8 +5054,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr20',
-            'selector': '[expr20]'
+            'redundantAttribute': 'expr22',
+            'selector': '[expr22]'
           }
         ]
       );
@@ -5245,7 +5246,8 @@ define(['require'], function (require) { 'use strict';
           currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
       }
       {
-          routeComponent.root.removeChild(currentEl);
+          const placeholder = routeComponent[ROUTE_PLACEHOLDER];
+          placeholder.parentElement.removeChild(currentEl);
           // if want to keep some route for faster loading, just `display: none` the element
           // currentEl.style.display = "none";
       }
@@ -5300,7 +5302,8 @@ define(['require'], function (require) { 'use strict';
 
       const slot = this.slots[0];
       const currentEl = document.createElement("div");
-      this.root.appendChild(currentEl);
+      const placeholder = this[ROUTE_PLACEHOLDER];
+      placeholder.parentElement.insertBefore(currentEl, placeholder);
       const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
           currentEl,
           Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
@@ -5359,6 +5362,8 @@ define(['require'], function (require) { 'use strict';
       _path: null,
 
       onMounted() {
+          const placeholder = this[ROUTE_PLACEHOLDER] = document.createComment("");
+          this.root.replaceWith(placeholder);
           const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
           if (router == null) {
               return;
@@ -5456,11 +5461,11 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr21="expr21" ref="-navigate-a"><slot expr22="expr22"></slot></a>',
+        '<a expr20="expr20" ref="-navigate-a"><slot expr21="expr21"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr21',
-            'selector': '[expr21]',
+            'redundantAttribute': 'expr20',
+            'selector': '[expr20]',
 
             'expressions': [
               {
@@ -5495,8 +5500,8 @@ define(['require'], function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr22',
-            'selector': '[expr22]'
+            'redundantAttribute': 'expr21',
+            'selector': '[expr21]'
           }
         ]
       );
