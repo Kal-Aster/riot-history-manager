@@ -2480,6 +2480,9 @@ define(['require'], function (require) { 'use strict';
   var visibilityTime = 300;
   var doneTime = visibilityTime;
   var claimedWhenVisible = 0;
+  function dispatchRouterLoad() {
+      document.dispatchEvent(new Event("routerload", { bubbles: true, cancelable: false }));
+  }
   function startLoading() {
       if (nextFrame) {
           cancelAnimationFrame(nextFrame);
@@ -2491,14 +2494,14 @@ define(['require'], function (require) { 'use strict';
           if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
               loadingProgress = 100;
               loadingBarContainer.style.display = "none";
-              window.dispatchEvent(new Event("routerload"));
+              dispatchRouterLoad();
               return;
           }
           var last = lastTime;
           var delta = ((lastTime = Date.now()) - last);
           if (loadingProgress >= 100) {
               if (!eventDispatched) {
-                  window.dispatchEvent(new Event("routerload"));
+                  dispatchRouterLoad();
                   eventDispatched = true;
               }
               if ((doneTime -= delta) <= 0) {

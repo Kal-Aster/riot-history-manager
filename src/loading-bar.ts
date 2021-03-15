@@ -21,6 +21,9 @@ let progressVel: (progress: number) => number = (progress) => {
 const visibilityTime: number = 300;
 let doneTime: number = visibilityTime;
 let claimedWhenVisible: number = 0;
+function dispatchRouterLoad(): void {
+    document.dispatchEvent(new Event("routerload", { bubbles: true, cancelable: false }));
+}
 function startLoading(): void {
     // se era già previsto un aggiornamento della barra, annullarlo
     if (nextFrame) {
@@ -33,7 +36,7 @@ function startLoading(): void {
         if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
             loadingProgress = 100;
             loadingBarContainer.style.display = "none";
-            window.dispatchEvent(new Event("routerload"));
+            dispatchRouterLoad();
             return;
         }
         let last: number = lastTime;
@@ -41,7 +44,7 @@ function startLoading(): void {
         // se il progresso della barra è completo, attendere che passi il tempo previsto prima di nasconderla
         if (loadingProgress >= 100) {
             if (!eventDispatched) {
-                window.dispatchEvent(new Event("routerload"));
+                dispatchRouterLoad();
                 eventDispatched = true;
             }
             if ((doneTime -= delta) <= 0) {

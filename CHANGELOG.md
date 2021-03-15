@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.3] - 2021-03-15
+- dispatch "routerload" on document to keep capture/bubble order
+
 ## [1.5.2] - 2021-03-15
 - fix `route` last to be aware of "routerload"
 
