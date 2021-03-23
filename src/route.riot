@@ -43,7 +43,12 @@
             }
             const routerUNROUTE = router[UNROUTE_METHOD];
             let reachedRouterLoad = false;
+            let unrouted = false;
             const thisUNROUTE = () => {
+                if (unrouted) {
+                    return;
+                }
+                unrouted = true;
                 onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
             };
             router[UNROUTE_METHOD] = () => {

@@ -4,6 +4,28 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.riotHistoryManager = {}, global.riot));
 }(this, (function (exports, riot) { 'use strict';
 
+    function _interopNamespace(e) {
+        if (e && e.__esModule) return e;
+        var n = Object.create(null);
+        if (e) {
+            Object.keys(e).forEach(function (k) {
+                if (k !== 'default') {
+                    var d = Object.getOwnPropertyDescriptor(e, k);
+                    Object.defineProperty(n, k, d.get ? d : {
+                        enumerable: true,
+                        get: function () {
+                            return e[k];
+                        }
+                    });
+                }
+            });
+        }
+        n['default'] = e;
+        return Object.freeze(n);
+    }
+
+    var riot__namespace = /*#__PURE__*/_interopNamespace(riot);
+
     var loadingBar = document.body.appendChild(document.createElement("div"));
     var loadingBarContainer = document.body.appendChild(document.createElement("div"));
     loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
@@ -2674,7 +2696,7 @@
         }
     };
     function getRouter(element) {
-        var tag = parent[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+        var tag = parent[riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
         if (tag && tag.name === "router") {
             return tag;
         }
@@ -2781,7 +2803,12 @@
         }
         const routerUNROUTE = router[UNROUTE_METHOD];
         let reachedRouterLoad = false;
+        let unrouted = false;
         const thisUNROUTE = () => {
+            if (unrouted) {
+                return;
+            }
+            unrouted = true;
             onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
         };
         router[UNROUTE_METHOD] = () => {

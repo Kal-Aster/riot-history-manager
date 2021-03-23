@@ -5035,7 +5035,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr22="expr22"></slot>',
+        '<slot expr20="expr20"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5054,8 +5054,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr22',
-            'selector': '[expr22]'
+            'redundantAttribute': 'expr20',
+            'selector': '[expr20]'
           }
         ]
       );
@@ -5267,7 +5267,12 @@ define(['require'], function (require) { 'use strict';
       }
       const routerUNROUTE = router[UNROUTE_METHOD];
       let reachedRouterLoad = false;
+      let unrouted = false;
       const thisUNROUTE = () => {
+          if (unrouted) {
+              return;
+          }
+          unrouted = true;
           onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
       };
       router[UNROUTE_METHOD] = () => {
@@ -5461,11 +5466,11 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr20="expr20" ref="-navigate-a"><slot expr21="expr21"></slot></a>',
+        '<a expr21="expr21" ref="-navigate-a"><slot expr22="expr22"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr20',
-            'selector': '[expr20]',
+            'redundantAttribute': 'expr21',
+            'selector': '[expr21]',
 
             'expressions': [
               {
@@ -5500,8 +5505,8 @@ define(['require'], function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr21',
-            'selector': '[expr21]'
+            'redundantAttribute': 'expr22',
+            'selector': '[expr22]'
           }
         ]
       );

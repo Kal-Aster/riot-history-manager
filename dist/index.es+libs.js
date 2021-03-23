@@ -1,3 +1,4 @@
+import * as riot from 'riot';
 import { __, register } from 'riot';
 
 var loadingBar = document.body.appendChild(document.createElement("div"));
@@ -2670,7 +2671,7 @@ HTMLElement.prototype.removeEventListener = function (type, listener, options) {
     }
 };
 function getRouter(element) {
-    var tag = parent[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+    var tag = parent[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
     if (tag && tag.name === "router") {
         return tag;
     }
@@ -2777,7 +2778,12 @@ function onloadingcomplete(routeComponent, currentMount, route, router, claimer)
     }
     const routerUNROUTE = router[UNROUTE_METHOD];
     let reachedRouterLoad = false;
+    let unrouted = false;
     const thisUNROUTE = () => {
+        if (unrouted) {
+            return;
+        }
+        unrouted = true;
         onunroute(routeComponent, currentMount, route, router, reachedRouterLoad, reachedRouterLoad);
     };
     router[UNROUTE_METHOD] = () => {
