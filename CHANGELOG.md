@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.2] - 2021-04-08
+- update dependencies
+
 ## [2.0.1] - 2021-04-08
 - update dependencies
 
