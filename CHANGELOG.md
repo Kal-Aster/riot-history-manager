@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2021-04-08
+- add riot tag namespace
+
 ## [1.7.0] - 2021-04-08
 - update dependencies
 

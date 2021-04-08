@@ -1,8 +1,8 @@
 import { register, mount } from "riot";
 import { loadingBar } from "../../src/index";
-import TestComponent from "./test.riot";
+import TestComponent from "./rhm-test.riot";
 
 loadingBar.setColor("#fff");
 
-register("test", TestComponent);
-mount("test");
+register("rhm-test", TestComponent);
+mount("rhm-test");

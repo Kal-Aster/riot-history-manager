@@ -1,12 +1,12 @@
-<test>
+<rhm-test>
     <div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;">
         <div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div>
-        <navigate href="/home"><span style={
+        <rhm-navigate href="/home"><span style={
             state.path === "home" || state.path === "" ? "text-decoration: underline;": ""
-        }>Home</span></navigate>&nbsp;
-        <navigate context="profile"><span style={
+        }>Home</span></rhm-navigate>&nbsp;
+        <rhm-navigate href="me"><span style={
             state.path === "me" ? "text-decoration: underline;": ""
-        }>Profile</span></navigate>
+        }>Profile</span></rhm-navigate>
         <!--  <navigate context="home" style="color: {
             state.context === 'home' ? 'rgb(250, 120, 30)' : '#fff'
         };">Home</navigate>&nbsp;
@@ -19,23 +19,23 @@
     <navigate href="users/{ Math.round(Math.random() * 32) }" replace>replace with USERS/:id</navigate>
     <div />
     <div />  -->
-    <template is="router">
-        <route path="" redirect="home" />
-        <route path="home">
-            <homepage need-loading />
-        </route>
-        <route path="me">
-            <replace-test need-loading />
+    <template is="rhm-router">
+        <rhm-route path="" redirect="home"></rhm-route>
+        <rhm-route path="home">
+            <rhm-homepage need-loading></rhm-homepage>
+        </rhm-route>
+        <rhm-route path="me">
+            <rhm-replace-test need-loading></rhm-replace-test>
             <div>Friends:</div>
             <div style="padding-left: 1em;">
-                <navigate href="users/2">Tizio</navigate><br>
-                <navigate href="users/3">Caio</navigate><br>
-                <navigate href="users/4">Sempronio</navigate>
+                <rhm-navigate href="users/2">Tizio</rhm-navigate><br>
+                <rhm-navigate href="users/3">Caio</rhm-navigate><br>
+                <rhm-navigate href="users/4">Sempronio</rhm-navigate>
             </div>
-        </route>
-        <route path="users/:id">{
+        </rhm-route>
+        <rhm-route path="users/:id">{
             route.location.href
-        }</route>
+        }</rhm-route>
     </template>
  
     <script>
@@ -81,9 +81,9 @@
                 Router.start("home").then(() => console.log("started"));
             },
             components: {
-                homepage: lazy(() => import('./homepage.riot')),
-                "replace-test": lazy(() => import('./replace-test.riot'))
+                "rhm-homepage": lazy(() => import('./rhm-homepage.riot')),
+                "rhm-replace-test": lazy(() => import('./rhm-replace-test.riot'))
             }
         }
     </script>
-</test>
+</rhm-test>

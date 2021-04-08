@@ -5120,7 +5120,7 @@ define(['require'], function (require) { 'use strict';
       );
     },
 
-    'name': 'router'
+    'name': 'rhm-router'
   };
 
   var ONBEFOREROUTE = Symbol("onbeforeroute");
@@ -5451,11 +5451,11 @@ define(['require'], function (require) { 'use strict';
     },
 
     'template': null,
-    'name': 'route'
+    'name': 'rhm-route'
   };
 
   var NavigateComponent = {
-    'css': `navigate a[ref=-navigate-a],[is="navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+    'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
 
     'exports': {
       onMounted() {
@@ -5571,12 +5571,12 @@ define(['require'], function (require) { 'use strict';
       );
     },
 
-    'name': 'navigate'
+    'name': 'rhm-navigate'
   };
 
-  register("router", RouterComponent);
-  register("route", RouteComponent);
-  register("navigate", NavigateComponent);
+  register("rhm-router", RouterComponent);
+  register("rhm-route", RouteComponent);
+  register("rhm-navigate", NavigateComponent);
 
   // this object will contain all the components implementations lazy loaded
   const cache = new WeakMap();
@@ -5691,8 +5691,8 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          homepage: lazy(() => new Promise(function (resolve, reject) { require(['./homepage-8e84a6a6'], resolve, reject) })),
-          "replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./replace-test-38c84d9b'], resolve, reject) }))
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-a333272e'], resolve, reject) })),
+          "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) }))
       }
     },
 
@@ -5703,7 +5703,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><navigate expr6="expr6" href="/home"></navigate>&nbsp;\r\n        <navigate expr8="expr8" context="profile"></navigate></div><template expr10="expr10" is="router"></template>',
+        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><rhm-navigate expr53="expr53" href="/home"></rhm-navigate>&nbsp;\r\n        <rhm-navigate expr55="expr55" href="me"></rhm-navigate></div><template expr57="expr57" is="rhm-router"></template>',
         [
           {
             'type': bindingTypes.TAG,
@@ -5712,18 +5712,18 @@ define(['require'], function (require) { 'use strict';
             'evaluate': function(
               scope
             ) {
-              return 'navigate';
+              return 'rhm-navigate';
             },
 
             'slots': [
               {
                 'id': 'default',
-                'html': '<span expr7="expr7">Home</span>',
+                'html': '<span expr54="expr54">Home</span>',
 
                 'bindings': [
                   {
-                    'redundantAttribute': 'expr7',
-                    'selector': '[expr7]',
+                    'redundantAttribute': 'expr54',
+                    'selector': '[expr54]',
 
                     'expressions': [
                       {
@@ -5743,8 +5743,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr6',
-            'selector': '[expr6]'
+            'redundantAttribute': 'expr53',
+            'selector': '[expr53]'
           },
           {
             'type': bindingTypes.TAG,
@@ -5753,18 +5753,18 @@ define(['require'], function (require) { 'use strict';
             'evaluate': function(
               scope
             ) {
-              return 'navigate';
+              return 'rhm-navigate';
             },
 
             'slots': [
               {
                 'id': 'default',
-                'html': '<span expr9="expr9">Profile</span>',
+                'html': '<span expr56="expr56">Profile</span>',
 
                 'bindings': [
                   {
-                    'redundantAttribute': 'expr9',
-                    'selector': '[expr9]',
+                    'redundantAttribute': 'expr56',
+                    'selector': '[expr56]',
 
                     'expressions': [
                       {
@@ -5784,8 +5784,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr8',
-            'selector': '[expr8]'
+            'redundantAttribute': 'expr55',
+            'selector': '[expr55]'
           },
           {
             'type': bindingTypes.TAG,
@@ -5794,13 +5794,13 @@ define(['require'], function (require) { 'use strict';
             'evaluate': function(
               scope
             ) {
-              return 'router';
+              return 'rhm-router';
             },
 
             'slots': [
               {
                 'id': 'default',
-                'html': '<route expr11="expr11" path redirect="home"></route><route expr12="expr12" path="home"></route><route expr14="expr14" path="me"></route><route expr19="expr19" path="users/:id"></route>',
+                'html': '<rhm-route expr58="expr58" path redirect="home"></rhm-route><rhm-route expr59="expr59" path="home"></rhm-route><rhm-route expr61="expr61" path="me"></rhm-route><rhm-route expr66="expr66" path="users/:id"></rhm-route>',
 
                 'bindings': [
                   {
@@ -5810,13 +5810,13 @@ define(['require'], function (require) { 'use strict';
                     'evaluate': function(
                       scope
                     ) {
-                      return 'route';
+                      return 'rhm-route';
                     },
 
                     'slots': [],
                     'attributes': [],
-                    'redundantAttribute': 'expr11',
-                    'selector': '[expr11]'
+                    'redundantAttribute': 'expr58',
+                    'selector': '[expr58]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5825,13 +5825,13 @@ define(['require'], function (require) { 'use strict';
                     'evaluate': function(
                       scope
                     ) {
-                      return 'route';
+                      return 'rhm-route';
                     },
 
                     'slots': [
                       {
                         'id': 'default',
-                        'html': '<homepage expr13="expr13" need-loading></homepage>',
+                        'html': '<rhm-homepage expr60="expr60" need-loading></rhm-homepage>',
 
                         'bindings': [
                           {
@@ -5841,21 +5841,21 @@ define(['require'], function (require) { 'use strict';
                             'evaluate': function(
                               scope
                             ) {
-                              return 'homepage';
+                              return 'rhm-homepage';
                             },
 
                             'slots': [],
                             'attributes': [],
-                            'redundantAttribute': 'expr13',
-                            'selector': '[expr13]'
+                            'redundantAttribute': 'expr60',
+                            'selector': '[expr60]'
                           }
                         ]
                       }
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr12',
-                    'selector': '[expr12]'
+                    'redundantAttribute': 'expr59',
+                    'selector': '[expr59]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5864,13 +5864,13 @@ define(['require'], function (require) { 'use strict';
                     'evaluate': function(
                       scope
                     ) {
-                      return 'route';
+                      return 'rhm-route';
                     },
 
                     'slots': [
                       {
                         'id': 'default',
-                        'html': '<replace-test expr15="expr15" need-loading></replace-test><div>Friends:</div><div style="padding-left: 1em;"><navigate expr16="expr16" href="users/2"></navigate><br/><navigate expr17="expr17" href="users/3"></navigate><br/><navigate expr18="expr18" href="users/4"></navigate></div>',
+                        'html': '<rhm-replace-test expr62="expr62" need-loading></rhm-replace-test><div>Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr63="expr63" href="users/2"></rhm-navigate><br/><rhm-navigate expr64="expr64" href="users/3"></rhm-navigate><br/><rhm-navigate expr65="expr65" href="users/4"></rhm-navigate></div>',
 
                         'bindings': [
                           {
@@ -5880,13 +5880,13 @@ define(['require'], function (require) { 'use strict';
                             'evaluate': function(
                               scope
                             ) {
-                              return 'replace-test';
+                              return 'rhm-replace-test';
                             },
 
                             'slots': [],
                             'attributes': [],
-                            'redundantAttribute': 'expr15',
-                            'selector': '[expr15]'
+                            'redundantAttribute': 'expr62',
+                            'selector': '[expr62]'
                           },
                           {
                             'type': bindingTypes.TAG,
@@ -5895,7 +5895,7 @@ define(['require'], function (require) { 'use strict';
                             'evaluate': function(
                               scope
                             ) {
-                              return 'navigate';
+                              return 'rhm-navigate';
                             },
 
                             'slots': [
@@ -5907,8 +5907,8 @@ define(['require'], function (require) { 'use strict';
                             ],
 
                             'attributes': [],
-                            'redundantAttribute': 'expr16',
-                            'selector': '[expr16]'
+                            'redundantAttribute': 'expr63',
+                            'selector': '[expr63]'
                           },
                           {
                             'type': bindingTypes.TAG,
@@ -5917,7 +5917,7 @@ define(['require'], function (require) { 'use strict';
                             'evaluate': function(
                               scope
                             ) {
-                              return 'navigate';
+                              return 'rhm-navigate';
                             },
 
                             'slots': [
@@ -5929,8 +5929,8 @@ define(['require'], function (require) { 'use strict';
                             ],
 
                             'attributes': [],
-                            'redundantAttribute': 'expr17',
-                            'selector': '[expr17]'
+                            'redundantAttribute': 'expr64',
+                            'selector': '[expr64]'
                           },
                           {
                             'type': bindingTypes.TAG,
@@ -5939,7 +5939,7 @@ define(['require'], function (require) { 'use strict';
                             'evaluate': function(
                               scope
                             ) {
-                              return 'navigate';
+                              return 'rhm-navigate';
                             },
 
                             'slots': [
@@ -5951,16 +5951,16 @@ define(['require'], function (require) { 'use strict';
                             ],
 
                             'attributes': [],
-                            'redundantAttribute': 'expr18',
-                            'selector': '[expr18]'
+                            'redundantAttribute': 'expr65',
+                            'selector': '[expr65]'
                           }
                         ]
                       }
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr14',
-                    'selector': '[expr14]'
+                    'redundantAttribute': 'expr61',
+                    'selector': '[expr61]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5969,7 +5969,7 @@ define(['require'], function (require) { 'use strict';
                     'evaluate': function(
                       scope
                     ) {
-                      return 'route';
+                      return 'rhm-route';
                     },
 
                     'slots': [
@@ -5997,27 +5997,27 @@ define(['require'], function (require) { 'use strict';
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr19',
-                    'selector': '[expr19]'
+                    'redundantAttribute': 'expr66',
+                    'selector': '[expr66]'
                   }
                 ]
               }
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr10',
-            'selector': '[expr10]'
+            'redundantAttribute': 'expr57',
+            'selector': '[expr57]'
           }
         ]
       );
     },
 
-    'name': 'test'
+    'name': 'rhm-test'
   };
 
   setColor("#fff");
 
-  register("test", TestComponent);
-  mount("test");
+  register("rhm-test", TestComponent);
+  mount("rhm-test");
 
 });

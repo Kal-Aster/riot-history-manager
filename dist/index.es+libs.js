@@ -2593,7 +2593,7 @@ var RouterComponent = {
     getComponent
   ) {
     return template(
-      '<slot expr5="expr5"></slot>',
+      '<slot expr3="expr3"></slot>',
       [
         {
           'type': bindingTypes.SLOT,
@@ -2612,14 +2612,14 @@ var RouterComponent = {
           ],
 
           'name': 'default',
-          'redundantAttribute': 'expr5',
-          'selector': '[expr5]'
+          'redundantAttribute': 'expr3',
+          'selector': '[expr3]'
         }
       ]
     );
   },
 
-  'name': 'router'
+  'name': 'rhm-router'
 };
 
 var ONBEFOREROUTE = Symbol("onbeforeroute");
@@ -2950,11 +2950,11 @@ var RouteComponent = {
   },
 
   'template': null,
-  'name': 'route'
+  'name': 'rhm-route'
 };
 
 var NavigateComponent = {
-  'css': `navigate a[ref=-navigate-a],[is="navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+  'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
 
   'exports': {
     onMounted() {
@@ -3024,11 +3024,11 @@ var NavigateComponent = {
     getComponent
   ) {
     return template(
-      '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
+      '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
       [
         {
-          'redundantAttribute': 'expr3',
-          'selector': '[expr3]',
+          'redundantAttribute': 'expr4',
+          'selector': '[expr4]',
 
           'expressions': [
             {
@@ -3063,23 +3063,23 @@ var NavigateComponent = {
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr4',
-          'selector': '[expr4]'
+          'redundantAttribute': 'expr5',
+          'selector': '[expr5]'
         }
       ]
     );
   },
 
-  'name': 'navigate'
+  'name': 'rhm-navigate'
 };
 
-register("router", RouterComponent);
-register("route", RouteComponent);
-register("navigate", NavigateComponent);
+register("rhm-router", RouterComponent);
+register("rhm-route", RouteComponent);
+register("rhm-navigate", NavigateComponent);
 var components = {
-    router: RouterComponent,
-    route: RouteComponent,
-    navigate: NavigateComponent
+    "rhm-router": RouterComponent,
+    "rhm-route": RouteComponent,
+    "rhm-navigate": NavigateComponent
 };
 
 export { components, loadingBar$1 as loadingBar };

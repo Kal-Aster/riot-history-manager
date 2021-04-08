@@ -20,18 +20,39 @@
                 }())
             </script>
         </div>
-        <test></test>
+        <rhm-test></rhm-test>
 
         <script>
-            if (window.history.replaceState) {
-                window._ROUTER_BASE = window.location.pathname.split("/").slice(0, -1).join("/");
-                window.history.replaceState({}, "", window._ROUTER_BASE + "<?php
-                    echo array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : (
-                        array_key_exists('ORIG_PATH_INFO', $_SERVER) ? $_SERVER['ORIG_PATH_INFO'] : '/'
-                    )
-                ?>");
-            }
+            var require = {};
+            (function () {
+                if (window.history.replaceState) {
+                    const route = "<?php
+                        $route = array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : (
+                            array_key_exists('ORIG_PATH_INFO', $_SERVER) ? $_SERVER['ORIG_PATH_INFO'] : '/'
+                        );
+                        $backward = [];
+                        $count = count(explode('/', $route)) - 2;
+                        if ($count > 0) {
+                            for ($i = $count; $i > 0; $i--) {
+                                array_push($backward, '..');
+                            }
+                            array_push($backward, '');
+                        }
+                        
+                        $relativePath = implode('/', $backward);
+                        unset($backward);
+
+                        echo $route;
+                    ?>";
+                    window._ROUTER_BASE = window.location.pathname.split(route).slice(0, -1).join(route);
+                    require.baseUrl = window._ROUTER_BASE;
+                }
+            }());
         </script>
-        <script src="require.js" data-main="scripts/index.js"></script>
+        <script src="<?php
+            if (isset($relativePath)) {
+                echo $relativePath;
+            }
+        ?>require.js" data-main="scripts/index.js"></script>
     </body>
 </html>

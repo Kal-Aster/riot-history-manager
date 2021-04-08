@@ -226,7 +226,7 @@
         );
       },
 
-      'name': 'router'
+      'name': 'rhm-router'
     };
 
     var ONBEFOREROUTE = Symbol("onbeforeroute");
@@ -557,11 +557,11 @@
       },
 
       'template': null,
-      'name': 'route'
+      'name': 'rhm-route'
     };
 
     var NavigateComponent = {
-      'css': `navigate a[ref=-navigate-a],[is="navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+      'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
 
       'exports': {
         onMounted() {
@@ -677,16 +677,16 @@
         );
       },
 
-      'name': 'navigate'
+      'name': 'rhm-navigate'
     };
 
-    riot.register("router", RouterComponent);
-    riot.register("route", RouteComponent);
-    riot.register("navigate", NavigateComponent);
+    riot.register("rhm-router", RouterComponent);
+    riot.register("rhm-route", RouteComponent);
+    riot.register("rhm-navigate", NavigateComponent);
     var components = {
-        router: RouterComponent,
-        route: RouteComponent,
-        navigate: NavigateComponent
+        "rhm-router": RouterComponent,
+        "rhm-route": RouteComponent,
+        "rhm-navigate": NavigateComponent
     };
 
     exports.components = components;
