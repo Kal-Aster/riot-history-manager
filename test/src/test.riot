@@ -1,10 +1,10 @@
 <test>
     <div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;">
         <div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div>
-        <navigate href="home"><span style={
+        <navigate href="/home"><span style={
             state.path === "home" || state.path === "" ? "text-decoration: underline;": ""
         }>Home</span></navigate>&nbsp;
-        <navigate href="me"><span style={
+        <navigate context="profile"><span style={
             state.path === "me" ? "text-decoration: underline;": ""
         }>Profile</span></navigate>
         <!--  <navigate context="home" style="color: {
@@ -39,30 +39,34 @@
     </template>
  
     <script>
-        import { Router, HistoryManager } from "history-manager";
+        import { Router, HistoryManager, URLManager } from "history-manager";
         import lazy from "@riotjs/lazy";
         window.Router = Router;
         window.HistoryManager = HistoryManager;
+        
+        if (window._ROUTER_BASE != null) {
+            URLManager.base(window._ROUTER_BASE);
+        }
 
         Router.setContext({
             name: "home",
             paths: [
-                { path: "home" },
+                { path: "home" }// ,
+                // { path: "me" },
+                // { path: "accedi", fallback: true },
+                // { path: "users/:id", fallback: true }
+            ],
+            default: "home"
+        });
+        Router.setContext({
+            name: "profile",
+            paths: [
                 { path: "me" },
                 { path: "accedi", fallback: true },
                 { path: "users/:id", fallback: true }
             ],
-            default: "home"
+            default: "me"
         });
-        // Router.setContext({
-        //     name: "profile",
-        //     paths: [
-        //         { path: "me" },
-        //         { path: "accedi", fallback: true },
-        //         { path: "users/:id", fallback: true }
-        //     ],
-        //     default: "me"
-        // });
 
         export default {
             _lastContext: null,

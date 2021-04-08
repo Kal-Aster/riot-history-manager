@@ -613,7 +613,7 @@
                 this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
                 // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
             }
-            return this._href; // (toA ? Router.base : "") + this._href;
+            return toA ? historyManager.URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
         },
 
         context() {
@@ -645,7 +645,7 @@
                   'evaluate': function(
                     scope
                   ) {
-                    return "#" + scope.href();
+                    return scope.href();
                   }
                 },
                 {

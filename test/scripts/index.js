@@ -1,6 +1,6 @@
 define(['require'], function (require) { 'use strict';
 
-  /* Riot v5.3.1, @license MIT */
+  /* Riot v5.3.3, @license MIT */
   /**
    * Convert a string from camel case to dash-case
    * @param   {string} string - probably a component tag name
@@ -819,8 +819,6 @@ define(['require'], function (require) { 'use strict';
     }, {});
   }
 
-  const REMOVE_ATTRIBUTE = 'removeAttribute';
-  const SET_ATTIBUTE = 'setAttribute';
   const ElementProto = typeof Element === 'undefined' ? {} : Element.prototype;
   const isNativeHtmlProperty = memoize(name => ElementProto.hasOwnProperty(name)); // eslint-disable-line
 
@@ -851,6 +849,26 @@ define(['require'], function (require) { 'use strict';
   function removeAllAttributes(node, newAttributes, oldAttributes) {
     const newKeys = newAttributes ? Object.keys(newAttributes) : [];
     Object.keys(oldAttributes).filter(name => !newKeys.includes(name)).forEach(attribute => node.removeAttribute(attribute));
+  }
+  /**
+   * Check whether the attribute value can be rendered
+   * @param {*} value - expression value
+   * @returns {boolean} true if we can render this attribute value
+   */
+
+
+  function canRenderAttribute(value) {
+    return value === true || ['string', 'number'].includes(typeof value);
+  }
+  /**
+   * Check whether the attribute should be removed
+   * @param {*} value - expression value
+   * @returns {boolean} boolean - true if the attribute can be removed}
+   */
+
+
+  function shouldRemoveAttribute(value) {
+    return isNil(value) || value === false || value === '';
   }
   /**
    * This methods handles the DOM attributes updates
@@ -888,16 +906,11 @@ define(['require'], function (require) { 'use strict';
       node[name] = value;
     }
 
-    node[getMethod(value)](name, normalizeValue(name, value));
-  }
-  /**
-   * Get the attribute modifier method
-   * @param   {*} value - if truthy we return `setAttribute` othewise `removeAttribute`
-   * @returns {string} the node attribute modifier method name
-   */
-
-  function getMethod(value) {
-    return isNil(value) || value === false || value === '' || isObject(value) || isFunction(value) ? REMOVE_ATTRIBUTE : SET_ATTIBUTE;
+    if (shouldRemoveAttribute(value)) {
+      node.removeAttribute(name);
+    } else if (canRenderAttribute(value)) {
+      node.setAttribute(name, normalizeValue(name, value));
+    }
   }
   /**
    * Get the value as string
@@ -905,7 +918,6 @@ define(['require'], function (require) { 'use strict';
    * @param   {*} value - user input value
    * @returns {string} input value as string
    */
-
 
   function normalizeValue(name, value) {
     // be sure that expressions like selected={ true } will be always rendered as selected='selected'
@@ -1290,7 +1302,7 @@ define(['require'], function (require) { 'use strict';
     update(scope, parentScope) {
       const name = this.evaluate(scope); // simple update
 
-      if (name === this.name) {
+      if (name && name === this.name) {
         this.tag.update(scope);
       } else {
         // unmount the old tag if it exists
@@ -3783,11 +3795,22 @@ define(['require'], function (require) { 'use strict';
               return resolve();
           }
           onCatchPopState$2(resolve, true);
-          if (replace) {
-              window.location.replace(href);
+          if (href[0] === "#") {
+              if (replace) {
+                  window.location.replace(href);
+              }
+              else {
+                  window.location.assign(href);
+              }
           }
           else {
-              window.location.assign(href);
+              if (replace) {
+                  window.history.replaceState({}, "", href);
+              }
+              else {
+                  window.history.pushState({}, "", href);
+              }
+              window.dispatchEvent(new Event("popstate"));
           }
       });
   }
@@ -3831,9 +3854,23 @@ define(['require'], function (require) { 'use strict';
       set({});
   }
 
-  var BASE = window.location.href.split("#")[0] + "#";
+  var BASE = "#";
+  var LOCATION_BASE = window.location.protocol + "//" + window.location.host + (window.location.port ? ":" + window.location.port : "");
+  var LOCATION_PATHNAME = window.location.pathname;
+  var parenthesesRegex = /[\\\/]+/g;
   function base(value) {
       if (value != null) {
+          if (typeof value !== "string") {
+              throw new TypeError("invalid base value");
+          }
+          value += "/";
+          value.replace(parenthesesRegex, "/");
+          if (value[0] !== "#" && value[0] !== "/") {
+              value = "/" + value;
+          }
+          if (value[0] === "/" && !window.history.pushState) {
+              value = "#" + value;
+          }
           BASE = value;
       }
       return BASE;
@@ -3841,7 +3878,8 @@ define(['require'], function (require) { 'use strict';
   function get() {
       return prepare(clearHref().split(BASE).slice(1).join(BASE));
   }
-  function construct(href) {
+  function construct(href, full) {
+      if (full === void 0) { full = false; }
       switch (href[0]) {
           case "?": {
               href = get().split("?")[0] + href;
@@ -3852,8 +3890,16 @@ define(['require'], function (require) { 'use strict';
               break;
           }
       }
-      return BASE + href;
+      return (full ? LOCATION_BASE + (BASE[0] === "#" ? LOCATION_PATHNAME : "") : "") +
+          (BASE + "/" + href).replace(parenthesesRegex, "/");
   }
+
+  var URLManager = /*#__PURE__*/Object.freeze({
+      __proto__: null,
+      base: base,
+      get: get,
+      construct: construct
+  });
 
   var started = false;
   var historyManaged = null;
@@ -3951,16 +3997,28 @@ define(['require'], function (require) { 'use strict';
   }
   function goTo(href, replace) {
       if (replace === void 0) { replace = false; }
+      var fullHref = construct(href, true);
       href = construct(href);
-      if (window.location.href === href) {
+      if (window.location.href === fullHref) {
           window.dispatchEvent(new Event("popstate"));
           return;
       }
-      if (replace) {
-          window.location.replace(href);
+      if (href[0] === "#") {
+          if (replace) {
+              window.location.replace(href);
+          }
+          else {
+              window.location.assign(href);
+          }
       }
       else {
-          window.location.assign(href);
+          if (replace) {
+              window.history.replaceState({}, "", href);
+          }
+          else {
+              window.history.pushState({}, "", href);
+          }
+          window.dispatchEvent(new Event("popstate"));
       }
   }
   function addFront(frontHref) {
@@ -3968,7 +4026,7 @@ define(['require'], function (require) { 'use strict';
       var href = get();
       var work = createWork();
       return new Promise(function (resolve) {
-          goWith(construct(frontHref), { back: undefined, front: null })
+          goWith(construct(frontHref, true), { back: undefined, front: null })
               .then(function () { return new Promise(function (resolve) {
               onCatchPopState$1(resolve, true);
               window.history.go(-1);
@@ -4316,7 +4374,8 @@ define(['require'], function (require) { 'use strict';
               else {
                   resolve();
               }
-          })).then(function () { return new Promise(function (resolve) {
+          }))
+              .then(function () { return new Promise(function (resolve) {
               onCatchPopState$1(resolve, true);
               goTo(href_3, true);
           }); })
@@ -5448,7 +5507,7 @@ define(['require'], function (require) { 'use strict';
               this._href = Router.getLocation().hrefIf(this.props.href);
               // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
           }
-          return this._href; // (toA ? Router.base : "") + this._href;
+          return toA ? URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
       },
 
       context() {
@@ -5480,7 +5539,7 @@ define(['require'], function (require) { 'use strict';
                 'evaluate': function(
                   scope
                 ) {
-                  return "#" + scope.href();
+                  return scope.href();
                 }
               },
               {
@@ -5590,15 +5649,28 @@ define(['require'], function (require) { 'use strict';
   window.Router = Router;
   window.HistoryManager = HistoryManager;
 
+  if (window._ROUTER_BASE != null) {
+      URLManager.base(window._ROUTER_BASE);
+  }
+
   Router.setContext({
       name: "home",
       paths: [
-          { path: "home" },
+          { path: "home" }// ,
+          // { path: "me" },
+          // { path: "accedi", fallback: true },
+          // { path: "users/:id", fallback: true }
+      ],
+      default: "home"
+  });
+  Router.setContext({
+      name: "profile",
+      paths: [
           { path: "me" },
           { path: "accedi", fallback: true },
           { path: "users/:id", fallback: true }
       ],
-      default: "home"
+      default: "me"
   });
 
   var TestComponent = {
@@ -5631,7 +5703,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><navigate expr6="expr6" href="home"></navigate>&nbsp;\r\n        <navigate expr8="expr8" href="me"></navigate></div><template expr10="expr10" is="router"></template>',
+        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><navigate expr6="expr6" href="/home"></navigate>&nbsp;\r\n        <navigate expr8="expr8" context="profile"></navigate></div><template expr10="expr10" is="router"></template>',
         [
           {
             'type': bindingTypes.TAG,

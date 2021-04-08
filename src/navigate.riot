@@ -1,8 +1,7 @@
 <navigate>
 <!--  Giuliano Collacchioni: 2019  -->
-    <!-- the hashtag should be the Router base -->
-    <a href={ "#" + href() } style="display: { root.style.display }; width: 100%; height: 100%;" ref="-navigate-a">
-        <slot />
+    <a href={ href() } style="display: { root.style.display }; width: 100%; height: 100%;" ref="-navigate-a">
+        <slot></slot>
     </a>
 
     <style>
@@ -15,7 +14,7 @@
     </style>
 
     <script>
-        import { Router } from "history-manager";
+        import { Router, URLManager } from "history-manager";
 
         export default {
             onMounted() {
@@ -64,7 +63,7 @@
                     this._href = Router.getLocation().hrefIf(this.props.href);
                     // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
                 }
-                return this._href; // (toA ? Router.base : "") + this._href;
+                return toA ? URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
             },
             context() {
                 if (typeof this.props.context !== "string") {

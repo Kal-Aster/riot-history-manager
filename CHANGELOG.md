@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2021-04-08
+- update dependencies
+
 ## [1.6.1] - 2021-03-23
 - temporary fix multiple unrouting
 

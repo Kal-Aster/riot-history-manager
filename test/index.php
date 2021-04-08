@@ -22,6 +22,16 @@
         </div>
         <test></test>
 
+        <script>
+            if (window.history.replaceState) {
+                window._ROUTER_BASE = window.location.pathname.split("/").slice(0, -1).join("/");
+                window.history.replaceState({}, "", window._ROUTER_BASE + "<?php
+                    echo array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : (
+                        array_key_exists('ORIG_PATH_INFO', $_SERVER) ? $_SERVER['ORIG_PATH_INFO'] : '/'
+                    )
+                ?>");
+            }
+        </script>
         <script src="require.js" data-main="scripts/index.js"></script>
     </body>
 </html>

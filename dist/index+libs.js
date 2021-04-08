@@ -1357,11 +1357,22 @@
                 return resolve();
             }
             onCatchPopState$2(resolve, true);
-            if (replace) {
-                window.location.replace(href);
+            if (href[0] === "#") {
+                if (replace) {
+                    window.location.replace(href);
+                }
+                else {
+                    window.location.assign(href);
+                }
             }
             else {
-                window.location.assign(href);
+                if (replace) {
+                    window.history.replaceState({}, "", href);
+                }
+                else {
+                    window.history.pushState({}, "", href);
+                }
+                window.dispatchEvent(new Event("popstate"));
             }
         });
     }
@@ -1405,9 +1416,23 @@
         set({});
     }
 
-    var BASE = window.location.href.split("#")[0] + "#";
+    var BASE = "#";
+    var LOCATION_BASE = window.location.protocol + "//" + window.location.host + (window.location.port ? ":" + window.location.port : "");
+    var LOCATION_PATHNAME = window.location.pathname;
+    var parenthesesRegex = /[\\\/]+/g;
     function base(value) {
         if (value != null) {
+            if (typeof value !== "string") {
+                throw new TypeError("invalid base value");
+            }
+            value += "/";
+            value.replace(parenthesesRegex, "/");
+            if (value[0] !== "#" && value[0] !== "/") {
+                value = "/" + value;
+            }
+            if (value[0] === "/" && !window.history.pushState) {
+                value = "#" + value;
+            }
             BASE = value;
         }
         return BASE;
@@ -1415,7 +1440,8 @@
     function get() {
         return prepare(clearHref().split(BASE).slice(1).join(BASE));
     }
-    function construct(href) {
+    function construct(href, full) {
+        if (full === void 0) { full = false; }
         switch (href[0]) {
             case "?": {
                 href = get().split("?")[0] + href;
@@ -1426,8 +1452,16 @@
                 break;
             }
         }
-        return BASE + href;
+        return (full ? LOCATION_BASE + (BASE[0] === "#" ? LOCATION_PATHNAME : "") : "") +
+            (BASE + "/" + href).replace(parenthesesRegex, "/");
     }
+
+    var URLManager = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        base: base,
+        get: get,
+        construct: construct
+    });
 
     var started = false;
     var historyManaged = null;
@@ -1516,16 +1550,28 @@
     }
     function goTo(href, replace) {
         if (replace === void 0) { replace = false; }
+        var fullHref = construct(href, true);
         href = construct(href);
-        if (window.location.href === href) {
+        if (window.location.href === fullHref) {
             window.dispatchEvent(new Event("popstate"));
             return;
         }
-        if (replace) {
-            window.location.replace(href);
+        if (href[0] === "#") {
+            if (replace) {
+                window.location.replace(href);
+            }
+            else {
+                window.location.assign(href);
+            }
         }
         else {
-            window.location.assign(href);
+            if (replace) {
+                window.history.replaceState({}, "", href);
+            }
+            else {
+                window.history.pushState({}, "", href);
+            }
+            window.dispatchEvent(new Event("popstate"));
         }
     }
     function addFront(frontHref) {
@@ -1533,7 +1579,7 @@
         var href = get();
         var work = createWork();
         return new Promise(function (resolve) {
-            goWith(construct(frontHref), { back: undefined, front: null })
+            goWith(construct(frontHref, true), { back: undefined, front: null })
                 .then(function () { return new Promise(function (resolve) {
                 onCatchPopState$1(resolve, true);
                 window.history.go(-1);
@@ -1875,7 +1921,8 @@
                 else {
                     resolve();
                 }
-            })).then(function () { return new Promise(function (resolve) {
+            }))
+                .then(function () { return new Promise(function (resolve) {
                 onCatchPopState$1(resolve, true);
                 goTo(href_3, true);
             }); })
@@ -2571,7 +2618,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr3="expr3"></slot>',
+          '<slot expr5="expr5"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -2590,8 +2637,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr3',
-              'selector': '[expr3]'
+              'redundantAttribute': 'expr5',
+              'selector': '[expr5]'
             }
           ]
         );
@@ -2984,7 +3031,7 @@
                 this._href = Router.getLocation().hrefIf(this.props.href);
                 // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
             }
-            return this._href; // (toA ? Router.base : "") + this._href;
+            return toA ? URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
         },
 
         context() {
@@ -3002,11 +3049,11 @@
         getComponent
       ) {
         return template(
-          '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
+          '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr4',
-              'selector': '[expr4]',
+              'redundantAttribute': 'expr3',
+              'selector': '[expr3]',
 
               'expressions': [
                 {
@@ -3016,7 +3063,7 @@
                   'evaluate': function(
                     scope
                   ) {
-                    return "#" + scope.href();
+                    return scope.href();
                   }
                 },
                 {
@@ -3041,8 +3088,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr5',
-              'selector': '[expr5]'
+              'redundantAttribute': 'expr4',
+              'selector': '[expr4]'
             }
           ]
         );

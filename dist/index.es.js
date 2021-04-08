@@ -1,4 +1,4 @@
-import { Router } from 'history-manager';
+import { Router, URLManager } from 'history-manager';
 import * as riot from 'riot';
 import { __, register } from 'riot';
 
@@ -589,7 +589,7 @@ var NavigateComponent = {
             this._href = Router.getLocation().hrefIf(this.props.href);
             // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
         }
-        return this._href; // (toA ? Router.base : "") + this._href;
+        return toA ? URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
     },
 
     context() {
@@ -621,7 +621,7 @@ var NavigateComponent = {
               'evaluate': function(
                 scope
               ) {
-                return "#" + scope.href();
+                return scope.href();
               }
             },
             {
