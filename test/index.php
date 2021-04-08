@@ -5,7 +5,7 @@
         <title>riot-history-manager test</title>
 
         <style>
-            body { margin: 0; }
+            body { margin: 0; background: lightgray; }
         </style>
     </head>
     <body>

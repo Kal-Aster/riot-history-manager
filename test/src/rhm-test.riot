@@ -33,10 +33,19 @@
                 <rhm-navigate href="users/4">Sempronio</rhm-navigate>
             </div>
         </rhm-route>
-        <rhm-route path="users/:id">{
-            route.location.href
-        }</rhm-route>
+        <rhm-route path="users/:id">
+            <div class="asd"></div>
+            <span>{ route.location.href }</span>
+        </rhm-route>
     </template>
+
+    <style>
+        .asd {
+            width: 100px;
+            height: 100px;
+            background: url(image.jpg) center/cover;
+        }
+    </style>
  
     <script>
         import { Router, HistoryManager, URLManager } from "history-manager";

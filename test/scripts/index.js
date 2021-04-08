@@ -3876,7 +3876,8 @@ define(['require'], function (require) { 'use strict';
       return BASE;
   }
   function get() {
-      return prepare(clearHref().split(BASE).slice(1).join(BASE));
+      var LOCATION = LOCATION_BASE + LOCATION_PATHNAME;
+      return prepare(clearHref().split(LOCATION).slice(1).join(LOCATION).split(BASE).slice(1).join(BASE));
   }
   function construct(href, full) {
       if (full === void 0) { full = false; }
@@ -5094,7 +5095,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr20="expr20"></slot>',
+        '<slot expr23="expr23"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5113,8 +5114,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr20',
-            'selector': '[expr20]'
+            'redundantAttribute': 'expr23',
+            'selector': '[expr23]'
           }
         ]
       );
@@ -5674,7 +5675,7 @@ define(['require'], function (require) { 'use strict';
   });
 
   var TestComponent = {
-    'css': null,
+    'css': `rhm-test .asd,[is="rhm-test"] .asd{ width: 100px; height: 100px; background: url(image.jpg) center/cover; }`,
 
     'exports': {
       _lastContext: null,
@@ -5691,7 +5692,7 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-a333272e'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-72065b56'], resolve, reject) })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) }))
       }
     },
@@ -5703,7 +5704,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><rhm-navigate expr53="expr53" href="/home"></rhm-navigate>&nbsp;\r\n        <rhm-navigate expr55="expr55" href="me"></rhm-navigate></div><template expr57="expr57" is="rhm-router"></template>',
+        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><rhm-navigate expr6="expr6" href="/home"></rhm-navigate>&nbsp;\r\n        <rhm-navigate expr8="expr8" href="me"></rhm-navigate></div><template expr10="expr10" is="rhm-router"></template>',
         [
           {
             'type': bindingTypes.TAG,
@@ -5718,12 +5719,12 @@ define(['require'], function (require) { 'use strict';
             'slots': [
               {
                 'id': 'default',
-                'html': '<span expr54="expr54">Home</span>',
+                'html': '<span expr7="expr7">Home</span>',
 
                 'bindings': [
                   {
-                    'redundantAttribute': 'expr54',
-                    'selector': '[expr54]',
+                    'redundantAttribute': 'expr7',
+                    'selector': '[expr7]',
 
                     'expressions': [
                       {
@@ -5743,8 +5744,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr53',
-            'selector': '[expr53]'
+            'redundantAttribute': 'expr6',
+            'selector': '[expr6]'
           },
           {
             'type': bindingTypes.TAG,
@@ -5759,12 +5760,12 @@ define(['require'], function (require) { 'use strict';
             'slots': [
               {
                 'id': 'default',
-                'html': '<span expr56="expr56">Profile</span>',
+                'html': '<span expr9="expr9">Profile</span>',
 
                 'bindings': [
                   {
-                    'redundantAttribute': 'expr56',
-                    'selector': '[expr56]',
+                    'redundantAttribute': 'expr9',
+                    'selector': '[expr9]',
 
                     'expressions': [
                       {
@@ -5784,8 +5785,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr55',
-            'selector': '[expr55]'
+            'redundantAttribute': 'expr8',
+            'selector': '[expr8]'
           },
           {
             'type': bindingTypes.TAG,
@@ -5800,7 +5801,7 @@ define(['require'], function (require) { 'use strict';
             'slots': [
               {
                 'id': 'default',
-                'html': '<rhm-route expr58="expr58" path redirect="home"></rhm-route><rhm-route expr59="expr59" path="home"></rhm-route><rhm-route expr61="expr61" path="me"></rhm-route><rhm-route expr66="expr66" path="users/:id"></rhm-route>',
+                'html': '<rhm-route expr11="expr11" path redirect="home"></rhm-route><rhm-route expr12="expr12" path="home"></rhm-route><rhm-route expr14="expr14" path="me"></rhm-route><rhm-route expr19="expr19" path="users/:id"></rhm-route>',
 
                 'bindings': [
                   {
@@ -5815,8 +5816,8 @@ define(['require'], function (require) { 'use strict';
 
                     'slots': [],
                     'attributes': [],
-                    'redundantAttribute': 'expr58',
-                    'selector': '[expr58]'
+                    'redundantAttribute': 'expr11',
+                    'selector': '[expr11]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5831,7 +5832,7 @@ define(['require'], function (require) { 'use strict';
                     'slots': [
                       {
                         'id': 'default',
-                        'html': '<rhm-homepage expr60="expr60" need-loading></rhm-homepage>',
+                        'html': '<rhm-homepage expr13="expr13" need-loading></rhm-homepage>',
 
                         'bindings': [
                           {
@@ -5846,16 +5847,16 @@ define(['require'], function (require) { 'use strict';
 
                             'slots': [],
                             'attributes': [],
-                            'redundantAttribute': 'expr60',
-                            'selector': '[expr60]'
+                            'redundantAttribute': 'expr13',
+                            'selector': '[expr13]'
                           }
                         ]
                       }
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr59',
-                    'selector': '[expr59]'
+                    'redundantAttribute': 'expr12',
+                    'selector': '[expr12]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5870,7 +5871,7 @@ define(['require'], function (require) { 'use strict';
                     'slots': [
                       {
                         'id': 'default',
-                        'html': '<rhm-replace-test expr62="expr62" need-loading></rhm-replace-test><div>Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr63="expr63" href="users/2"></rhm-navigate><br/><rhm-navigate expr64="expr64" href="users/3"></rhm-navigate><br/><rhm-navigate expr65="expr65" href="users/4"></rhm-navigate></div>',
+                        'html': '<rhm-replace-test expr15="expr15" need-loading></rhm-replace-test><div>Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr16="expr16" href="users/2"></rhm-navigate><br/><rhm-navigate expr17="expr17" href="users/3"></rhm-navigate><br/><rhm-navigate expr18="expr18" href="users/4"></rhm-navigate></div>',
 
                         'bindings': [
                           {
@@ -5885,8 +5886,8 @@ define(['require'], function (require) { 'use strict';
 
                             'slots': [],
                             'attributes': [],
-                            'redundantAttribute': 'expr62',
-                            'selector': '[expr62]'
+                            'redundantAttribute': 'expr15',
+                            'selector': '[expr15]'
                           },
                           {
                             'type': bindingTypes.TAG,
@@ -5907,8 +5908,8 @@ define(['require'], function (require) { 'use strict';
                             ],
 
                             'attributes': [],
-                            'redundantAttribute': 'expr63',
-                            'selector': '[expr63]'
+                            'redundantAttribute': 'expr16',
+                            'selector': '[expr16]'
                           },
                           {
                             'type': bindingTypes.TAG,
@@ -5929,8 +5930,8 @@ define(['require'], function (require) { 'use strict';
                             ],
 
                             'attributes': [],
-                            'redundantAttribute': 'expr64',
-                            'selector': '[expr64]'
+                            'redundantAttribute': 'expr17',
+                            'selector': '[expr17]'
                           },
                           {
                             'type': bindingTypes.TAG,
@@ -5951,16 +5952,16 @@ define(['require'], function (require) { 'use strict';
                             ],
 
                             'attributes': [],
-                            'redundantAttribute': 'expr65',
-                            'selector': '[expr65]'
+                            'redundantAttribute': 'expr18',
+                            'selector': '[expr18]'
                           }
                         ]
                       }
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr61',
-                    'selector': '[expr61]'
+                    'redundantAttribute': 'expr14',
+                    'selector': '[expr14]'
                   },
                   {
                     'type': bindingTypes.TAG,
@@ -5975,10 +5976,13 @@ define(['require'], function (require) { 'use strict';
                     'slots': [
                       {
                         'id': 'default',
-                        'html': ' ',
+                        'html': '<div class="asd"></div><span expr20="expr20"> </span>',
 
                         'bindings': [
                           {
+                            'redundantAttribute': 'expr20',
+                            'selector': '[expr20]',
+
                             'expressions': [
                               {
                                 'type': expressionTypes.TEXT,
@@ -5997,16 +6001,16 @@ define(['require'], function (require) { 'use strict';
                     ],
 
                     'attributes': [],
-                    'redundantAttribute': 'expr66',
-                    'selector': '[expr66]'
+                    'redundantAttribute': 'expr19',
+                    'selector': '[expr19]'
                   }
                 ]
               }
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr57',
-            'selector': '[expr57]'
+            'redundantAttribute': 'expr10',
+            'selector': '[expr10]'
           }
         ]
       );
