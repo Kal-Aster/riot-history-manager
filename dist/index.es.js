@@ -176,7 +176,7 @@ var RouterComponent = {
     getComponent
   ) {
     return template(
-      '<slot expr2="expr2"></slot>',
+      '<slot expr0="expr0"></slot>',
       [
         {
           'type': bindingTypes.SLOT,
@@ -195,8 +195,8 @@ var RouterComponent = {
           ],
 
           'name': 'default',
-          'redundantAttribute': 'expr2',
-          'selector': '[expr2]'
+          'redundantAttribute': 'expr0',
+          'selector': '[expr0]'
         }
       ]
     );
@@ -361,7 +361,7 @@ function dispatchEventOver(children, event, collectLoaders, collectRouter) {
                     if (typeof listener.listener.handleEvent !== "function") {
                         return immediateStop;
                     }
-                    listener.listener.handleEvent.call(child, event);
+                    listener.listener.handleEvent(event);
                     return immediateStop;
                 }
             });
@@ -380,7 +380,7 @@ function dispatchEventOver(children, event, collectLoaders, collectRouter) {
                         if (typeof listener.listener.handleEvent !== "function") {
                             return immediateStop;
                         }
-                        listener.listener.handleEvent.call(child, event);
+                        listener.listener.handleEvent(event);
                         return immediateStop;
                     }
                 });
@@ -627,11 +627,11 @@ var NavigateComponent = {
     getComponent
   ) {
     return template(
-      '<a expr0="expr0" ref="-navigate-a"><slot expr1="expr1"></slot></a>',
+      '<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>',
       [
         {
-          'redundantAttribute': 'expr0',
-          'selector': '[expr0]',
+          'redundantAttribute': 'expr1',
+          'selector': '[expr1]',
 
           'expressions': [
             {
@@ -666,8 +666,8 @@ var NavigateComponent = {
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr1',
-          'selector': '[expr1]'
+          'redundantAttribute': 'expr2',
+          'selector': '[expr2]'
         }
       ]
     );

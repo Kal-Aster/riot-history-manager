@@ -9,7 +9,7 @@ const BUBBLING_PHASE: unique symbol = Symbol("capturing-phase");
 // listen "beforeroute", "unroute" and "route" differently,
 // limiting the handling of these events to this library
 type EventListener = ((this: HTMLElement, ev: Event) => any) | {
-    handleEvent(this: HTMLElement, ev: Event): any
+    handleEvent(ev: Event): any
 };
 type ListenerObject = {
     listener: EventListener,
@@ -199,7 +199,7 @@ export function dispatchEventOver(children: Array<Element>, event: Event, collec
                     if (typeof listener.listener.handleEvent !== "function") {
                         return immediateStop;
                     }
-                    listener.listener.handleEvent.call(child, event);
+                    listener.listener.handleEvent(event);
                     return immediateStop;
                 }
             });
@@ -219,7 +219,7 @@ export function dispatchEventOver(children: Array<Element>, event: Event, collec
                         if (typeof listener.listener.handleEvent !== "function") {
                             return immediateStop;
                         }
-                        listener.listener.handleEvent.call(child, event);
+                        listener.listener.handleEvent(event);
                         return immediateStop;
                     }
                 });
