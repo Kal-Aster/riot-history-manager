@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2021-05-27
+- accepts object with handleEvent as listener for custom events
+
 ## [2.0.2] - 2021-04-08
 - update dependencies
 

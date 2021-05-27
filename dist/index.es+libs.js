@@ -2597,7 +2597,7 @@ var RouterComponent = {
     getComponent
   ) {
     return template(
-      '<slot expr3="expr3"></slot>',
+      '<slot expr5="expr5"></slot>',
       [
         {
           'type': bindingTypes.SLOT,
@@ -2616,8 +2616,8 @@ var RouterComponent = {
           ],
 
           'name': 'default',
-          'redundantAttribute': 'expr3',
-          'selector': '[expr3]'
+          'redundantAttribute': 'expr5',
+          'selector': '[expr5]'
         }
       ]
     );
@@ -2772,7 +2772,17 @@ function dispatchEventOver(children, event, collectLoaders, collectRouter) {
         if (listeners) {
             listeners.some(function (listener) {
                 if (listener.useCapture) {
-                    listener.listener.call(child, event);
+                    if (typeof listener.listener === "function") {
+                        listener.listener.call(child, event);
+                        return immediateStop;
+                    }
+                    if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                        return immediateStop;
+                    }
+                    if (typeof listener.listener.handleEvent !== "function") {
+                        return immediateStop;
+                    }
+                    listener.listener.handleEvent.call(child, event);
                     return immediateStop;
                 }
             });
@@ -2781,7 +2791,17 @@ function dispatchEventOver(children, event, collectLoaders, collectRouter) {
             if (!Array.prototype.some.call(child.children, propagateEvent) && listeners) {
                 listeners.some(function (listener) {
                     if (!listener.useCapture) {
-                        listener.listener.call(child, event);
+                        if (typeof listener.listener === "function") {
+                            listener.listener.call(child, event);
+                            return immediateStop;
+                        }
+                        if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                            return immediateStop;
+                        }
+                        if (typeof listener.listener.handleEvent !== "function") {
+                            return immediateStop;
+                        }
+                        listener.listener.handleEvent.call(child, event);
                         return immediateStop;
                     }
                 });
@@ -3028,11 +3048,11 @@ var NavigateComponent = {
     getComponent
   ) {
     return template(
-      '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
+      '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
       [
         {
-          'redundantAttribute': 'expr4',
-          'selector': '[expr4]',
+          'redundantAttribute': 'expr3',
+          'selector': '[expr3]',
 
           'expressions': [
             {
@@ -3067,8 +3087,8 @@ var NavigateComponent = {
           'type': bindingTypes.SLOT,
           'attributes': [],
           'name': 'default',
-          'redundantAttribute': 'expr5',
-          'selector': '[expr5]'
+          'redundantAttribute': 'expr4',
+          'selector': '[expr4]'
         }
       ]
     );

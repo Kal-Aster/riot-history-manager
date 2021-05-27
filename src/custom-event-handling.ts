@@ -8,7 +8,9 @@ const BUBBLING_PHASE: unique symbol = Symbol("capturing-phase");
 
 // listen "beforeroute", "unroute" and "route" differently,
 // limiting the handling of these events to this library
-type EventListener = (this: HTMLElement, ev: Event) => any;
+type EventListener = ((this: HTMLElement, ev: Event) => any) | {
+    handleEvent(this: HTMLElement, ev: Event): any
+};
 type ListenerObject = {
     listener: EventListener,
     useCapture: boolean
@@ -187,7 +189,17 @@ export function dispatchEventOver(children: Array<Element>, event: Event, collec
         if (listeners) {
             listeners.some(listener => {
                 if (listener.useCapture) {
-                    listener.listener.call(child, event);
+                    if (typeof listener.listener === "function") {
+                        listener.listener.call(child, event);
+                        return immediateStop;
+                    }
+                    if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                        return immediateStop;
+                    }
+                    if (typeof listener.listener.handleEvent !== "function") {
+                        return immediateStop;
+                    }
+                    listener.listener.handleEvent.call(child, event);
                     return immediateStop;
                 }
             });
@@ -197,7 +209,17 @@ export function dispatchEventOver(children: Array<Element>, event: Event, collec
             if (!Array.prototype.some.call(child.children, propagateEvent) && listeners) {
                 listeners.some(listener => {
                     if (!listener.useCapture) {
-                        listener.listener.call(child, event);
+                        if (typeof listener.listener === "function") {
+                            listener.listener.call(child, event);
+                            return immediateStop;
+                        }
+                        if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                            return immediateStop;
+                        }
+                        if (typeof listener.listener.handleEvent !== "function") {
+                            return immediateStop;
+                        }
+                        listener.listener.handleEvent.call(child, event);
                         return immediateStop;
                     }
                 });

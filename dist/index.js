@@ -200,7 +200,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr0="expr0"></slot>',
+          '<slot expr2="expr2"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -219,8 +219,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr0',
-              'selector': '[expr0]'
+              'redundantAttribute': 'expr2',
+              'selector': '[expr2]'
             }
           ]
         );
@@ -375,7 +375,17 @@
             if (listeners) {
                 listeners.some(function (listener) {
                     if (listener.useCapture) {
-                        listener.listener.call(child, event);
+                        if (typeof listener.listener === "function") {
+                            listener.listener.call(child, event);
+                            return immediateStop;
+                        }
+                        if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                            return immediateStop;
+                        }
+                        if (typeof listener.listener.handleEvent !== "function") {
+                            return immediateStop;
+                        }
+                        listener.listener.handleEvent.call(child, event);
                         return immediateStop;
                     }
                 });
@@ -384,7 +394,17 @@
                 if (!Array.prototype.some.call(child.children, propagateEvent) && listeners) {
                     listeners.some(function (listener) {
                         if (!listener.useCapture) {
-                            listener.listener.call(child, event);
+                            if (typeof listener.listener === "function") {
+                                listener.listener.call(child, event);
+                                return immediateStop;
+                            }
+                            if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                                return immediateStop;
+                            }
+                            if (typeof listener.listener.handleEvent !== "function") {
+                                return immediateStop;
+                            }
+                            listener.listener.handleEvent.call(child, event);
                             return immediateStop;
                         }
                     });
@@ -631,11 +651,11 @@
         getComponent
       ) {
         return template(
-          '<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>',
+          '<a expr0="expr0" ref="-navigate-a"><slot expr1="expr1"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr1',
-              'selector': '[expr1]',
+              'redundantAttribute': 'expr0',
+              'selector': '[expr0]',
 
               'expressions': [
                 {
@@ -670,8 +690,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr2',
-              'selector': '[expr2]'
+              'redundantAttribute': 'expr1',
+              'selector': '[expr1]'
             }
           ]
         );
