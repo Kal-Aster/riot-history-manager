@@ -562,7 +562,7 @@ var RouteComponent = {
         if (this._onroute == null) {
             return;
         }
-        this[__.globlas.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
+        this[__.globals.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
     }
   },
 

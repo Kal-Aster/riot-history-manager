@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.6] - 2021-06-28
+- fix typo
+
 ## [2.0.5] - 2021-06-03
 - verbose deconstruction of route in custom event dispatch
 

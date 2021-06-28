@@ -3008,7 +3008,7 @@
             if (this._onroute == null) {
                 return;
             }
-            this[riot.__.globlas.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
+            this[riot.__.globals.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
         }
       },
 
