@@ -424,10 +424,18 @@
         const currentEl = currentMount.el;
         {
             if (shouldFireEvent) {
-                const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+                const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
+                    location: route.location,
+                    keymap: route.keymap,
+                    redirection: route.redirection
+                } });
                 dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
             }
-            const scope = Object.create(routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+            const scope = Object.create(routeComponent[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: {
+                location: route.location,
+                keymap: route.keymap,
+                redirection: route.redirection
+            } } });
             currentMount.unmount( scope, routeComponent[riot.__.globals.PARENT_KEY_SYMBOL] );
         }
         {
@@ -475,7 +483,11 @@
             router[UNROUTE_METHOD] = thisUNROUTE;
             currentEl.style.display = "block";
             {
-                const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+                const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
+                    location: route.location,
+                    keymap: route.keymap,
+                    redirection: route.redirection
+                } });
                 dispatchEventOver(currentEl.children, routeEvent, null, []);
             }
         }
@@ -496,7 +508,7 @@
         placeholder.parentElement.insertBefore(currentEl, placeholder);
         const currentMount = riot.__.DOMBindings.template(slot.html, slot.bindings).mount(
             currentEl,
-            Object.create(this[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
+            Object.create(this[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { location, keymap, redirection } } }),
             this[riot.__.globals.PARENT_KEY_SYMBOL]
         );
         currentEl.style.display = "none";
@@ -504,7 +516,9 @@
         const needLoading = [];
         const routerChildren = [];
         {
-            const beforeRouteEvent = new CustomEvent("beforeroute", { cancelable: false, detail: { ...route } });
+            const beforeRouteEvent = new CustomEvent("beforeroute", {
+                cancelable: false, detail: { location, keymap, redirection }
+            });
             dispatchEventOver(currentEl.children, beforeRouteEvent, needLoading, routerChildren);
         }
         if (needLoading.length > 0) {

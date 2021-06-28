@@ -2821,10 +2821,18 @@ function onunroute(routeComponent, currentMount, route, router, shouldFireEvent,
     const currentEl = currentMount.el;
     {
         if (shouldFireEvent) {
-            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+            const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
+                location: route.location,
+                keymap: route.keymap,
+                redirection: route.redirection
+            } });
             dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
         }
-        const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+        const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: {
+            location: route.location,
+            keymap: route.keymap,
+            redirection: route.redirection
+        } } });
         currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
     }
     {
@@ -2872,7 +2880,11 @@ function onloadingcomplete(routeComponent, currentMount, route, router, claimer)
         router[UNROUTE_METHOD] = thisUNROUTE;
         currentEl.style.display = "block";
         {
-            const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+            const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
+                location: route.location,
+                keymap: route.keymap,
+                redirection: route.redirection
+            } });
             dispatchEventOver(currentEl.children, routeEvent, null, []);
         }
     }
@@ -2893,7 +2905,7 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     placeholder.parentElement.insertBefore(currentEl, placeholder);
     const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
         currentEl,
-        Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
+        Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { location, keymap, redirection } } }),
         this[__.globals.PARENT_KEY_SYMBOL]
     );
     currentEl.style.display = "none";
@@ -2901,7 +2913,9 @@ function onroute(routeComponent) { return (function (location, keymap, redirecti
     const needLoading = [];
     const routerChildren = [];
     {
-        const beforeRouteEvent = new CustomEvent("beforeroute", { cancelable: false, detail: { ...route } });
+        const beforeRouteEvent = new CustomEvent("beforeroute", {
+            cancelable: false, detail: { location, keymap, redirection }
+        });
         dispatchEventOver(currentEl.children, beforeRouteEvent, needLoading, routerChildren);
     }
     if (needLoading.length > 0) {

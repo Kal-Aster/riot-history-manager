@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.0.5] - 2021-06-03
+- verbose deconstruction of route in custom event dispatch
+
 ## [2.0.4] - 2021-05-27
 - pass listener object to handleEvent
 
