@@ -1,0 +1,13 @@
+<rhm-test-slot-prop>
+    <slot { ...getSlotProp() }></slot>
+
+    <script>
+        const TEST_PROP = Symbol("test-prop");
+
+        export default {
+            getSlotProp() {
+                return { [TEST_PROP]: this };
+            }
+        }
+    </script>
+</rhm-test-slot-prop>

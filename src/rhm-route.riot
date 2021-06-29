@@ -5,8 +5,8 @@
             ROUTER,
             UNROUTE_METHOD,
             LAST_ROUTED,
-            IS_ROUTER,
-            ROUTE_PLACEHOLDER
+            ROUTE_PLACEHOLDER,
+            IS_UNMOUNTING
         } from "./constants";
         import * as loadingBar from "./loading-bar";
         import { dispatchEventOver } from "./custom-event-handling";
@@ -29,12 +29,9 @@
                 } } });
                 currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
             }
-            {
-                const placeholder = routeComponent[ROUTE_PLACEHOLDER];
-                placeholder.parentElement.removeChild(currentEl);
-                // if want to keep some route for faster loading, just `display: none` the element
-                // currentEl.style.display = "none";
-            }
+            // if want to keep some route for faster loading, just `display: none` the element?
+            // currentEl.style.display = "none";
+            routeComponent.root.removeChild(currentEl);
             if (shouldResetUnroute) {
                 router[UNROUTE_METHOD] = () => {};
             }
@@ -95,8 +92,7 @@
 
             const slot = this.slots[0];
             const currentEl = document.createElement("div");
-            const placeholder = this[ROUTE_PLACEHOLDER];
-            placeholder.parentElement.insertBefore(currentEl, placeholder);
+            this.root.appendChild(currentEl);
             const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
                 currentEl,
                 Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { location, keymap, redirection } } }),
@@ -149,30 +145,57 @@
         }).bind(routeComponent); }
         
         export default {
+            [IS_UNMOUNTING]: false,
             _valid: false,
             _onroute: null,
             _path: null,
+            _setup() {
+                if (!this._valid || this[IS_UNMOUNTING]) {
+                    return;
+                }
+                const router = this[ROUTER][ROUTER];
+
+                if (this.props.redirect) {
+                    router.redirect(this.props.path, this.props.redirect);
+                } else {
+                    router.route(this._path = this.props.path, this._onroute = onroute(this));
+                }
+            },
             onMounted() {
-                const placeholder = this[ROUTE_PLACEHOLDER] = document.createComment("");
-                this.root.replaceWith(placeholder);
+                const placeholder = this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
+                // this.root.replaceWith(placeholder);
                 const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
                 if (router == null) {
                     return;
                 }
                 this._valid = true;
                 this[ROUTER] = router;
-                
-                if (this.props.redirect) {
-                    router[ROUTER].redirect(this.props.path, this.props.redirect);
+
+                if (router.isMounted()) {
+                    router._refesh();
                 } else {
-                    router[ROUTER].route(this._path = this.props.path, this._onroute = onroute(this));
+                    this._setup();
                 }
             },
+            onBeforeUnmount() {
+                this[IS_UNMOUNTING] = true;
+                // this[ROUTE_PLACEHOLDER].replaceWith(this.root);
+            },
             onUnmounted() {
-                if (this._onroute == null) {
-                    return;
+                if (this._valid) {
+                    // console.log(this.root.parentElement);
+                    const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
+                    if (router[IS_UNMOUNTING]) {
+                        return;
+                    }
+                    if (router[LAST_ROUTED] === this) {
+                        router._refesh();
+                    } else {
+                        router[ROUTER].unroute(this._path);
+                    }
                 }
-                this[__.globals.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
+
+                this[IS_UNMOUNTING] = false;
             }
         }
     </script>

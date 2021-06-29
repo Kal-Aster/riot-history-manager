@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('history-manager'), require('riot')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'history-manager', 'riot'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.riotHistoryManager = {}, global.historyManager, global.riot));
-}(this, (function (exports, historyManager, riot) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('riot'), require('history-manager')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'riot', 'history-manager'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.riotHistoryManager = {}, global.riot, global.historyManager));
+}(this, (function (exports, riot, historyManager) { 'use strict';
 
     function _interopNamespace(e) {
         if (e && e.__esModule) return e;
@@ -158,36 +158,78 @@
     });
 
     var ROUTER = Symbol("router");
-    var IS_ROUTER = Symbol("is-router");
     var UNROUTE_METHOD = Symbol("unroute");
     var LAST_ROUTED = Symbol("last-routed");
     var ROUTE_PLACEHOLDER = Symbol("route-placeholder");
+    var IS_UNMOUNTING = Symbol("is-unmounting");
+
+    const noop = () => { };
 
     var RouterComponent = {
       'css': null,
 
       'exports': {
+        [IS_UNMOUNTING]: false,
+        _mounted: false,
+
+        _refesh() {
+            this[ROUTER].destroy();
+            const router = this[ROUTER] = historyManager.Router.create();
+            Array.prototype.forEach.call(this.root.querySelectorAll("rhm-route"), route => {
+                route[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY]._setup();
+            });
+            router.route("(.*)", (location, ) => {
+                claim(this); release(this);
+                this[LAST_ROUTED] = null;
+                this[UNROUTE_METHOD]();
+                this[UNROUTE_METHOD] = noop;
+            });
+            // it should check if LAST_ROUTED would be the same,
+            // if so it should not emit
+            router.emit();
+        },
+
         getSelfSlotProp() {
             return { [ROUTER]: this };
         },
 
+        isMounted() {
+            return this._mounted;
+        },
+
         onBeforeMount() {
-            this.root[IS_ROUTER] = true;
-            this[UNROUTE_METHOD] = () => {};
+            this[UNROUTE_METHOD] = noop;
             this[ROUTER] = historyManager.Router.create();
         },
 
         onMounted() {
-            this[ROUTER].route("(.*)", () => {
+            this[ROUTER].route("(.*)", (location, ) => {
                 claim(this); release(this);
                 this[LAST_ROUTED] = null;
                 this[UNROUTE_METHOD]();
-                this[UNROUTE_METHOD] = () => {};
+                this[UNROUTE_METHOD] = noop;
             });
+
+            this._mounted = true;
+
+            if (historyManager.HistoryManager.isStarted()) {
+                this[ROUTER].emit();
+            }
+        },
+
+        onBeforeUnmount() {
+            this[IS_UNMOUNTING] = true;
         },
 
         onUnmounted() {
-            delete this.root[IS_ROUTER];
+            this[IS_UNMOUNTING] = false;
+
+            this[LAST_ROUTED] = null;
+            this[UNROUTE_METHOD] = noop;
+            this[ROUTER].destroy();
+            this[ROUTER] = null;
+
+            this._mounted = false;
         },
 
         [LAST_ROUTED]: null
@@ -438,12 +480,9 @@
             } } });
             currentMount.unmount( scope, routeComponent[riot.__.globals.PARENT_KEY_SYMBOL] );
         }
-        {
-            const placeholder = routeComponent[ROUTE_PLACEHOLDER];
-            placeholder.parentElement.removeChild(currentEl);
-            // if want to keep some route for faster loading, just `display: none` the element
-            // currentEl.style.display = "none";
-        }
+        // if want to keep some route for faster loading, just `display: none` the element?
+        // currentEl.style.display = "none";
+        routeComponent.root.removeChild(currentEl);
         if (shouldResetUnroute) {
             router[UNROUTE_METHOD] = () => {};
         }
@@ -504,8 +543,7 @@
 
         const slot = this.slots[0];
         const currentEl = document.createElement("div");
-        const placeholder = this[ROUTE_PLACEHOLDER];
-        placeholder.parentElement.insertBefore(currentEl, placeholder);
+        this.root.appendChild(currentEl);
         const currentMount = riot.__.DOMBindings.template(slot.html, slot.bindings).mount(
             currentEl,
             Object.create(this[riot.__.globals.PARENT_KEY_SYMBOL], { route: { value: { location, keymap, redirection } } }),
@@ -561,32 +599,61 @@
       'css': null,
 
       'exports': {
+        [IS_UNMOUNTING]: false,
         _valid: false,
         _onroute: null,
         _path: null,
 
+        _setup() {
+            if (!this._valid || this[IS_UNMOUNTING]) {
+                return;
+            }
+            const router = this[ROUTER][ROUTER];
+
+            if (this.props.redirect) {
+                router.redirect(this.props.path, this.props.redirect);
+            } else {
+                router.route(this._path = this.props.path, this._onroute = onroute(this));
+            }
+        },
+
         onMounted() {
-            const placeholder = this[ROUTE_PLACEHOLDER] = document.createComment("");
-            this.root.replaceWith(placeholder);
+            this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
+            // this.root.replaceWith(placeholder);
             const router = this[riot.__.globals.PARENT_KEY_SYMBOL][ROUTER];
             if (router == null) {
                 return;
             }
             this._valid = true;
             this[ROUTER] = router;
-            
-            if (this.props.redirect) {
-                router[ROUTER].redirect(this.props.path, this.props.redirect);
+
+            if (router.isMounted()) {
+                router._refesh();
             } else {
-                router[ROUTER].route(this._path = this.props.path, this._onroute = onroute(this));
+                this._setup();
             }
         },
 
+        onBeforeUnmount() {
+            this[IS_UNMOUNTING] = true;
+            // this[ROUTE_PLACEHOLDER].replaceWith(this.root);
+        },
+
         onUnmounted() {
-            if (this._onroute == null) {
-                return;
+            if (this._valid) {
+                // console.log(this.root.parentElement);
+                const router = this[riot.__.globals.PARENT_KEY_SYMBOL][ROUTER];
+                if (router[IS_UNMOUNTING]) {
+                    return;
+                }
+                if (router[LAST_ROUTED] === this) {
+                    router._refesh();
+                } else {
+                    router[ROUTER].unroute(this._path);
+                }
             }
-            this[riot.__.globals.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
+
+            this[IS_UNMOUNTING] = false;
         }
       },
 

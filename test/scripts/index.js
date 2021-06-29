@@ -1,6 +1,6 @@
 define(['require'], function (require) { 'use strict';
 
-  /* Riot v5.3.3, @license MIT */
+  /* Riot v5.4.5, @license MIT */
   /**
    * Convert a string from camel case to dash-case
    * @param   {string} string - probably a component tag name
@@ -169,13 +169,13 @@ define(['require'], function (require) { 'use strict';
   const TAIL_SYMBOL = Symbol('tail');
 
   /**
-   * Create the <template> fragments comment nodes
-   * @return {Object} {{head: Comment, tail: Comment}}
+   * Create the <template> fragments text nodes
+   * @return {Object} {{head: TextNode, tail: TextNode}}
    */
 
   function createHeadTailPlaceholders() {
-    const head = document.createComment('fragment head');
-    const tail = document.createComment('fragment tail');
+    const head = document.createTextNode('');
+    const tail = document.createTextNode('');
     head[HEAD_SYMBOL] = true;
     tail[TAIL_SYMBOL] = true;
     return {
@@ -271,7 +271,7 @@ define(['require'], function (require) { 'use strict';
    */
 
   function isTemplate(el) {
-    return !isNil(el.content);
+    return el.tagName.toLowerCase() === 'template';
   }
   /**
    * Check that will be passed if its argument is a function
@@ -830,7 +830,7 @@ define(['require'], function (require) { 'use strict';
    */
 
   function setAllAttributes(node, attributes) {
-    Object.entries(attributes).forEach((_ref) => {
+    Object.entries(attributes).forEach(_ref => {
       let [name, value] = _ref;
       return attributeExpression(node, {
         name
@@ -1149,7 +1149,7 @@ define(['require'], function (require) { 'use strict';
 
     // API methods
     mount(scope, parentScope) {
-      const templateData = scope.slots ? scope.slots.find((_ref) => {
+      const templateData = scope.slots ? scope.slots.find(_ref => {
         let {
           id
         } = _ref;
@@ -1448,6 +1448,19 @@ define(['require'], function (require) { 'use strict';
     return html && (typeof html === 'string' ? createDOMTree(el, html) : html);
   }
   /**
+   * Get the offset of the <template> tag
+   * @param {HTMLElement} parentNode - template tag parent node
+   * @param {HTMLElement} el - the template tag we want to render
+   * @param   {Object} meta - meta properties needed to handle the <template> tags in loops
+   * @returns {number} offset of the <template> tag calculated from its siblings DOM nodes
+   */
+
+
+  function getTemplateTagOffset(parentNode, el, meta) {
+    const siblings = Array.from(parentNode.childNodes);
+    return Math.max(siblings.indexOf(el), siblings.indexOf(meta.head) + 1, 0);
+  }
+  /**
    * Template Chunk model
    * @type {Object}
    */
@@ -1471,7 +1484,7 @@ define(['require'], function (require) { 'use strict';
      */
     createDOM(el) {
       // make sure that the DOM gets created before cloning the template
-      this.dom = this.dom || createTemplateDOM(el, this.html);
+      this.dom = this.dom || createTemplateDOM(el, this.html) || document.createDocumentFragment();
       return this;
     },
 
@@ -1505,23 +1518,19 @@ define(['require'], function (require) { 'use strict';
         parentNode
       } = children ? children[0] : el;
       const isTemplateTag = isTemplate(el);
-      const templateTagOffset = isTemplateTag ? Math.max(Array.from(parentNode.childNodes).indexOf(el), 0) : null;
-      this.isTemplateTag = isTemplateTag; // create the DOM if it wasn't created before
+      const templateTagOffset = isTemplateTag ? getTemplateTagOffset(parentNode, el, meta) : null; // create the DOM if it wasn't created before
 
-      this.createDOM(el);
+      this.createDOM(el); // create the DOM of this template cloning the original DOM structure stored in this instance
+      // notice that if a documentFragment was passed (via meta) we will use it instead
 
-      if (this.dom) {
-        // create the new template dom fragment if it want already passed in via meta
-        this.fragment = fragment || this.dom.cloneNode(true);
-      } // store root node
+      const cloneNode = fragment || this.dom.cloneNode(true); // store root node
       // notice that for template tags the root note will be the parent tag
 
+      this.el = isTemplateTag ? parentNode : el; // create the children array only for the <template> fragments
 
-      this.el = this.isTemplateTag ? parentNode : el; // create the children array only for the <template> fragments
+      this.children = isTemplateTag ? children || Array.from(cloneNode.childNodes) : null; // inject the DOM into the el only if a fragment is available
 
-      this.children = this.isTemplateTag ? children || Array.from(this.fragment.childNodes) : null; // inject the DOM into the el only if a fragment is available
-
-      if (!avoidDOMInjection && this.fragment) injectDOM(el, this.fragment); // create the bindings
+      if (!avoidDOMInjection && cloneNode) injectDOM(el, cloneNode); // create the bindings
 
       this.bindings = this.bindingsData.map(binding => create$1(this.el, binding, templateTagOffset));
       this.bindings.forEach(b => b.mount(scope, parentScope)); // store the template meta properties
@@ -1679,7 +1688,7 @@ define(['require'], function (require) { 'use strict';
     expressionTypes: expressionTypes
   });
 
-  function noop() {
+  function noop$1() {
     return this;
   }
   /**
@@ -1738,7 +1747,7 @@ define(['require'], function (require) { 'use strict';
    */
 
   function defineProperties(source, properties, options) {
-    Object.entries(properties).forEach((_ref) => {
+    Object.entries(properties).forEach(_ref => {
       let [key, value] = _ref;
       defineProperty(source, key, value, options);
     });
@@ -1752,7 +1761,7 @@ define(['require'], function (require) { 'use strict';
    */
 
   function defineDefaults(source, defaults) {
-    Object.entries(defaults).forEach((_ref2) => {
+    Object.entries(defaults).forEach(_ref2 => {
       let [key, value] = _ref2;
       if (!source[key]) source[key] = value;
     });
@@ -1984,22 +1993,22 @@ define(['require'], function (require) { 'use strict';
 
   });
   const PURE_COMPONENT_API = Object.freeze({
-    [MOUNT_METHOD_KEY]: noop,
-    [UPDATE_METHOD_KEY]: noop,
-    [UNMOUNT_METHOD_KEY]: noop
+    [MOUNT_METHOD_KEY]: noop$1,
+    [UPDATE_METHOD_KEY]: noop$1,
+    [UNMOUNT_METHOD_KEY]: noop$1
   });
   const COMPONENT_LIFECYCLE_METHODS = Object.freeze({
-    [SHOULD_UPDATE_KEY]: noop,
-    [ON_BEFORE_MOUNT_KEY]: noop,
-    [ON_MOUNTED_KEY]: noop,
-    [ON_BEFORE_UPDATE_KEY]: noop,
-    [ON_UPDATED_KEY]: noop,
-    [ON_BEFORE_UNMOUNT_KEY]: noop,
-    [ON_UNMOUNTED_KEY]: noop
+    [SHOULD_UPDATE_KEY]: noop$1,
+    [ON_BEFORE_MOUNT_KEY]: noop$1,
+    [ON_MOUNTED_KEY]: noop$1,
+    [ON_BEFORE_UPDATE_KEY]: noop$1,
+    [ON_UPDATED_KEY]: noop$1,
+    [ON_BEFORE_UNMOUNT_KEY]: noop$1,
+    [ON_UNMOUNTED_KEY]: noop$1
   });
   const MOCKED_TEMPLATE_INTERFACE = Object.assign({}, PURE_COMPONENT_API, {
-    clone: noop,
-    createDOM: noop
+    clone: noop$1,
+    createDOM: noop$1
   });
   /**
    * Performance optimization for the recursive components
@@ -2125,7 +2134,7 @@ define(['require'], function (require) { 'use strict';
       name
     } = componentShell;
     const templateFn = template ? componentTemplateFactory(template, componentShell) : MOCKED_TEMPLATE_INTERFACE;
-    return (_ref2) => {
+    return _ref2 => {
       let {
         slots,
         attributes,
@@ -2188,6 +2197,7 @@ define(['require'], function (require) { 'use strict';
     if (css && name) cssManager.add(name, css);
     return curry(enhanceComponentAPI)(defineProperties( // set the component defaults without overriding the original component API
     defineDefaults(componentAPI, Object.assign({}, COMPONENT_LIFECYCLE_METHODS, {
+      [PROPS_KEY]: {},
       [STATE_KEY]: {}
     })), Object.assign({
       // defined during the component creation
@@ -2293,6 +2303,7 @@ define(['require'], function (require) { 'use strict';
           state = {};
         }
 
+        this[PARENT_KEY_SYMBOL] = parentScope;
         this[ATTRIBUTES_KEY_SYMBOL] = createAttributeBindings(element, attributes).mount(parentScope);
         defineProperty(this, PROPS_KEY, Object.freeze(Object.assign({}, evaluateInitialProps(element, props), evaluateAttributeExpressions(this[ATTRIBUTES_KEY_SYMBOL].expressions))));
         this[STATE_KEY] = computeState(this[STATE_KEY], state);
@@ -2306,8 +2317,7 @@ define(['require'], function (require) { 'use strict';
 
         defineProperty(this, SLOTS_KEY, slots); // before mount lifecycle event
 
-        this[ON_BEFORE_MOUNT_KEY](this[PROPS_KEY], this[STATE_KEY]);
-        this[PARENT_KEY_SYMBOL] = parentScope; // mount the template
+        this[ON_BEFORE_MOUNT_KEY](this[PROPS_KEY], this[STATE_KEY]); // mount the template
 
         this[TEMPLATE_KEY_SYMBOL].mount(element, this, parentScope);
         this[ON_MOUNTED_KEY](this[PROPS_KEY], this[STATE_KEY]);
@@ -2431,7 +2441,7 @@ define(['require'], function (require) { 'use strict';
    * @param   {string|HTMLElement} selector - query for the selection or a DOM element
    * @param   {Object} initialProps - the initial component properties
    * @param   {string} name - optional component name
-   * @returns {Array} list of nodes upgraded
+   * @returns {Array} list of riot components
    */
 
   function mount(selector, initialProps, name) {
@@ -3222,10 +3232,7 @@ define(['require'], function (require) { 'use strict';
       return ContextManager;
   }());
 
-  function createCommonjsModule(fn) {
-    var module = { exports: {} };
-  	return fn(module, module.exports), module.exports;
-  }
+  var queryString = {};
 
   var strictUriEncode = str => encodeURIComponent(str).replace(/[!'()*]/g, x => `%${x.charCodeAt(0).toString(16).toUpperCase()}`);
 
@@ -3361,13 +3368,15 @@ define(['require'], function (require) { 'use strict';
   	return ret;
   };
 
-  var queryString = createCommonjsModule(function (module, exports) {
-
-
-
-
+  (function (exports) {
+  const strictUriEncode$1 = strictUriEncode;
+  const decodeComponent = decodeUriComponent;
+  const splitOnFirst$1 = splitOnFirst;
+  const filterObject = filterObj;
 
   const isNullOrUndefined = value => value === null || value === undefined;
+
+  const encodeFragmentIdentifier = Symbol('encodeFragmentIdentifier');
 
   function encoderForArrayFormat(options) {
   	switch (options.arrayFormat) {
@@ -3412,17 +3421,30 @@ define(['require'], function (require) { 'use strict';
 
   		case 'comma':
   		case 'separator':
+  		case 'bracket-separator': {
+  			const keyValueSep = options.arrayFormat === 'bracket-separator' ?
+  				'[]=' :
+  				'=';
+
   			return key => (result, value) => {
-  				if (value === null || value === undefined || value.length === 0) {
+  				if (
+  					value === undefined ||
+  					(options.skipNull && value === null) ||
+  					(options.skipEmptyString && value === '')
+  				) {
   					return result;
   				}
 
+  				// Translate null to an empty string so that it doesn't serialize as 'null'
+  				value = value === null ? '' : value;
+
   				if (result.length === 0) {
-  					return [[encode(key, options), '=', encode(value, options)].join('')];
+  					return [[encode(key, options), keyValueSep, encode(value, options)].join('')];
   				}
 
   				return [[result, encode(value, options)].join(options.arrayFormatSeparator)];
   			};
+  		}
 
   		default:
   			return key => (result, value) => {
@@ -3493,6 +3515,28 @@ define(['require'], function (require) { 'use strict';
   				accumulator[key] = newValue;
   			};
 
+  		case 'bracket-separator':
+  			return (key, value, accumulator) => {
+  				const isArray = /(\[\])$/.test(key);
+  				key = key.replace(/\[\]$/, '');
+
+  				if (!isArray) {
+  					accumulator[key] = value ? decode(value, options) : value;
+  					return;
+  				}
+
+  				const arrayValue = value === null ?
+  					[] :
+  					value.split(options.arrayFormatSeparator).map(item => decode(item, options));
+
+  				if (accumulator[key] === undefined) {
+  					accumulator[key] = arrayValue;
+  					return;
+  				}
+
+  				accumulator[key] = [].concat(accumulator[key], arrayValue);
+  			};
+
   		default:
   			return (key, value, accumulator) => {
   				if (accumulator[key] === undefined) {
@@ -3513,7 +3557,7 @@ define(['require'], function (require) { 'use strict';
 
   function encode(value, options) {
   	if (options.encode) {
-  		return options.strict ? strictUriEncode(value) : encodeURIComponent(value);
+  		return options.strict ? strictUriEncode$1(value) : encodeURIComponent(value);
   	}
 
   	return value;
@@ -3521,7 +3565,7 @@ define(['require'], function (require) { 'use strict';
 
   function decode(value, options) {
   	if (options.decode) {
-  		return decodeUriComponent(value);
+  		return decodeComponent(value);
   	}
 
   	return value;
@@ -3612,11 +3656,11 @@ define(['require'], function (require) { 'use strict';
   			continue;
   		}
 
-  		let [key, value] = splitOnFirst(options.decode ? param.replace(/\+/g, ' ') : param, '=');
+  		let [key, value] = splitOnFirst$1(options.decode ? param.replace(/\+/g, ' ') : param, '=');
 
   		// Missing `=` should be `null`:
   		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-  		value = value === undefined ? null : ['comma', 'separator'].includes(options.arrayFormat) ? value : decode(value, options);
+  		value = value === undefined ? null : ['comma', 'separator', 'bracket-separator'].includes(options.arrayFormat) ? value : decode(value, options);
   		formatter(decode(key, options), value, ret);
   	}
 
@@ -3698,6 +3742,10 @@ define(['require'], function (require) { 'use strict';
   		}
 
   		if (Array.isArray(value)) {
+  			if (value.length === 0 && options.arrayFormat === 'bracket-separator') {
+  				return encode(key, options) + '[]';
+  			}
+
   			return value
   				.reduce(formatter(key), [])
   				.join('&');
@@ -3712,7 +3760,7 @@ define(['require'], function (require) { 'use strict';
   		decode: true
   	}, options);
 
-  	const [url_, hash] = splitOnFirst(url, '#');
+  	const [url_, hash] = splitOnFirst$1(url, '#');
 
   	return Object.assign(
   		{
@@ -3726,7 +3774,8 @@ define(['require'], function (require) { 'use strict';
   exports.stringifyUrl = (object, options) => {
   	options = Object.assign({
   		encode: true,
-  		strict: true
+  		strict: true,
+  		[encodeFragmentIdentifier]: true
   	}, options);
 
   	const url = removeHash(object.url).split('?')[0] || '';
@@ -3741,7 +3790,7 @@ define(['require'], function (require) { 'use strict';
 
   	let hash = getHash(object.url);
   	if (object.fragmentIdentifier) {
-  		hash = `#${encode(object.fragmentIdentifier, options)}`;
+  		hash = `#${options[encodeFragmentIdentifier] ? encode(object.fragmentIdentifier, options) : object.fragmentIdentifier}`;
   	}
 
   	return `${url}${queryString}${hash}`;
@@ -3749,13 +3798,14 @@ define(['require'], function (require) { 'use strict';
 
   exports.pick = (input, filter, options) => {
   	options = Object.assign({
-  		parseFragmentIdentifier: true
+  		parseFragmentIdentifier: true,
+  		[encodeFragmentIdentifier]: false
   	}, options);
 
   	const {url, query, fragmentIdentifier} = exports.parseUrl(input, options);
   	return exports.stringifyUrl({
   		url,
-  		query: filterObj(query, filter),
+  		query: filterObject(query, filter),
   		fragmentIdentifier
   	}, options);
   };
@@ -3765,7 +3815,7 @@ define(['require'], function (require) { 'use strict';
 
   	return exports.pick(input, exclusionFilter, options);
   };
-  });
+  }(queryString));
 
   var DIVIDER = "#R!:";
   var catchPopState$2 = null;
@@ -4303,6 +4353,9 @@ define(['require'], function (require) { 'use strict';
       promiseResolve();
       return promise;
   }
+  function isStarted() {
+      return started;
+  }
   function onlanded() {
       window.dispatchEvent(new Event("historylanded"));
       if (workToRelease != null) {
@@ -4445,7 +4498,8 @@ define(['require'], function (require) { 'use strict';
       assign: assign,
       replace: replace,
       go: go$1,
-      start: start$1
+      start: start$1,
+      isStarted: isStarted
   });
 
   var locks$1 = [];
@@ -5056,36 +5110,78 @@ define(['require'], function (require) { 'use strict';
   });
 
   var ROUTER = Symbol("router");
-  var IS_ROUTER = Symbol("is-router");
   var UNROUTE_METHOD = Symbol("unroute");
   var LAST_ROUTED = Symbol("last-routed");
   var ROUTE_PLACEHOLDER = Symbol("route-placeholder");
+  var IS_UNMOUNTING = Symbol("is-unmounting");
+
+  const noop = () => { };
 
   var RouterComponent = {
     'css': null,
 
     'exports': {
+      [IS_UNMOUNTING]: false,
+      _mounted: false,
+
+      _refesh() {
+          this[ROUTER].destroy();
+          const router = this[ROUTER] = Router.create();
+          Array.prototype.forEach.call(this.root.querySelectorAll("rhm-route"), route => {
+              route[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY]._setup();
+          });
+          router.route("(.*)", (location, ) => {
+              claim(this); release(this);
+              this[LAST_ROUTED] = null;
+              this[UNROUTE_METHOD]();
+              this[UNROUTE_METHOD] = noop;
+          });
+          // it should check if LAST_ROUTED would be the same,
+          // if so it should not emit
+          router.emit();
+      },
+
       getSelfSlotProp() {
           return { [ROUTER]: this };
       },
 
+      isMounted() {
+          return this._mounted;
+      },
+
       onBeforeMount() {
-          this.root[IS_ROUTER] = true;
-          this[UNROUTE_METHOD] = () => {};
+          this[UNROUTE_METHOD] = noop;
           this[ROUTER] = Router.create();
       },
 
       onMounted() {
-          this[ROUTER].route("(.*)", () => {
+          this[ROUTER].route("(.*)", (location, ) => {
               claim(this); release(this);
               this[LAST_ROUTED] = null;
               this[UNROUTE_METHOD]();
-              this[UNROUTE_METHOD] = () => {};
+              this[UNROUTE_METHOD] = noop;
           });
+
+          this._mounted = true;
+
+          if (HistoryManager.isStarted()) {
+              this[ROUTER].emit();
+          }
+      },
+
+      onBeforeUnmount() {
+          this[IS_UNMOUNTING] = true;
       },
 
       onUnmounted() {
-          delete this.root[IS_ROUTER];
+          this[IS_UNMOUNTING] = false;
+
+          this[LAST_ROUTED] = null;
+          this[UNROUTE_METHOD] = noop;
+          this[ROUTER].destroy();
+          this[ROUTER] = null;
+
+          this._mounted = false;
       },
 
       [LAST_ROUTED]: null
@@ -5098,7 +5194,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr23="expr23"></slot>',
+        '<slot expr29="expr29"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5117,8 +5213,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr23',
-            'selector': '[expr23]'
+            'redundantAttribute': 'expr29',
+            'selector': '[expr29]'
           }
         ]
       );
@@ -5273,7 +5369,17 @@ define(['require'], function (require) { 'use strict';
           if (listeners) {
               listeners.some(function (listener) {
                   if (listener.useCapture) {
-                      listener.listener.call(child, event);
+                      if (typeof listener.listener === "function") {
+                          listener.listener.call(child, event);
+                          return immediateStop;
+                      }
+                      if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                          return immediateStop;
+                      }
+                      if (typeof listener.listener.handleEvent !== "function") {
+                          return immediateStop;
+                      }
+                      listener.listener.handleEvent(event);
                       return immediateStop;
                   }
               });
@@ -5282,7 +5388,17 @@ define(['require'], function (require) { 'use strict';
               if (!Array.prototype.some.call(child.children, propagateEvent) && listeners) {
                   listeners.some(function (listener) {
                       if (!listener.useCapture) {
-                          listener.listener.call(child, event);
+                          if (typeof listener.listener === "function") {
+                              listener.listener.call(child, event);
+                              return immediateStop;
+                          }
+                          if (typeof listener.listener !== "object" || listener.listener.handleEvent == null) {
+                              return immediateStop;
+                          }
+                          if (typeof listener.listener.handleEvent !== "function") {
+                              return immediateStop;
+                          }
+                          listener.listener.handleEvent(event);
                           return immediateStop;
                       }
                   });
@@ -5302,18 +5418,23 @@ define(['require'], function (require) { 'use strict';
       const currentEl = currentMount.el;
       {
           if (shouldFireEvent) {
-              const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: { ...route } });
+              const unrouteEvent = new CustomEvent("unroute", { cancelable: false, detail: {
+                  location: route.location,
+                  keymap: route.keymap,
+                  redirection: route.redirection
+              } });
               dispatchEventOver(routeComponent.root.children, unrouteEvent, null, []);
           }
-          const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } });
+          const scope = Object.create(routeComponent[__.globals.PARENT_KEY_SYMBOL], { route: { value: {
+              location: route.location,
+              keymap: route.keymap,
+              redirection: route.redirection
+          } } });
           currentMount.unmount( scope, routeComponent[__.globals.PARENT_KEY_SYMBOL] );
       }
-      {
-          const placeholder = routeComponent[ROUTE_PLACEHOLDER];
-          placeholder.parentElement.removeChild(currentEl);
-          // if want to keep some route for faster loading, just `display: none` the element
-          // currentEl.style.display = "none";
-      }
+      // if want to keep some route for faster loading, just `display: none` the element?
+      // currentEl.style.display = "none";
+      routeComponent.root.removeChild(currentEl);
       if (shouldResetUnroute) {
           router[UNROUTE_METHOD] = () => {};
       }
@@ -5353,7 +5474,11 @@ define(['require'], function (require) { 'use strict';
           router[UNROUTE_METHOD] = thisUNROUTE;
           currentEl.style.display = "block";
           {
-              const routeEvent = new CustomEvent("route", { cancelable: false, detail: { ...route } });
+              const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
+                  location: route.location,
+                  keymap: route.keymap,
+                  redirection: route.redirection
+              } });
               dispatchEventOver(currentEl.children, routeEvent, null, []);
           }
       }
@@ -5370,11 +5495,10 @@ define(['require'], function (require) { 'use strict';
 
       const slot = this.slots[0];
       const currentEl = document.createElement("div");
-      const placeholder = this[ROUTE_PLACEHOLDER];
-      placeholder.parentElement.insertBefore(currentEl, placeholder);
+      this.root.appendChild(currentEl);
       const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
           currentEl,
-          Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { ...route } } }),
+          Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { location, keymap, redirection } } }),
           this[__.globals.PARENT_KEY_SYMBOL]
       );
       currentEl.style.display = "none";
@@ -5382,7 +5506,9 @@ define(['require'], function (require) { 'use strict';
       const needLoading = [];
       const routerChildren = [];
       {
-          const beforeRouteEvent = new CustomEvent("beforeroute", { cancelable: false, detail: { ...route } });
+          const beforeRouteEvent = new CustomEvent("beforeroute", {
+              cancelable: false, detail: { location, keymap, redirection }
+          });
           dispatchEventOver(currentEl.children, beforeRouteEvent, needLoading, routerChildren);
       }
       if (needLoading.length > 0) {
@@ -5425,32 +5551,61 @@ define(['require'], function (require) { 'use strict';
     'css': null,
 
     'exports': {
+      [IS_UNMOUNTING]: false,
       _valid: false,
       _onroute: null,
       _path: null,
 
+      _setup() {
+          if (!this._valid || this[IS_UNMOUNTING]) {
+              return;
+          }
+          const router = this[ROUTER][ROUTER];
+
+          if (this.props.redirect) {
+              router.redirect(this.props.path, this.props.redirect);
+          } else {
+              router.route(this._path = this.props.path, this._onroute = onroute(this));
+          }
+      },
+
       onMounted() {
-          const placeholder = this[ROUTE_PLACEHOLDER] = document.createComment("");
-          this.root.replaceWith(placeholder);
+          this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
+          // this.root.replaceWith(placeholder);
           const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
           if (router == null) {
               return;
           }
           this._valid = true;
           this[ROUTER] = router;
-          
-          if (this.props.redirect) {
-              router[ROUTER].redirect(this.props.path, this.props.redirect);
+
+          if (router.isMounted()) {
+              router._refesh();
           } else {
-              router[ROUTER].route(this._path = this.props.path, this._onroute = onroute(this));
+              this._setup();
           }
       },
 
+      onBeforeUnmount() {
+          this[IS_UNMOUNTING] = true;
+          // this[ROUTE_PLACEHOLDER].replaceWith(this.root);
+      },
+
       onUnmounted() {
-          if (this._onroute == null) {
-              return;
+          if (this._valid) {
+              // console.log(this.root.parentElement);
+              const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
+              if (router[IS_UNMOUNTING]) {
+                  return;
+              }
+              if (router[LAST_ROUTED] === this) {
+                  router._refesh();
+              } else {
+                  router[ROUTER].unroute(this._path);
+              }
           }
-          this[__.globlas.PARENT_KEY_SYMBOL].router[ROUTER].unroute(this._path, this._onroute);
+
+          this[IS_UNMOUNTING] = false;
       }
     },
 
@@ -5529,11 +5684,11 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr21="expr21" ref="-navigate-a"><slot expr22="expr22"></slot></a>',
+        '<a expr27="expr27" ref="-navigate-a"><slot expr28="expr28"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr21',
-            'selector': '[expr21]',
+            'redundantAttribute': 'expr27',
+            'selector': '[expr27]',
 
             'expressions': [
               {
@@ -5568,8 +5723,8 @@ define(['require'], function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr22',
-            'selector': '[expr22]'
+            'redundantAttribute': 'expr28',
+            'selector': '[expr28]'
           }
         ]
       );
@@ -5650,6 +5805,53 @@ define(['require'], function (require) { 'use strict';
     }
   }
 
+  const TEST_PROP = Symbol("test-prop");
+
+  var TestSlotProp = {
+    'css': null,
+
+    'exports': {
+      getSlotProp() {
+          return { [TEST_PROP]: this };
+      }
+    },
+
+    'template': function(
+      template,
+      expressionTypes,
+      bindingTypes,
+      getComponent
+    ) {
+      return template(
+        '<slot expr30="expr30"></slot>',
+        [
+          {
+            'type': bindingTypes.SLOT,
+
+            'attributes': [
+              {
+                'type': expressionTypes.ATTRIBUTE,
+                'name': null,
+
+                'evaluate': function(
+                  scope
+                ) {
+                  return scope.getSlotProp();
+                }
+              }
+            ],
+
+            'name': 'default',
+            'redundantAttribute': 'expr30',
+            'selector': '[expr30]'
+          }
+        ]
+      );
+    },
+
+    'name': 'rhm-test-slot-prop'
+  };
+
   window.Router = Router;
   window.HistoryManager = HistoryManager;
 
@@ -5660,21 +5862,21 @@ define(['require'], function (require) { 'use strict';
   Router.setContext({
       name: "home",
       paths: [
-          { path: "home" }// ,
+          { path: "/home" }// ,
           // { path: "me" },
           // { path: "accedi", fallback: true },
           // { path: "users/:id", fallback: true }
       ],
-      default: "home"
+      default: "/home"
   });
   Router.setContext({
       name: "profile",
       paths: [
-          { path: "me" },
-          { path: "accedi", fallback: true },
-          { path: "users/:id", fallback: true }
+          { path: "/me" },
+          { path: "/accedi", fallback: true },
+          { path: "/users/:id", fallback: true }
       ],
-      default: "me"
+      default: "/me"
   });
 
   var TestComponent = {
@@ -5695,8 +5897,22 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-72065b56'], resolve, reject) })),
-          "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) }))
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-36025d5b'], resolve, reject) })),
+          "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
+          "rhm-test-slot-prop": TestSlotProp
+      },
+
+      state: {
+          visible: true,
+          homeVisible: false
+      },
+
+      toggleHome() {
+          this.update({ homeVisible: !this.state.homeVisible });
+      },
+
+      toggleWhole() {
+          this.update({ visible: !this.state.visible });
       }
     },
 
@@ -5707,7 +5923,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><rhm-navigate expr6="expr6" href="/home"></rhm-navigate>&nbsp;\r\n        <rhm-navigate expr8="expr8" href="me"></rhm-navigate></div><template expr10="expr10" is="rhm-router"></template>',
+        '<div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;"><div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div><rhm-navigate expr6="expr6" href="/home"></rhm-navigate>&nbsp;\r\n        <rhm-navigate expr8="expr8" href="/me"></rhm-navigate></div><div expr10="expr10"> </div><div expr11="expr11"> </div><rhm-test-slot-prop expr12="expr12"></rhm-test-slot-prop>',
         [
           {
             'type': bindingTypes.TAG,
@@ -5792,228 +6008,384 @@ define(['require'], function (require) { 'use strict';
             'selector': '[expr8]'
           },
           {
+            'redundantAttribute': 'expr10',
+            'selector': '[expr10]',
+
+            'expressions': [
+              {
+                'type': expressionTypes.TEXT,
+                'childNodeIndex': 0,
+
+                'evaluate': function(
+                  scope
+                ) {
+                  return [
+                    'Whole: ',
+                    scope.state.visible ? "Visible": "Not Visible"
+                  ].join(
+                    ''
+                  );
+                }
+              }
+            ]
+          },
+          {
+            'redundantAttribute': 'expr11',
+            'selector': '[expr11]',
+
+            'expressions': [
+              {
+                'type': expressionTypes.TEXT,
+                'childNodeIndex': 0,
+
+                'evaluate': function(
+                  scope
+                ) {
+                  return [
+                    'Home: ',
+                    scope.state.homeVisible ? "Visible": "Not Visible"
+                  ].join(
+                    ''
+                  );
+                }
+              }
+            ]
+          },
+          {
             'type': bindingTypes.TAG,
             'getComponent': getComponent,
 
             'evaluate': function(
               scope
             ) {
-              return 'rhm-router';
+              return 'rhm-test-slot-prop';
             },
 
             'slots': [
               {
                 'id': 'default',
-                'html': '<rhm-route expr11="expr11" path redirect="home"></rhm-route><rhm-route expr12="expr12" path="home"></rhm-route><rhm-route expr14="expr14" path="me"></rhm-route><rhm-route expr19="expr19" path="users/:id"></rhm-route>',
+                'html': '<button expr13="expr13">Toggle whole visibility</button><br/><button expr14="expr14">Toggle home visibility</button><rhm-router expr15="expr15"></rhm-router>',
 
                 'bindings': [
                   {
-                    'type': bindingTypes.TAG,
-                    'getComponent': getComponent,
+                    'redundantAttribute': 'expr13',
+                    'selector': '[expr13]',
 
-                    'evaluate': function(
-                      scope
-                    ) {
-                      return 'rhm-route';
-                    },
+                    'expressions': [
+                      {
+                        'type': expressionTypes.EVENT,
+                        'name': 'onclick',
 
-                    'slots': [],
-                    'attributes': [],
-                    'redundantAttribute': 'expr11',
-                    'selector': '[expr11]'
+                        'evaluate': function(
+                          scope
+                        ) {
+                          return scope.toggleWhole;
+                        }
+                      }
+                    ]
                   },
                   {
-                    'type': bindingTypes.TAG,
-                    'getComponent': getComponent,
-
-                    'evaluate': function(
-                      scope
-                    ) {
-                      return 'rhm-route';
-                    },
-
-                    'slots': [
-                      {
-                        'id': 'default',
-                        'html': '<rhm-homepage expr13="expr13" need-loading></rhm-homepage>',
-
-                        'bindings': [
-                          {
-                            'type': bindingTypes.TAG,
-                            'getComponent': getComponent,
-
-                            'evaluate': function(
-                              scope
-                            ) {
-                              return 'rhm-homepage';
-                            },
-
-                            'slots': [],
-                            'attributes': [],
-                            'redundantAttribute': 'expr13',
-                            'selector': '[expr13]'
-                          }
-                        ]
-                      }
-                    ],
-
-                    'attributes': [],
-                    'redundantAttribute': 'expr12',
-                    'selector': '[expr12]'
-                  },
-                  {
-                    'type': bindingTypes.TAG,
-                    'getComponent': getComponent,
-
-                    'evaluate': function(
-                      scope
-                    ) {
-                      return 'rhm-route';
-                    },
-
-                    'slots': [
-                      {
-                        'id': 'default',
-                        'html': '<rhm-replace-test expr15="expr15" need-loading></rhm-replace-test><div>Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr16="expr16" href="users/2"></rhm-navigate><br/><rhm-navigate expr17="expr17" href="users/3"></rhm-navigate><br/><rhm-navigate expr18="expr18" href="users/4"></rhm-navigate></div>',
-
-                        'bindings': [
-                          {
-                            'type': bindingTypes.TAG,
-                            'getComponent': getComponent,
-
-                            'evaluate': function(
-                              scope
-                            ) {
-                              return 'rhm-replace-test';
-                            },
-
-                            'slots': [],
-                            'attributes': [],
-                            'redundantAttribute': 'expr15',
-                            'selector': '[expr15]'
-                          },
-                          {
-                            'type': bindingTypes.TAG,
-                            'getComponent': getComponent,
-
-                            'evaluate': function(
-                              scope
-                            ) {
-                              return 'rhm-navigate';
-                            },
-
-                            'slots': [
-                              {
-                                'id': 'default',
-                                'html': 'Tizio',
-                                'bindings': []
-                              }
-                            ],
-
-                            'attributes': [],
-                            'redundantAttribute': 'expr16',
-                            'selector': '[expr16]'
-                          },
-                          {
-                            'type': bindingTypes.TAG,
-                            'getComponent': getComponent,
-
-                            'evaluate': function(
-                              scope
-                            ) {
-                              return 'rhm-navigate';
-                            },
-
-                            'slots': [
-                              {
-                                'id': 'default',
-                                'html': 'Caio',
-                                'bindings': []
-                              }
-                            ],
-
-                            'attributes': [],
-                            'redundantAttribute': 'expr17',
-                            'selector': '[expr17]'
-                          },
-                          {
-                            'type': bindingTypes.TAG,
-                            'getComponent': getComponent,
-
-                            'evaluate': function(
-                              scope
-                            ) {
-                              return 'rhm-navigate';
-                            },
-
-                            'slots': [
-                              {
-                                'id': 'default',
-                                'html': 'Sempronio',
-                                'bindings': []
-                              }
-                            ],
-
-                            'attributes': [],
-                            'redundantAttribute': 'expr18',
-                            'selector': '[expr18]'
-                          }
-                        ]
-                      }
-                    ],
-
-                    'attributes': [],
                     'redundantAttribute': 'expr14',
-                    'selector': '[expr14]'
+                    'selector': '[expr14]',
+
+                    'expressions': [
+                      {
+                        'type': expressionTypes.EVENT,
+                        'name': 'onclick',
+
+                        'evaluate': function(
+                          scope
+                        ) {
+                          return scope.toggleHome;
+                        }
+                      }
+                    ]
                   },
                   {
-                    'type': bindingTypes.TAG,
-                    'getComponent': getComponent,
+                    'type': bindingTypes.IF,
 
                     'evaluate': function(
                       scope
                     ) {
-                      return 'rhm-route';
+                      return scope.state.visible;
                     },
 
-                    'slots': [
-                      {
-                        'id': 'default',
-                        'html': '<div class="asd"></div><span expr20="expr20"> </span>',
+                    'redundantAttribute': 'expr15',
+                    'selector': '[expr15]',
 
-                        'bindings': [
-                          {
-                            'redundantAttribute': 'expr20',
-                            'selector': '[expr20]',
+                    'template': template(
+                      null,
+                      [
+                        {
+                          'type': bindingTypes.TAG,
+                          'getComponent': getComponent,
 
-                            'expressions': [
-                              {
-                                'type': expressionTypes.TEXT,
-                                'childNodeIndex': 0,
+                          'evaluate': function(
+                            scope
+                          ) {
+                            return 'rhm-router';
+                          },
 
-                                'evaluate': function(
-                                  scope
-                                ) {
-                                  return scope.route.location.href;
+                          'slots': [
+                            {
+                              'id': 'default',
+                              'html': '<rhm-route expr16="expr16" path redirect="home"></rhm-route><rhm-route expr17="expr17" path="home"></rhm-route><rhm-route expr19="expr19" path="me"></rhm-route><rhm-route expr24="expr24" path="users/:id"></rhm-route><rhm-route expr26="expr26" path="(.*)"></rhm-route>',
+
+                              'bindings': [
+                                {
+                                  'type': bindingTypes.TAG,
+                                  'getComponent': getComponent,
+
+                                  'evaluate': function(
+                                    scope
+                                  ) {
+                                    return 'rhm-route';
+                                  },
+
+                                  'slots': [],
+                                  'attributes': [],
+                                  'redundantAttribute': 'expr16',
+                                  'selector': '[expr16]'
+                                },
+                                {
+                                  'type': bindingTypes.IF,
+
+                                  'evaluate': function(
+                                    scope
+                                  ) {
+                                    return scope.state.homeVisible;
+                                  },
+
+                                  'redundantAttribute': 'expr17',
+                                  'selector': '[expr17]',
+
+                                  'template': template(
+                                    null,
+                                    [
+                                      {
+                                        'type': bindingTypes.TAG,
+                                        'getComponent': getComponent,
+
+                                        'evaluate': function(
+                                          scope
+                                        ) {
+                                          return 'rhm-route';
+                                        },
+
+                                        'slots': [
+                                          {
+                                            'id': 'default',
+                                            'html': '<rhm-homepage expr18="expr18" need-loading></rhm-homepage>',
+
+                                            'bindings': [
+                                              {
+                                                'type': bindingTypes.TAG,
+                                                'getComponent': getComponent,
+
+                                                'evaluate': function(
+                                                  scope
+                                                ) {
+                                                  return 'rhm-homepage';
+                                                },
+
+                                                'slots': [],
+                                                'attributes': [],
+                                                'redundantAttribute': 'expr18',
+                                                'selector': '[expr18]'
+                                              }
+                                            ]
+                                          }
+                                        ],
+
+                                        'attributes': []
+                                      }
+                                    ]
+                                  )
+                                },
+                                {
+                                  'type': bindingTypes.TAG,
+                                  'getComponent': getComponent,
+
+                                  'evaluate': function(
+                                    scope
+                                  ) {
+                                    return 'rhm-route';
+                                  },
+
+                                  'slots': [
+                                    {
+                                      'id': 'default',
+                                      'html': '<rhm-replace-test expr20="expr20" need-loading></rhm-replace-test><div>Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr21="expr21" href="users/2"></rhm-navigate><br/><rhm-navigate expr22="expr22" href="users/3"></rhm-navigate><br/><rhm-navigate expr23="expr23" href="users/4"></rhm-navigate></div>',
+
+                                      'bindings': [
+                                        {
+                                          'type': bindingTypes.TAG,
+                                          'getComponent': getComponent,
+
+                                          'evaluate': function(
+                                            scope
+                                          ) {
+                                            return 'rhm-replace-test';
+                                          },
+
+                                          'slots': [],
+                                          'attributes': [],
+                                          'redundantAttribute': 'expr20',
+                                          'selector': '[expr20]'
+                                        },
+                                        {
+                                          'type': bindingTypes.TAG,
+                                          'getComponent': getComponent,
+
+                                          'evaluate': function(
+                                            scope
+                                          ) {
+                                            return 'rhm-navigate';
+                                          },
+
+                                          'slots': [
+                                            {
+                                              'id': 'default',
+                                              'html': 'Tizio',
+                                              'bindings': []
+                                            }
+                                          ],
+
+                                          'attributes': [],
+                                          'redundantAttribute': 'expr21',
+                                          'selector': '[expr21]'
+                                        },
+                                        {
+                                          'type': bindingTypes.TAG,
+                                          'getComponent': getComponent,
+
+                                          'evaluate': function(
+                                            scope
+                                          ) {
+                                            return 'rhm-navigate';
+                                          },
+
+                                          'slots': [
+                                            {
+                                              'id': 'default',
+                                              'html': 'Caio',
+                                              'bindings': []
+                                            }
+                                          ],
+
+                                          'attributes': [],
+                                          'redundantAttribute': 'expr22',
+                                          'selector': '[expr22]'
+                                        },
+                                        {
+                                          'type': bindingTypes.TAG,
+                                          'getComponent': getComponent,
+
+                                          'evaluate': function(
+                                            scope
+                                          ) {
+                                            return 'rhm-navigate';
+                                          },
+
+                                          'slots': [
+                                            {
+                                              'id': 'default',
+                                              'html': 'Sempronio',
+                                              'bindings': []
+                                            }
+                                          ],
+
+                                          'attributes': [],
+                                          'redundantAttribute': 'expr23',
+                                          'selector': '[expr23]'
+                                        }
+                                      ]
+                                    }
+                                  ],
+
+                                  'attributes': [],
+                                  'redundantAttribute': 'expr19',
+                                  'selector': '[expr19]'
+                                },
+                                {
+                                  'type': bindingTypes.TAG,
+                                  'getComponent': getComponent,
+
+                                  'evaluate': function(
+                                    scope
+                                  ) {
+                                    return 'rhm-route';
+                                  },
+
+                                  'slots': [
+                                    {
+                                      'id': 'default',
+                                      'html': '<div class="asd"></div><span expr25="expr25"> </span>',
+
+                                      'bindings': [
+                                        {
+                                          'redundantAttribute': 'expr25',
+                                          'selector': '[expr25]',
+
+                                          'expressions': [
+                                            {
+                                              'type': expressionTypes.TEXT,
+                                              'childNodeIndex': 0,
+
+                                              'evaluate': function(
+                                                scope
+                                              ) {
+                                                return scope.route.location.href;
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ],
+
+                                  'attributes': [],
+                                  'redundantAttribute': 'expr24',
+                                  'selector': '[expr24]'
+                                },
+                                {
+                                  'type': bindingTypes.TAG,
+                                  'getComponent': getComponent,
+
+                                  'evaluate': function(
+                                    scope
+                                  ) {
+                                    return 'rhm-route';
+                                  },
+
+                                  'slots': [
+                                    {
+                                      'id': 'default',
+                                      'html': '\r\n                Page not found\r\n            ',
+                                      'bindings': []
+                                    }
+                                  ],
+
+                                  'attributes': [],
+                                  'redundantAttribute': 'expr26',
+                                  'selector': '[expr26]'
                                 }
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ],
+                              ]
+                            }
+                          ],
 
-                    'attributes': [],
-                    'redundantAttribute': 'expr19',
-                    'selector': '[expr19]'
+                          'attributes': []
+                        }
+                      ]
+                    )
                   }
                 ]
               }
             ],
 
             'attributes': [],
-            'redundantAttribute': 'expr10',
-            'selector': '[expr10]'
+            'redundantAttribute': 'expr12',
+            'selector': '[expr12]'
           }
         ]
       );

@@ -2,29 +2,74 @@
     <slot { ...getSelfSlotProp() }></slot>
 
     <script>
-        import { Router } from "history-manager";
-        import { ROUTER, UNROUTE_METHOD, LAST_ROUTED, IS_ROUTER } from "./constants";
+        import { __ } from "riot";
+        import { Router, HistoryManager } from "history-manager";
+
+        import {
+            IS_UNMOUNTING,
+            LAST_ROUTED,
+            ROUTER,
+            UNROUTE_METHOD
+        } from "./constants";
         import { claim, release } from "./loading-bar";
 
+        const noop = () => { };
+
         export default {
-            getSelfSlotProp() {
-                return { [ROUTER]: this };
-            },
-            onBeforeMount() {
-                this.root[IS_ROUTER] = true;
-                this[UNROUTE_METHOD] = () => {};
-                this[ROUTER] = Router.create();
-            },
-            onMounted() {
-                this[ROUTER].route("(.*)", () => {
+            [IS_UNMOUNTING]: false,
+            _mounted: false,
+            _refesh() {
+                this[ROUTER].destroy();
+                const router = this[ROUTER] = Router.create();
+                Array.prototype.forEach.call(this.root.querySelectorAll("rhm-route"), route => {
+                    route[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY]._setup();
+                });
+                router.route("(.*)", (location, ) => {
                     claim(this); release(this);
                     this[LAST_ROUTED] = null;
                     this[UNROUTE_METHOD]();
-                    this[UNROUTE_METHOD] = () => {};
+                    this[UNROUTE_METHOD] = noop;
                 });
+                // it should check if LAST_ROUTED would be the same,
+                // if so it should not emit
+                router.emit();
+            },
+            getSelfSlotProp() {
+                return { [ROUTER]: this };
+            },
+            isMounted() {
+                return this._mounted;
+            },
+            onBeforeMount() {
+                this[UNROUTE_METHOD] = noop;
+                this[ROUTER] = Router.create();
+            },
+            onMounted() {
+                this[ROUTER].route("(.*)", (location, ) => {
+                    claim(this); release(this);
+                    this[LAST_ROUTED] = null;
+                    this[UNROUTE_METHOD]();
+                    this[UNROUTE_METHOD] = noop;
+                });
+
+                this._mounted = true;
+
+                if (HistoryManager.isStarted()) {
+                    this[ROUTER].emit();
+                }
+            },
+            onBeforeUnmount() {
+                this[IS_UNMOUNTING] = true;
             },
             onUnmounted() {
-                delete this.root[IS_ROUTER];
+                this[IS_UNMOUNTING] = false;
+
+                this[LAST_ROUTED] = null;
+                this[UNROUTE_METHOD] = noop;
+                this[ROUTER].destroy();
+                this[ROUTER] = null;
+
+                this._mounted = false;
             },
             [LAST_ROUTED]: null
         }

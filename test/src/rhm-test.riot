@@ -4,7 +4,7 @@
         <rhm-navigate href="/home"><span style={
             state.path === "home" || state.path === "" ? "text-decoration: underline;": ""
         }>Home</span></rhm-navigate>&nbsp;
-        <rhm-navigate href="me"><span style={
+        <rhm-navigate href="/me"><span style={
             state.path === "me" ? "text-decoration: underline;": ""
         }>Profile</span></rhm-navigate>
         <!--  <navigate context="home" style="color: {
@@ -19,25 +19,34 @@
     <navigate href="users/{ Math.round(Math.random() * 32) }" replace>replace with USERS/:id</navigate>
     <div />
     <div />  -->
-    <template is="rhm-router">
-        <rhm-route path="" redirect="home"></rhm-route>
-        <rhm-route path="home">
-            <rhm-homepage need-loading></rhm-homepage>
-        </rhm-route>
-        <rhm-route path="me">
-            <rhm-replace-test need-loading></rhm-replace-test>
-            <div>Friends:</div>
-            <div style="padding-left: 1em;">
-                <rhm-navigate href="users/2">Tizio</rhm-navigate><br>
-                <rhm-navigate href="users/3">Caio</rhm-navigate><br>
-                <rhm-navigate href="users/4">Sempronio</rhm-navigate>
-            </div>
-        </rhm-route>
-        <rhm-route path="users/:id">
-            <div class="asd"></div>
-            <span>{ route.location.href }</span>
-        </rhm-route>
-    </template>
+    <div>Whole: { state.visible ? "Visible": "Not Visible" }</div>
+    <div>Home: { state.homeVisible ? "Visible": "Not Visible" }</div>
+    <rhm-test-slot-prop>
+        <button onclick={ toggleWhole }>Toggle whole visibility</button><br>
+        <button onclick={ toggleHome }>Toggle home visibility</button>
+        <rhm-router if={ state.visible }>
+            <rhm-route path="" redirect="home"></rhm-route>
+            <rhm-route path="home" if={ state.homeVisible }>
+                <rhm-homepage need-loading></rhm-homepage>
+            </rhm-route>
+            <rhm-route path="me">
+                <rhm-replace-test need-loading></rhm-replace-test>
+                <div>Friends:</div>
+                <div style="padding-left: 1em;">
+                    <rhm-navigate href="users/2">Tizio</rhm-navigate><br>
+                    <rhm-navigate href="users/3">Caio</rhm-navigate><br>
+                    <rhm-navigate href="users/4">Sempronio</rhm-navigate>
+                </div>
+            </rhm-route>
+            <rhm-route path="users/:id">
+                <div class="asd"></div>
+                <span>{ route.location.href }</span>
+            </rhm-route>
+            <rhm-route path="(.*)">
+                Page not found
+            </rhm-route>
+        </rhm-router>
+    </rhm-test-slot-prop>
 
     <style>
         .asd {
@@ -50,6 +59,7 @@
     <script>
         import { Router, HistoryManager, URLManager } from "history-manager";
         import lazy from "@riotjs/lazy";
+        import TestSlotProp from "./rhm-test-slot-prop.riot";
         window.Router = Router;
         window.HistoryManager = HistoryManager;
         
@@ -60,21 +70,21 @@
         Router.setContext({
             name: "home",
             paths: [
-                { path: "home" }// ,
+                { path: "/home" }// ,
                 // { path: "me" },
                 // { path: "accedi", fallback: true },
                 // { path: "users/:id", fallback: true }
             ],
-            default: "home"
+            default: "/home"
         });
         Router.setContext({
             name: "profile",
             paths: [
-                { path: "me" },
-                { path: "accedi", fallback: true },
-                { path: "users/:id", fallback: true }
+                { path: "/me" },
+                { path: "/accedi", fallback: true },
+                { path: "/users/:id", fallback: true }
             ],
-            default: "me"
+            default: "/me"
         });
 
         export default {
@@ -91,7 +101,18 @@
             },
             components: {
                 "rhm-homepage": lazy(() => import('./rhm-homepage.riot')),
-                "rhm-replace-test": lazy(() => import('./rhm-replace-test.riot'))
+                "rhm-replace-test": lazy(() => import('./rhm-replace-test.riot')),
+                "rhm-test-slot-prop": TestSlotProp
+            },
+            state: {
+                visible: true,
+                homeVisible: false
+            },
+            toggleHome() {
+                this.update({ homeVisible: !this.state.homeVisible });
+            },
+            toggleWhole() {
+                this.update({ visible: !this.state.visible });
             }
         }
     </script>
