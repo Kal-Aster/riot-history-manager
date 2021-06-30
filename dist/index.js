@@ -367,8 +367,8 @@
         }
     };
     function getRouter(element) {
-        var tag = parent[riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
-        if (tag && tag.name === "router") {
+        var tag = element[riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+        if (tag && tag.name === "rhm-router") {
             return tag;
         }
         return null;
@@ -384,7 +384,7 @@
             stop = true;
         };
         function propagateEvent(child) {
-            var routerTag = getRouter();
+            var routerTag = getRouter(child);
             if (routerTag) {
                 if (collectRouter != null) {
                     collectRouter.push(routerTag);
@@ -407,7 +407,7 @@
                 }
                 default: return true;
             }
-            var isLoader = collectLoaders != null && child.matches("[need-loading]:not([need-loading='false'])");
+            var isLoader = collectLoaders != null && (function (attr) { return attr != null && attr !== "false"; })(child.getAttribute("need-loading"));
             if (isLoader) {
                 child.addEventListener("load", function load() {
                     child.removeEventListener("load", load);

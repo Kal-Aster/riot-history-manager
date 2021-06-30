@@ -1469,7 +1469,7 @@
                 throw new TypeError("invalid base value");
             }
             value += "/";
-            value.replace(parenthesesRegex, "/");
+            value = value.replace(parenthesesRegex, "/");
             if (value[0] !== "#" && value[0] !== "/") {
                 value = "/" + value;
             }
@@ -1482,7 +1482,7 @@
     }
     function get() {
         var LOCATION = getLocation$1();
-        return prepare(clearHref().split(LOCATION).slice(1).join(LOCATION).split(BASE).slice(1).join(BASE));
+        return ("/" + prepare(clearHref().split(LOCATION).slice(1).join(LOCATION).split(BASE).slice(1).join(BASE))).replace(parenthesesRegex, "/");
     }
     function construct(href, full) {
         if (full === void 0) { full = false; }
@@ -2746,7 +2746,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr5="expr5"></slot>',
+          '<slot expr3="expr3"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -2765,8 +2765,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr5',
-              'selector': '[expr5]'
+              'redundantAttribute': 'expr3',
+              'selector': '[expr3]'
             }
           ]
         );
@@ -2871,8 +2871,8 @@
         }
     };
     function getRouter(element) {
-        var tag = parent[riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
-        if (tag && tag.name === "router") {
+        var tag = element[riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+        if (tag && tag.name === "rhm-router") {
             return tag;
         }
         return null;
@@ -2888,7 +2888,7 @@
             stop = true;
         };
         function propagateEvent(child) {
-            var routerTag = getRouter();
+            var routerTag = getRouter(child);
             if (routerTag) {
                 if (collectRouter != null) {
                     collectRouter.push(routerTag);
@@ -2911,7 +2911,7 @@
                 }
                 default: return true;
             }
-            var isLoader = collectLoaders != null && child.matches("[need-loading]:not([need-loading='false'])");
+            var isLoader = collectLoaders != null && (function (attr) { return attr != null && attr !== "false"; })(child.getAttribute("need-loading"));
             if (isLoader) {
                 child.addEventListener("load", function load() {
                     child.removeEventListener("load", load);
@@ -3236,11 +3236,11 @@
         getComponent
       ) {
         return template(
-          '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
+          '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr3',
-              'selector': '[expr3]',
+              'redundantAttribute': 'expr4',
+              'selector': '[expr4]',
 
               'expressions': [
                 {
@@ -3275,8 +3275,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr4',
-              'selector': '[expr4]'
+              'redundantAttribute': 'expr5',
+              'selector': '[expr5]'
             }
           ]
         );

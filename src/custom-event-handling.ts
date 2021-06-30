@@ -116,23 +116,17 @@ HTMLElement.prototype.removeEventListener = function (
     }
 };
 
-export function isRouter(element: Element): any {
-    return element.matches("router,[" + (riot as any).__.globals.IS_DIRECTIVE + "=\"router\"]");
-}
 export function getRouter(element: Element): any {
-    let tag: any = parent[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
-    if (tag && tag.name === "router") {
+    let tag: any = element[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+    if (tag && tag.name === "rhm-router") {
         return tag;
     }
     return null;
 }
 
-export function isRoute(element: Element): any {
-    return element.matches("route,[" + (riot as any).__.globals.IS_DIRECTIVE + "=\"route\"]");
-}
 export function getRoute(element: Element): any {
-    let tag: any = parent[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
-    if (tag && tag.name === "route") {
+    let tag: any = element[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+    if (tag && tag.name === "rhm-route") {
         return tag;
     }
     return null;
@@ -179,7 +173,7 @@ export function dispatchEventOver(children: Array<Element>, event: Event, collec
             }
             default: return true;
         }
-        let isLoader: boolean = collectLoaders != null && child.matches("[need-loading]:not([need-loading='false'])");
+        let isLoader: boolean = collectLoaders != null && ((attr) => attr != null && attr !== "false")(child.getAttribute("need-loading"));
         if (isLoader) {
             child.addEventListener("load", function load(): void {
                 child.removeEventListener("load", load);

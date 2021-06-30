@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2021-06-30
+- better check for "need-loading" elements
+
 ## [2.1.0] - 2021-06-29
 - fix mount-unmount lifecycle
 
