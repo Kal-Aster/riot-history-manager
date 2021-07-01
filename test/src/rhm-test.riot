@@ -26,19 +26,20 @@
         <button onclick={ toggleHome }>Toggle home visibility</button>
         <rhm-router if={ state.visible }>
             <rhm-route path="" redirect="home"></rhm-route>
-            <rhm-route path="home" if={ state.homeVisible }>
+            <rhm-route path="home" title="Home" if={ state.homeVisible }>
                 <rhm-homepage need-loading></rhm-homepage>
             </rhm-route>
-            <rhm-route path="me">
+            <rhm-route path="me" title="Profilo">
                 <rhm-replace-test need-loading></rhm-replace-test>
                 <div>Friends:</div>
                 <div style="padding-left: 1em;">
-                    <rhm-navigate href="users/2">Tizio</rhm-navigate><br>
-                    <rhm-navigate href="users/3">Caio</rhm-navigate><br>
-                    <rhm-navigate href="users/4">Sempronio</rhm-navigate>
+                    <rhm-navigate href="/users/2">Tizio</rhm-navigate><br>
+                    <rhm-navigate href="/users/3">Caio</rhm-navigate><br>
+                    <rhm-navigate href="/users/4">Sempronio</rhm-navigate>
                 </div>
             </rhm-route>
             <rhm-route path="users/:id">
+                <div if={(window.document.title = `Utente #${route.keymap.get("id")}`) && false}></div>
                 <div class="asd"></div>
                 <span>{ route.location.href }</span>
             </rhm-route>

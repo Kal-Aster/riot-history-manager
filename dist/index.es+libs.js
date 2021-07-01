@@ -3000,6 +3000,9 @@ function onloadingcomplete(routeComponent, currentMount, route, router, claimer)
         routerUNROUTE();
         router[UNROUTE_METHOD] = thisUNROUTE;
         currentEl.style.display = "block";
+        if (typeof routeComponent.props.title === "string") {
+            document.title = routeComponent.props.title;
+        }
         {
             const routeEvent = new CustomEvent("route", { cancelable: false, detail: {
                 location: route.location,
