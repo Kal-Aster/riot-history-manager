@@ -1457,7 +1457,7 @@
     }
 
     var BASE = "#";
-    var LOCATION_BASE = window.location.protocol + "//" + window.location.host + (window.location.port ? ":" + window.location.port : "");
+    var LOCATION_BASE = window.location.protocol + "//" + window.location.host;
     var LOCATION_PATHNAME = window.location.pathname;
     function getLocation$1() {
         return LOCATION_BASE + (BASE[0] === "#" ? LOCATION_PATHNAME : "");
@@ -2746,7 +2746,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr3="expr3"></slot>',
+          '<slot expr5="expr5"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -2765,8 +2765,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr3',
-              'selector': '[expr3]'
+              'redundantAttribute': 'expr5',
+              'selector': '[expr5]'
             }
           ]
         );
@@ -3239,11 +3239,11 @@
         getComponent
       ) {
         return template(
-          '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
+          '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr4',
-              'selector': '[expr4]',
+              'redundantAttribute': 'expr3',
+              'selector': '[expr3]',
 
               'expressions': [
                 {
@@ -3278,8 +3278,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr5',
-              'selector': '[expr5]'
+              'redundantAttribute': 'expr4',
+              'selector': '[expr4]'
             }
           ]
         );

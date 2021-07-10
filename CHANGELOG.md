@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2021-07-10
+- update dependencies
+
 ## [2.2.0] - 2021-07-07
 - add "title" prop in `rhm-route`
 

@@ -3905,7 +3905,7 @@ define(['require'], function (require) { 'use strict';
   }
 
   var BASE = "#";
-  var LOCATION_BASE = window.location.protocol + "//" + window.location.host + (window.location.port ? ":" + window.location.port : "");
+  var LOCATION_BASE = window.location.protocol + "//" + window.location.host;
   var LOCATION_PATHNAME = window.location.pathname;
   function getLocation$1() {
       return LOCATION_BASE + (BASE[0] === "#" ? LOCATION_PATHNAME : "");
