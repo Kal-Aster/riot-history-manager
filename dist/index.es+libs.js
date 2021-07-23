@@ -1,11 +1,22 @@
 import * as riot from 'riot';
 import { __, register } from 'riot';
 
-var loadingBar = document.body.appendChild(document.createElement("div"));
-var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
-loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
-loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+var loadingBar = null;
+var loadingBarContainer = null;
+function getLoadingElements() {
+    var container = loadingBarContainer;
+    if (container === null) {
+        (container = loadingBarContainer = document.body.appendChild(document.createElement("div"))).setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
+    }
+    var bar = loadingBar;
+    if (bar === null) {
+        (bar = loadingBar = container.appendChild(document.createElement("div"))).setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+    }
+    return {
+        container: container,
+        bar: bar
+    };
+}
 var actualClaimedBy = null;
 var nextFrame = -1;
 var loadingProgress = 0;
@@ -25,6 +36,7 @@ function startLoading() {
     }
     var lastTime;
     var eventDispatched = false;
+    var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
     var step = function () {
         nextFrame = -1;
         if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
@@ -67,7 +79,7 @@ function claim(claimer) {
         return;
     }
     actualClaimedBy = claimer;
-    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+    claimedWhenVisible = getLoadingElements().container.style.display === "block" ? loadingProgress : 5;
     loadingProgress = 5;
     loadingDone = false;
     startLoading();
@@ -89,6 +101,7 @@ var rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(
 var shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
 var hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
 function applyColor(r, g, b) {
+    var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
     loadingBar.style.background = "rgb(" + r + "," + g + "," + b + ")";
     loadingBarContainer.style.background = "rgb(" + r + "," + g + "," + b + ",0.5)";
 }
@@ -2817,98 +2830,109 @@ var RouterComponent = {
 var ONBEFOREROUTE = Symbol("onbeforeroute");
 var ONUNROUTE = Symbol("onunroute");
 var ONROUTE = Symbol("onroute");
-var HTMLElementAddEventListener = HTMLElement.prototype.addEventListener;
-HTMLElement.prototype.addEventListener = function (type, listener, options) {
-    if (options === void 0) { options = false; }
-    switch (type) {
-        case "beforeroute": {
-            var onbeforeroute = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
-            var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            onbeforeroute.push({ listener: listener, useCapture: useCapture });
-            break;
-        }
-        case "unroute": {
-            var onunroute = this[ONUNROUTE] = this[ONUNROUTE] || [];
-            var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            onunroute.push({ listener: listener, useCapture: useCapture });
-            break;
-        }
-        case "route": {
-            var onroute = this[ONROUTE] = this[ONROUTE] || [];
-            var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            onroute.push({ listener: listener, useCapture: useCapture });
-            break;
-        }
-        default: {
-            return HTMLElementAddEventListener.call(this, type, listener, options);
-        }
+var destroyer = null;
+function init() {
+    if (destroyer !== null) {
+        return destroyer;
     }
-};
-var HTMLElementRemoveEventListener = HTMLElement.prototype.removeEventListener;
-HTMLElement.prototype.removeEventListener = function (type, listener, options) {
-    switch (type) {
-        case "beforeroute": {
-            var onbeforeroute = this[ONBEFOREROUTE];
-            if (!onbeforeroute) {
-                return;
+    var HTMLElementAddEventListener = HTMLElement.prototype.addEventListener;
+    HTMLElement.prototype.addEventListener = function (type, listener, options) {
+        if (options === void 0) { options = false; }
+        switch (type) {
+            case "beforeroute": {
+                var onbeforeroute = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
+                var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                onbeforeroute.push({ listener: listener, useCapture: useCapture });
+                break;
             }
-            var useCapture_1 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            var index_1 = -1;
-            if (!onbeforeroute.some(function (l, i) {
-                if (l.listener === listener && l.useCapture === useCapture_1) {
-                    index_1 = i;
-                    return true;
+            case "unroute": {
+                var onunroute = this[ONUNROUTE] = this[ONUNROUTE] || [];
+                var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                onunroute.push({ listener: listener, useCapture: useCapture });
+                break;
+            }
+            case "route": {
+                var onroute = this[ONROUTE] = this[ONROUTE] || [];
+                var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                onroute.push({ listener: listener, useCapture: useCapture });
+                break;
+            }
+            default: {
+                return HTMLElementAddEventListener.call(this, type, listener, options);
+            }
+        }
+    };
+    var HTMLElementRemoveEventListener = HTMLElement.prototype.removeEventListener;
+    HTMLElement.prototype.removeEventListener = function (type, listener, options) {
+        switch (type) {
+            case "beforeroute": {
+                var onbeforeroute = this[ONBEFOREROUTE];
+                if (!onbeforeroute) {
+                    return;
                 }
-                return false;
-            })) {
-                return;
-            }
-            onbeforeroute.slice(index_1, 1);
-            break;
-        }
-        case "unroute": {
-            var onunroute = this[ONUNROUTE];
-            if (!onunroute) {
-                return;
-            }
-            var useCapture_2 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            var index_2 = -1;
-            if (!onunroute.some(function (l, i) {
-                if (l.listener === listener && l.useCapture === useCapture_2) {
-                    index_2 = i;
-                    return true;
+                var useCapture_1 = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                var index_1 = -1;
+                if (!onbeforeroute.some(function (l, i) {
+                    if (l.listener === listener && l.useCapture === useCapture_1) {
+                        index_1 = i;
+                        return true;
+                    }
+                    return false;
+                })) {
+                    return;
                 }
-                return false;
-            })) {
-                return;
+                onbeforeroute.slice(index_1, 1);
+                break;
             }
-            onunroute.slice(index_2, 1);
-            break;
-        }
-        case "route": {
-            var onroute = this[ONROUTE];
-            if (!onroute) {
-                return;
-            }
-            var useCapture_3 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            var index_3 = -1;
-            if (!onroute.some(function (l, i) {
-                if (l.listener === listener && l.useCapture === useCapture_3) {
-                    index_3 = i;
-                    return true;
+            case "unroute": {
+                var onunroute = this[ONUNROUTE];
+                if (!onunroute) {
+                    return;
                 }
-                return false;
-            })) {
-                return;
+                var useCapture_2 = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                var index_2 = -1;
+                if (!onunroute.some(function (l, i) {
+                    if (l.listener === listener && l.useCapture === useCapture_2) {
+                        index_2 = i;
+                        return true;
+                    }
+                    return false;
+                })) {
+                    return;
+                }
+                onunroute.slice(index_2, 1);
+                break;
             }
-            onroute.slice(index_3, 1);
-            break;
+            case "route": {
+                var onroute = this[ONROUTE];
+                if (!onroute) {
+                    return;
+                }
+                var useCapture_3 = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                var index_3 = -1;
+                if (!onroute.some(function (l, i) {
+                    if (l.listener === listener && l.useCapture === useCapture_3) {
+                        index_3 = i;
+                        return true;
+                    }
+                    return false;
+                })) {
+                    return;
+                }
+                onroute.slice(index_3, 1);
+                break;
+            }
+            default: {
+                return HTMLElementRemoveEventListener.call(this, type, listener, options);
+            }
         }
-        default: {
-            return HTMLElementRemoveEventListener.call(this, type, listener, options);
-        }
-    }
-};
+    };
+    return destroyer = function () {
+        HTMLElement.prototype.addEventListener = HTMLElementAddEventListener;
+        HTMLElement.prototype.removeEventListener = HTMLElementRemoveEventListener;
+        destroyer = null;
+    };
+}
 function getRouter(element) {
     var tag = element[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
     if (tag && tag.name === "rhm-router") {
@@ -3161,6 +3185,10 @@ var RouteComponent = {
         } else {
             router.route(this._path = this.props.path, this._onroute = onroute(this));
         }
+    },
+
+    onBeforeMount() {
+        init();
     },
 
     onMounted() {

@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2021-07-10
+- remove any setup at module import
+
 ## [3.1.0] - 2021-07-10
 - update dependencies
 

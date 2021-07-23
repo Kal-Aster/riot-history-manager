@@ -9,7 +9,7 @@
             IS_UNMOUNTING
         } from "./constants";
         import * as loadingBar from "./loading-bar";
-        import { dispatchEventOver } from "./custom-event-handling";
+        import { init, dispatchEventOver } from "./custom-event-handling";
 
         function onunroute(routeComponent, currentMount, route, router, shouldFireEvent, shouldResetUnroute) {
             const currentEl = currentMount.el;
@@ -163,6 +163,9 @@
                 } else {
                     router.route(this._path = this.props.path, this._onroute = onroute(this));
                 }
+            },
+            onBeforeMount() {
+                init();
             },
             onMounted() {
                 const placeholder = this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");

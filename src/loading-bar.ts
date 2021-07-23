@@ -1,14 +1,26 @@
-let loadingBar: HTMLElement = document.body.appendChild(document.createElement("div"));
-let loadingBarContainer: HTMLElement = document.body.appendChild(document.createElement("div"));
-loadingBarContainer.setAttribute(
-    "style",
-    "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;"
-);
-loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
-loadingBar.setAttribute(
-    "style",
-    "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;"
-);
+let loadingBar: HTMLElement | null = null;
+let loadingBarContainer: HTMLElement | null = null;
+
+function getLoadingElements() {
+    let container = loadingBarContainer;
+    if (container === null) {
+        (container = loadingBarContainer = document.body.appendChild(document.createElement("div"))).setAttribute(
+            "style",
+            "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;"
+        );
+    }
+    let bar = loadingBar;
+    if (bar === null) {
+        (bar = loadingBar = container!.appendChild(document.createElement("div"))).setAttribute(
+            "style",
+            "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;"
+        );
+    }
+    return {
+        container: container!,
+        bar: bar!
+    };
+}
 let actualClaimedBy: any = null;
 let nextFrame: number = -1;
 let loadingProgress: number = 0;
@@ -31,6 +43,7 @@ function startLoading(): void {
     }
     let lastTime: number;
     let eventDispatched: boolean = false;
+    const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
     let step: () => void = () => {
         nextFrame = -1;
         if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
@@ -79,7 +92,7 @@ export function claim(claimer: any): void {
     }
     // ricomincia il progresso della barra, gestita da un altro processo
     actualClaimedBy = claimer;
-    claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+    claimedWhenVisible = getLoadingElements().container.style.display === "block" ? loadingProgress : 5;
     loadingProgress = 5;
     loadingDone = false;
     lastClaim = Date.now();
@@ -107,6 +120,7 @@ const shortHexRegex: RegExp = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/
 const hexRegex: RegExp = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
 
 function applyColor(r: number, g: number, b: number): void {
+    const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
     loadingBar.style.background = `rgb(${r},${g},${b})`;
     loadingBarContainer.style.background = `rgb(${r},${g},${b},0.5)`;
 }

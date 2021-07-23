@@ -31,7 +31,7 @@
             </rhm-route>
             <rhm-route path="me" title="Profilo">
                 <rhm-replace-test need-loading></rhm-replace-test>
-                <div>Friends:</div>
+                <div onroute={ () => console.log("routed") }>Friends:</div>
                 <div style="padding-left: 1em;">
                     <rhm-navigate href="/users/2">Tizio</rhm-navigate><br>
                     <rhm-navigate href="/users/3">Caio</rhm-navigate><br>

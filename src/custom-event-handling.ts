@@ -15,106 +15,117 @@ type ListenerObject = {
     listener: EventListener,
     useCapture: boolean
 };
-let HTMLElementAddEventListener: typeof HTMLElement.prototype.addEventListener = HTMLElement.prototype.addEventListener;
-HTMLElement.prototype.addEventListener = function (
-    type: string,
-    listener: EventListener,
-    options: boolean | AddEventListenerOptions = false
-): void {
-    switch (type) {
-        case "beforeroute": {
-            let onbeforeroute: Array<ListenerObject> = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
-            let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            onbeforeroute.push({ listener, useCapture });
-            break;
-        }
-        case "unroute": {
-            let onunroute: Array<ListenerObject> = this[ONUNROUTE] = this[ONUNROUTE] || [];
-            let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            onunroute.push({ listener, useCapture });
-            break;
-        }
-        case "route": {
-            let onroute: Array<ListenerObject> = this[ONROUTE] = this[ONROUTE] || [];
-            let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            onroute.push({ listener, useCapture });
-            break;
-        }
-        default: {
-            return HTMLElementAddEventListener.call(this, type, listener, options);
-        }
+let destroyer: (() => void) | null = null;
+export function init() {
+    if (destroyer !== null) {
+        return destroyer;
     }
-};
-let HTMLElementRemoveEventListener: typeof HTMLElement.prototype.removeEventListener = HTMLElement.prototype.removeEventListener;
-HTMLElement.prototype.removeEventListener = function (
-    this: HTMLElement,
-    type: string,
-    listener: (this: HTMLElement, ev: Event) => any,
-    options?: boolean | AddEventListenerOptions
-): void {
-    switch (type) {
-        case "beforeroute": {
-            let onbeforeroute: Array<ListenerObject> = this[ONBEFOREROUTE];
-            if (!onbeforeroute) {
-                return;
+    let HTMLElementAddEventListener: typeof HTMLElement.prototype.addEventListener = HTMLElement.prototype.addEventListener;
+    HTMLElement.prototype.addEventListener = function (
+        type: string,
+        listener: EventListener,
+        options: boolean | AddEventListenerOptions = false
+    ): void {
+        switch (type) {
+            case "beforeroute": {
+                let onbeforeroute: Array<ListenerObject> = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
+                let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                onbeforeroute.push({ listener, useCapture });
+                break;
             }
-            let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            let index: number = -1;
-            if (!onbeforeroute.some((l, i) => {
-                if (l.listener === listener && l.useCapture === useCapture) {
-                    index = i;
-                    return true;
+            case "unroute": {
+                let onunroute: Array<ListenerObject> = this[ONUNROUTE] = this[ONUNROUTE] || [];
+                let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                onunroute.push({ listener, useCapture });
+                break;
+            }
+            case "route": {
+                let onroute: Array<ListenerObject> = this[ONROUTE] = this[ONROUTE] || [];
+                let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                onroute.push({ listener, useCapture });
+                break;
+            }
+            default: {
+                return HTMLElementAddEventListener.call(this, type, listener, options);
+            }
+        }
+    };
+    let HTMLElementRemoveEventListener: typeof HTMLElement.prototype.removeEventListener = HTMLElement.prototype.removeEventListener;
+    HTMLElement.prototype.removeEventListener = function (
+        this: HTMLElement,
+        type: string,
+        listener: (this: HTMLElement, ev: Event) => any,
+        options?: boolean | AddEventListenerOptions
+    ): void {
+        switch (type) {
+            case "beforeroute": {
+                let onbeforeroute: Array<ListenerObject> = this[ONBEFOREROUTE];
+                if (!onbeforeroute) {
+                    return;
                 }
-                return false;
-            })) {
-                return;
-            }
-            onbeforeroute.slice(index, 1);
-            break;
-        }
-        case "unroute": {
-            let onunroute: Array<ListenerObject> = this[ONUNROUTE];
-            if (!onunroute) {
-                return;
-            }
-            let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            let index: number = -1;
-            if (!onunroute.some((l, i) => {
-                if (l.listener === listener && l.useCapture === useCapture) {
-                    index = i;
-                    return true;
+                let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                let index: number = -1;
+                if (!onbeforeroute.some((l, i) => {
+                    if (l.listener === listener && l.useCapture === useCapture) {
+                        index = i;
+                        return true;
+                    }
+                    return false;
+                })) {
+                    return;
                 }
-                return false;
-            })) {
-                return;
+                onbeforeroute.slice(index, 1);
+                break;
             }
-            onunroute.slice(index, 1);
-            break;
-        }
-        case "route": {
-            let onroute: Array<ListenerObject> = this[ONROUTE];
-            if (!onroute) {
-                return;
-            }
-            let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
-            let index: number = -1;
-            if (!onroute.some((l, i) => {
-                if (l.listener === listener && l.useCapture === useCapture) {
-                    index = i;
-                    return true;
+            case "unroute": {
+                let onunroute: Array<ListenerObject> = this[ONUNROUTE];
+                if (!onunroute) {
+                    return;
                 }
-                return false;
-            })) {
-                return;
+                let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                let index: number = -1;
+                if (!onunroute.some((l, i) => {
+                    if (l.listener === listener && l.useCapture === useCapture) {
+                        index = i;
+                        return true;
+                    }
+                    return false;
+                })) {
+                    return;
+                }
+                onunroute.slice(index, 1);
+                break;
             }
-            onroute.slice(index, 1);
-            break;
+            case "route": {
+                let onroute: Array<ListenerObject> = this[ONROUTE];
+                if (!onroute) {
+                    return;
+                }
+                let useCapture: boolean = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                let index: number = -1;
+                if (!onroute.some((l, i) => {
+                    if (l.listener === listener && l.useCapture === useCapture) {
+                        index = i;
+                        return true;
+                    }
+                    return false;
+                })) {
+                    return;
+                }
+                onroute.slice(index, 1);
+                break;
+            }
+            default: {
+                return HTMLElementRemoveEventListener.call(this, type, listener, options);
+            }
         }
-        default: {
-            return HTMLElementRemoveEventListener.call(this, type, listener, options);
-        }
-    }
-};
+    };
+    return destroyer = () => {
+        HTMLElement.prototype.addEventListener = HTMLElementAddEventListener;
+        HTMLElement.prototype.removeEventListener = HTMLElementRemoveEventListener;
+        destroyer = null;
+    };
+}
 
 export function getRouter(element: Element): any {
     let tag: any = element[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];

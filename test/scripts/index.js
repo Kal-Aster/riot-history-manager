@@ -2496,11 +2496,22 @@ define(['require'], function (require) { 'use strict';
     globals
   };
 
-  var loadingBar = document.body.appendChild(document.createElement("div"));
-  var loadingBarContainer = document.body.appendChild(document.createElement("div"));
-  loadingBarContainer.setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
-  loadingBar = loadingBarContainer.appendChild(document.createElement("div"));
-  loadingBar.setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+  var loadingBar = null;
+  var loadingBarContainer = null;
+  function getLoadingElements() {
+      var container = loadingBarContainer;
+      if (container === null) {
+          (container = loadingBarContainer = document.body.appendChild(document.createElement("div"))).setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
+      }
+      var bar = loadingBar;
+      if (bar === null) {
+          (bar = loadingBar = container.appendChild(document.createElement("div"))).setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
+      }
+      return {
+          container: container,
+          bar: bar
+      };
+  }
   var actualClaimedBy = null;
   var nextFrame = -1;
   var loadingProgress = 0;
@@ -2520,6 +2531,7 @@ define(['require'], function (require) { 'use strict';
       }
       var lastTime;
       var eventDispatched = false;
+      var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
       var step = function () {
           nextFrame = -1;
           if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
@@ -2562,7 +2574,7 @@ define(['require'], function (require) { 'use strict';
           return;
       }
       actualClaimedBy = claimer;
-      claimedWhenVisible = loadingBarContainer.style.display === "block" ? loadingProgress : 5;
+      claimedWhenVisible = getLoadingElements().container.style.display === "block" ? loadingProgress : 5;
       loadingProgress = 5;
       loadingDone = false;
       startLoading();
@@ -2581,6 +2593,7 @@ define(['require'], function (require) { 'use strict';
   var shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
   var hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
   function applyColor(r, g, b) {
+      var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
       loadingBar.style.background = "rgb(" + r + "," + g + "," + b + ")";
       loadingBarContainer.style.background = "rgb(" + r + "," + g + "," + b + ",0.5)";
   }
@@ -5267,7 +5280,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr28="expr28"></slot>',
+        '<slot expr29="expr29"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5286,8 +5299,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr28',
-            'selector': '[expr28]'
+            'redundantAttribute': 'expr29',
+            'selector': '[expr29]'
           }
         ]
       );
@@ -5299,98 +5312,109 @@ define(['require'], function (require) { 'use strict';
   var ONBEFOREROUTE = Symbol("onbeforeroute");
   var ONUNROUTE = Symbol("onunroute");
   var ONROUTE = Symbol("onroute");
-  var HTMLElementAddEventListener = HTMLElement.prototype.addEventListener;
-  HTMLElement.prototype.addEventListener = function (type, listener, options) {
-      if (options === void 0) { options = false; }
-      switch (type) {
-          case "beforeroute": {
-              var onbeforeroute = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
-              var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-              onbeforeroute.push({ listener: listener, useCapture: useCapture });
-              break;
-          }
-          case "unroute": {
-              var onunroute = this[ONUNROUTE] = this[ONUNROUTE] || [];
-              var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-              onunroute.push({ listener: listener, useCapture: useCapture });
-              break;
-          }
-          case "route": {
-              var onroute = this[ONROUTE] = this[ONROUTE] || [];
-              var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-              onroute.push({ listener: listener, useCapture: useCapture });
-              break;
-          }
-          default: {
-              return HTMLElementAddEventListener.call(this, type, listener, options);
-          }
+  var destroyer = null;
+  function init() {
+      if (destroyer !== null) {
+          return destroyer;
       }
-  };
-  var HTMLElementRemoveEventListener = HTMLElement.prototype.removeEventListener;
-  HTMLElement.prototype.removeEventListener = function (type, listener, options) {
-      switch (type) {
-          case "beforeroute": {
-              var onbeforeroute = this[ONBEFOREROUTE];
-              if (!onbeforeroute) {
-                  return;
+      var HTMLElementAddEventListener = HTMLElement.prototype.addEventListener;
+      HTMLElement.prototype.addEventListener = function (type, listener, options) {
+          if (options === void 0) { options = false; }
+          switch (type) {
+              case "beforeroute": {
+                  var onbeforeroute = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
+                  var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                  onbeforeroute.push({ listener: listener, useCapture: useCapture });
+                  break;
               }
-              var useCapture_1 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-              var index_1 = -1;
-              if (!onbeforeroute.some(function (l, i) {
-                  if (l.listener === listener && l.useCapture === useCapture_1) {
-                      index_1 = i;
-                      return true;
+              case "unroute": {
+                  var onunroute = this[ONUNROUTE] = this[ONUNROUTE] || [];
+                  var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                  onunroute.push({ listener: listener, useCapture: useCapture });
+                  break;
+              }
+              case "route": {
+                  var onroute = this[ONROUTE] = this[ONROUTE] || [];
+                  var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                  onroute.push({ listener: listener, useCapture: useCapture });
+                  break;
+              }
+              default: {
+                  return HTMLElementAddEventListener.call(this, type, listener, options);
+              }
+          }
+      };
+      var HTMLElementRemoveEventListener = HTMLElement.prototype.removeEventListener;
+      HTMLElement.prototype.removeEventListener = function (type, listener, options) {
+          switch (type) {
+              case "beforeroute": {
+                  var onbeforeroute = this[ONBEFOREROUTE];
+                  if (!onbeforeroute) {
+                      return;
                   }
-                  return false;
-              })) {
-                  return;
-              }
-              onbeforeroute.slice(index_1, 1);
-              break;
-          }
-          case "unroute": {
-              var onunroute = this[ONUNROUTE];
-              if (!onunroute) {
-                  return;
-              }
-              var useCapture_2 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-              var index_2 = -1;
-              if (!onunroute.some(function (l, i) {
-                  if (l.listener === listener && l.useCapture === useCapture_2) {
-                      index_2 = i;
-                      return true;
+                  var useCapture_1 = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                  var index_1 = -1;
+                  if (!onbeforeroute.some(function (l, i) {
+                      if (l.listener === listener && l.useCapture === useCapture_1) {
+                          index_1 = i;
+                          return true;
+                      }
+                      return false;
+                  })) {
+                      return;
                   }
-                  return false;
-              })) {
-                  return;
+                  onbeforeroute.slice(index_1, 1);
+                  break;
               }
-              onunroute.slice(index_2, 1);
-              break;
-          }
-          case "route": {
-              var onroute = this[ONROUTE];
-              if (!onroute) {
-                  return;
-              }
-              var useCapture_3 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-              var index_3 = -1;
-              if (!onroute.some(function (l, i) {
-                  if (l.listener === listener && l.useCapture === useCapture_3) {
-                      index_3 = i;
-                      return true;
+              case "unroute": {
+                  var onunroute = this[ONUNROUTE];
+                  if (!onunroute) {
+                      return;
                   }
-                  return false;
-              })) {
-                  return;
+                  var useCapture_2 = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                  var index_2 = -1;
+                  if (!onunroute.some(function (l, i) {
+                      if (l.listener === listener && l.useCapture === useCapture_2) {
+                          index_2 = i;
+                          return true;
+                      }
+                      return false;
+                  })) {
+                      return;
+                  }
+                  onunroute.slice(index_2, 1);
+                  break;
               }
-              onroute.slice(index_3, 1);
-              break;
+              case "route": {
+                  var onroute = this[ONROUTE];
+                  if (!onroute) {
+                      return;
+                  }
+                  var useCapture_3 = typeof options === "boolean" ? options : options ? options.capture != null : false;
+                  var index_3 = -1;
+                  if (!onroute.some(function (l, i) {
+                      if (l.listener === listener && l.useCapture === useCapture_3) {
+                          index_3 = i;
+                          return true;
+                      }
+                      return false;
+                  })) {
+                      return;
+                  }
+                  onroute.slice(index_3, 1);
+                  break;
+              }
+              default: {
+                  return HTMLElementRemoveEventListener.call(this, type, listener, options);
+              }
           }
-          default: {
-              return HTMLElementRemoveEventListener.call(this, type, listener, options);
-          }
-      }
-  };
+      };
+      return destroyer = function () {
+          HTMLElement.prototype.addEventListener = HTMLElementAddEventListener;
+          HTMLElement.prototype.removeEventListener = HTMLElementRemoveEventListener;
+          destroyer = null;
+      };
+  }
   function getRouter(element) {
       var tag = element[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
       if (tag && tag.name === "rhm-router") {
@@ -5645,6 +5669,10 @@ define(['require'], function (require) { 'use strict';
           }
       },
 
+      onBeforeMount() {
+          init();
+      },
+
       onMounted() {
           this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
           // this.root.replaceWith(placeholder);
@@ -5760,11 +5788,11 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr29="expr29" ref="-navigate-a"><slot expr30="expr30"></slot></a>',
+        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr29',
-            'selector': '[expr29]',
+            'redundantAttribute': 'expr30',
+            'selector': '[expr30]',
 
             'expressions': [
               {
@@ -5799,8 +5827,8 @@ define(['require'], function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr30',
-            'selector': '[expr30]'
+            'redundantAttribute': 'expr31',
+            'selector': '[expr31]'
           }
         ]
       );
@@ -5929,7 +5957,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr31="expr31"></slot>',
+        '<slot expr32="expr32"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5948,8 +5976,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr31',
-            'selector': '[expr31]'
+            'redundantAttribute': 'expr32',
+            'selector': '[expr32]'
           }
         ]
       );
@@ -6003,7 +6031,7 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-af47e931'], resolve, reject) })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
           "rhm-test-slot-prop": TestSlotProp
       },
@@ -6235,7 +6263,7 @@ define(['require'], function (require) { 'use strict';
                           'slots': [
                             {
                               'id': 'default',
-                              'html': '<rhm-route expr16="expr16" path redirect="home"></rhm-route><rhm-route expr17="expr17" path="home" title="Home"></rhm-route><rhm-route expr19="expr19" path="me" title="Profilo"></rhm-route><rhm-route expr24="expr24" path="users/:id"></rhm-route><rhm-route expr27="expr27" path="(.*)"></rhm-route>',
+                              'html': '<rhm-route expr16="expr16" path redirect="home"></rhm-route><rhm-route expr17="expr17" path="home" title="Home"></rhm-route><rhm-route expr19="expr19" path="me" title="Profilo"></rhm-route><rhm-route expr25="expr25" path="users/:id"></rhm-route><rhm-route expr28="expr28" path="(.*)"></rhm-route>',
 
                               'bindings': [
                                 {
@@ -6321,7 +6349,7 @@ define(['require'], function (require) { 'use strict';
                                   'slots': [
                                     {
                                       'id': 'default',
-                                      'html': '<rhm-replace-test expr20="expr20" need-loading></rhm-replace-test><div>Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr21="expr21" href="/users/2"></rhm-navigate><br/><rhm-navigate expr22="expr22" href="/users/3"></rhm-navigate><br/><rhm-navigate expr23="expr23" href="/users/4"></rhm-navigate></div>',
+                                      'html': '<rhm-replace-test expr20="expr20" need-loading></rhm-replace-test><div expr21="expr21">Friends:</div><div style="padding-left: 1em;"><rhm-navigate expr22="expr22" href="/users/2"></rhm-navigate><br/><rhm-navigate expr23="expr23" href="/users/3"></rhm-navigate><br/><rhm-navigate expr24="expr24" href="/users/4"></rhm-navigate></div>',
 
                                       'bindings': [
                                         {
@@ -6340,26 +6368,21 @@ define(['require'], function (require) { 'use strict';
                                           'selector': '[expr20]'
                                         },
                                         {
-                                          'type': bindingTypes.TAG,
-                                          'getComponent': getComponent,
-
-                                          'evaluate': function(
-                                            _scope
-                                          ) {
-                                            return 'rhm-navigate';
-                                          },
-
-                                          'slots': [
-                                            {
-                                              'id': 'default',
-                                              'html': 'Tizio',
-                                              'bindings': []
-                                            }
-                                          ],
-
-                                          'attributes': [],
                                           'redundantAttribute': 'expr21',
-                                          'selector': '[expr21]'
+                                          'selector': '[expr21]',
+
+                                          'expressions': [
+                                            {
+                                              'type': expressionTypes.EVENT,
+                                              'name': 'onroute',
+
+                                              'evaluate': function(
+                                                _scope
+                                              ) {
+                                                return () => console.log("routed");
+                                              }
+                                            }
+                                          ]
                                         },
                                         {
                                           'type': bindingTypes.TAG,
@@ -6374,7 +6397,7 @@ define(['require'], function (require) { 'use strict';
                                           'slots': [
                                             {
                                               'id': 'default',
-                                              'html': 'Caio',
+                                              'html': 'Tizio',
                                               'bindings': []
                                             }
                                           ],
@@ -6396,7 +6419,7 @@ define(['require'], function (require) { 'use strict';
                                           'slots': [
                                             {
                                               'id': 'default',
-                                              'html': 'Sempronio',
+                                              'html': 'Caio',
                                               'bindings': []
                                             }
                                           ],
@@ -6404,6 +6427,28 @@ define(['require'], function (require) { 'use strict';
                                           'attributes': [],
                                           'redundantAttribute': 'expr23',
                                           'selector': '[expr23]'
+                                        },
+                                        {
+                                          'type': bindingTypes.TAG,
+                                          'getComponent': getComponent,
+
+                                          'evaluate': function(
+                                            _scope
+                                          ) {
+                                            return 'rhm-navigate';
+                                          },
+
+                                          'slots': [
+                                            {
+                                              'id': 'default',
+                                              'html': 'Sempronio',
+                                              'bindings': []
+                                            }
+                                          ],
+
+                                          'attributes': [],
+                                          'redundantAttribute': 'expr24',
+                                          'selector': '[expr24]'
                                         }
                                       ]
                                     }
@@ -6426,7 +6471,7 @@ define(['require'], function (require) { 'use strict';
                                   'slots': [
                                     {
                                       'id': 'default',
-                                      'html': '<div expr25="expr25"></div><div class="asd"></div><span expr26="expr26"> </span>',
+                                      'html': '<div expr26="expr26"></div><div class="asd"></div><span expr27="expr27"> </span>',
 
                                       'bindings': [
                                         {
@@ -6438,8 +6483,8 @@ define(['require'], function (require) { 'use strict';
                                             return (window.document.title = `Utente #${_scope.route.keymap.get("id")}`) && false;
                                           },
 
-                                          'redundantAttribute': 'expr25',
-                                          'selector': '[expr25]',
+                                          'redundantAttribute': 'expr26',
+                                          'selector': '[expr26]',
 
                                           'template': template(
                                             null,
@@ -6447,8 +6492,8 @@ define(['require'], function (require) { 'use strict';
                                           )
                                         },
                                         {
-                                          'redundantAttribute': 'expr26',
-                                          'selector': '[expr26]',
+                                          'redundantAttribute': 'expr27',
+                                          'selector': '[expr27]',
 
                                           'expressions': [
                                             {
@@ -6468,8 +6513,8 @@ define(['require'], function (require) { 'use strict';
                                   ],
 
                                   'attributes': [],
-                                  'redundantAttribute': 'expr24',
-                                  'selector': '[expr24]'
+                                  'redundantAttribute': 'expr25',
+                                  'selector': '[expr25]'
                                 },
                                 {
                                   'type': bindingTypes.TAG,
@@ -6490,8 +6535,8 @@ define(['require'], function (require) { 'use strict';
                                   ],
 
                                   'attributes': [],
-                                  'redundantAttribute': 'expr27',
-                                  'selector': '[expr27]'
+                                  'redundantAttribute': 'expr28',
+                                  'selector': '[expr28]'
                                 }
                               ]
                             }
