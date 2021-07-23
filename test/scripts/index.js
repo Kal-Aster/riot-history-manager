@@ -3841,6 +3841,9 @@ define(['require'], function (require) { 'use strict';
           catchPopState$2();
       };
       window.addEventListener("popstate", listener, true);
+      if (Object.keys(get$1()).length > 0) {
+          set({});
+      }
       return destroyEventListener$3 = function () {
           window.removeEventListener("popstate", listener, true);
           destroyEventListener$3 = null;
@@ -3919,15 +3922,24 @@ define(['require'], function (require) { 'use strict';
   function clearHref() {
       return splitHref()[0];
   }
-  if (Object.keys(get$1()).length > 0) {
-      set({});
-  }
 
   var BASE = "#";
-  var LOCATION_BASE = window.location.protocol + "//" + window.location.host;
-  var LOCATION_PATHNAME = window.location.pathname;
+  var LOCATION_BASE = null;
+  var LOCATION_PATHNAME = null;
+  function getLocationBase() {
+      if (LOCATION_BASE !== null) {
+          return LOCATION_BASE;
+      }
+      return LOCATION_BASE = window.location.protocol + "//" + window.location.host;
+  }
+  function getLocationPathname() {
+      if (LOCATION_PATHNAME !== null) {
+          return LOCATION_PATHNAME;
+      }
+      return LOCATION_PATHNAME = window.location.pathname;
+  }
   function getLocation$1() {
-      return LOCATION_BASE + (BASE[0] === "#" ? LOCATION_PATHNAME : "");
+      return getLocationBase() + (BASE[0] === "#" ? getLocationPathname() : "");
   }
   var parenthesesRegex = /[\\\/]+/g;
   function base(value) {
@@ -5917,7 +5929,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr33="expr33"></slot>',
+        '<slot expr31="expr31"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5936,8 +5948,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr33',
-            'selector': '[expr33]'
+            'redundantAttribute': 'expr31',
+            'selector': '[expr31]'
           }
         ]
       );
@@ -5991,7 +6003,7 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-79c74e64'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject) })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
           "rhm-test-slot-prop": TestSlotProp
       },
