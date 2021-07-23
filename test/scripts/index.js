@@ -1,6 +1,6 @@
 define(['require'], function (require) { 'use strict';
 
-  /* Riot v5.4.5, @license MIT */
+  /* Riot v6.0.1, @license MIT */
   /**
    * Convert a string from camel case to dash-case
    * @param   {string} string - probably a component tag name
@@ -51,8 +51,8 @@ define(['require'], function (require) { 'use strict';
    * @returns {undefined}
    */
 
-  function cleanNode(node) {
-    clearChildren(node.childNodes);
+  function cleanNode$1(node) {
+    clearChildren$1(node.childNodes);
   }
   /**
    * Clear multiple children in a node
@@ -60,8 +60,8 @@ define(['require'], function (require) { 'use strict';
    * @returns {undefined}
    */
 
-  function clearChildren(children) {
-    Array.from(children).forEach(removeChild);
+  function clearChildren$1(children) {
+    Array.from(children).forEach(removeChild$1);
   }
   /**
    * Remove a node
@@ -69,7 +69,7 @@ define(['require'], function (require) { 'use strict';
    * @returns {undefined}
    */
 
-  const removeChild = node => node && node.parentNode && node.parentNode.removeChild(node);
+  const removeChild$1 = node => node && node.parentNode && node.parentNode.removeChild(node);
   /**
    * Insert before a node
    * @param {HTMLElement} newNode - node to insert
@@ -170,7 +170,7 @@ define(['require'], function (require) { 'use strict';
 
   /**
    * Create the <template> fragments text nodes
-   * @return {Object} {{head: TextNode, tail: TextNode}}
+   * @return {Object} {{head: Text, tail: Text}}
    */
 
   function createHeadTailPlaceholders() {
@@ -203,6 +203,60 @@ define(['require'], function (require) { 'use strict';
       tail,
       children: [head, ...Array.from(fragment.childNodes), tail]
     };
+  }
+
+  /**
+   * Helper function to set an immutable property
+   * @param   {Object} source - object where the new property will be set
+   * @param   {string} key - object key where the new property will be stored
+   * @param   {*} value - value of the new property
+   * @param   {Object} options - set the propery overriding the default options
+   * @returns {Object} - the original object modified
+   */
+  function defineProperty(source, key, value, options) {
+    if (options === void 0) {
+      options = {};
+    }
+
+    /* eslint-disable fp/no-mutating-methods */
+    Object.defineProperty(source, key, Object.assign({
+      value,
+      enumerable: false,
+      writable: false,
+      configurable: true
+    }, options));
+    /* eslint-enable fp/no-mutating-methods */
+
+    return source;
+  }
+  /**
+   * Define multiple properties on a target object
+   * @param   {Object} source - object where the new properties will be set
+   * @param   {Object} properties - object containing as key pair the key + value properties
+   * @param   {Object} options - set the propery overriding the default options
+   * @returns {Object} the original object modified
+   */
+
+  function defineProperties(source, properties, options) {
+    Object.entries(properties).forEach(_ref => {
+      let [key, value] = _ref;
+      defineProperty(source, key, value, options);
+    });
+    return source;
+  }
+  /**
+   * Define default properties if they don't exist on the source object
+   * @param   {Object} source - object that will receive the default properties
+   * @param   {Object} defaults - object containing additional optional keys
+   * @returns {Object} the original object received enhanced
+   */
+
+  function defineDefaults(source, defaults) {
+    Object.entries(defaults).forEach(_ref2 => {
+      let [key, value] = _ref2;
+      if (!source[key]) source[key] = value;
+    });
+    return source;
   }
 
   /**
@@ -363,7 +417,7 @@ define(['require'], function (require) { 'use strict';
       else if (bEnd === bStart) {
           while (aStart < aEnd) {
             // remove the node only if it's unknown or not live
-            if (!map || !map.has(a[aStart])) removeChild(get(a[aStart], -1));
+            if (!map || !map.has(a[aStart])) removeChild$1(get(a[aStart], -1));
             aStart++;
           }
         } // same node: fast path
@@ -445,7 +499,7 @@ define(['require'], function (require) { 'use strict';
                   } // this node has no meaning in the future list, so it's more than safe
                   // to remove it, and check the next live node out instead, meaning
                   // that only the live list index should be forwarded
-                  else removeChild(get(a[aStart++], -1));
+                  else removeChild$1(get(a[aStart++], -1));
                 }
     }
 
@@ -530,7 +584,7 @@ define(['require'], function (require) { 'use strict';
           nodes.pop(); // notice that we pass null as last argument because
           // the root node and its children will be removed by domdiff
 
-          if (nodes.length === 0) {
+          if (!nodes.length) {
             // we have cleared all the children nodes and we can unmount this template
             redundant.pop();
             template.unmount(context, parentScope, null);
@@ -550,11 +604,12 @@ define(['require'], function (require) { 'use strict';
 
 
   function mustFilterItem(condition, context) {
-    return condition ? Boolean(condition(context)) === false : false;
+    return condition ? !condition(context) : false;
   }
   /**
    * Extend the scope of the looped template
    * @param   {Object} scope - current template scope
+   * @param   {Object} options - options
    * @param   {string} options.itemName - key to identify the looped item in the new context
    * @param   {string} options.indexName - key to identify the index of the looped item
    * @param   {number} options.index - current index
@@ -570,8 +625,8 @@ define(['require'], function (require) { 'use strict';
       index,
       item
     } = _ref;
-    scope[itemName] = item;
-    if (indexName) scope[indexName] = index;
+    defineProperty(scope, itemName, item);
+    if (indexName) defineProperty(scope, indexName, index);
     return scope;
   }
   /**
@@ -592,7 +647,7 @@ define(['require'], function (require) { 'use strict';
    * @param   {Array} items - expression collection value
    * @param   {*} scope - template scope
    * @param   {*} parentScope - scope of the parent template
-   * @param   {EeachBinding} binding - each binding object instance
+   * @param   {EachBinding} binding - each binding object instance
    * @returns {Object} data
    * @returns {Map} data.newChildrenMap - a Map containing the new children template structure
    * @returns {Array} data.batches - array containing the template lifecycle functions to trigger
@@ -678,7 +733,7 @@ define(['require'], function (require) { 'use strict';
     const placeholder = document.createTextNode('');
     const root = node.cloneNode();
     insertBefore(placeholder, node);
-    removeChild(node);
+    removeChild$1(node);
     return Object.assign({}, EachBinding, {
       childrenMap: new Map(),
       node,
@@ -752,7 +807,7 @@ define(['require'], function (require) { 'use strict';
     } = _ref;
     const placeholder = document.createTextNode('');
     insertBefore(placeholder, node);
-    removeChild(node);
+    removeChild$1(node);
     return Object.assign({}, IfBinding, {
       node,
       evaluate,
@@ -868,7 +923,7 @@ define(['require'], function (require) { 'use strict';
 
 
   function shouldRemoveAttribute(value) {
-    return isNil(value) || value === false || value === '';
+    return !value && value !== 0;
   }
   /**
    * This methods handles the DOM attributes updates
@@ -921,8 +976,7 @@ define(['require'], function (require) { 'use strict';
 
   function normalizeValue(name, value) {
     // be sure that expressions like selected={ true } will be always rendered as selected='selected'
-    if (value === true) return name;
-    return value;
+    return value === true ? name : value;
   }
 
   const RE_EVENTS_PREFIX = /^on/;
@@ -989,7 +1043,7 @@ define(['require'], function (require) { 'use strict';
    * Get the the target text node to update or create one from of a comment node
    * @param   {HTMLElement} node - any html element containing childNodes
    * @param   {number} childNodeIndex - index of the text node in the childNodes list
-   * @returns {HTMLTextNode} the text node to update
+   * @returns {Text} the text node to update
    */
 
   const getTextNode = (node, childNodeIndex) => {
@@ -1162,12 +1216,13 @@ define(['require'], function (require) { 'use strict';
       this.template = templateData && create$7(templateData.html, templateData.bindings).createDOM(parentNode);
 
       if (this.template) {
+        cleanNode$1(this.node);
         this.template.mount(this.node, this.getTemplateScope(scope, realParent), realParent);
         this.template.children = Array.from(this.node.childNodes);
-        moveSlotInnerContent(this.node);
       }
 
-      removeChild(this.node);
+      moveSlotInnerContent(this.node);
+      removeChild$1(this.node);
       return this;
     },
 
@@ -1204,7 +1259,8 @@ define(['require'], function (require) { 'use strict';
   /**
    * Create a single slot binding
    * @param   {HTMLElement} node - slot node
-   * @param   {string} options.name - slot id
+   * @param   {string} name - slot id
+   * @param   {AttributeExpressionData[]} attributes - slot attributes
    * @returns {Object} Slot binding object
    */
 
@@ -1366,7 +1422,7 @@ define(['require'], function (require) { 'use strict';
   /**
    * Bind a new expression object to a DOM node
    * @param   {HTMLElement} root - DOM node where to bind the expression
-   * @param   {Object} binding - binding data
+   * @param   {TagBindingData} binding - binding data
    * @param   {number|null} templateTagOffset - if it's defined we need to fix the text expressions childNodeIndex offset
    * @returns {Binding} Binding object
    */
@@ -1418,7 +1474,7 @@ define(['require'], function (require) { 'use strict';
   /**
    * Inject the DOM tree into a target node
    * @param   {HTMLElement} el - target element
-   * @param   {HTMLFragment|SVGElement} dom - dom tree to inject
+   * @param   {DocumentFragment|SVGElement} dom - dom tree to inject
    * @returns {undefined}
    */
 
@@ -1440,8 +1496,8 @@ define(['require'], function (require) { 'use strict';
   /**
    * Create the Template DOM skeleton
    * @param   {HTMLElement} el - root node where the DOM will be injected
-   * @param   {string} html - markup that will be injected into the root node
-   * @returns {HTMLFragment} fragment that will be injected into the root node
+   * @param   {string|HTMLElement} html - HTML markup or HTMLElement that will be injected into the root node
+   * @returns {?DocumentFragment} fragment that will be injected into the root node
    */
 
   function createTemplateDOM(el, html) {
@@ -1559,35 +1615,42 @@ define(['require'], function (require) { 'use strict';
      * @returns {TemplateChunk} self
      */
     unmount(scope, parentScope, mustRemoveRoot) {
-      if (this.el) {
-        this.bindings.forEach(b => b.unmount(scope, parentScope, mustRemoveRoot));
-
-        switch (true) {
-          // pure components should handle the DOM unmount updates by themselves
-          case this.el[IS_PURE_SYMBOL]:
-            break;
-          // <template> tags should be treated a bit differently
-          // we need to clear their children only if it's explicitly required by the caller
-          // via mustRemoveRoot !== null
-
-          case this.children && mustRemoveRoot !== null:
-            clearChildren(this.children);
-            break;
-          // remove the root node only if the mustRemoveRoot === true
-
-          case mustRemoveRoot === true:
-            removeChild(this.el);
-            break;
-          // otherwise we clean the node children
-
-          case mustRemoveRoot !== null:
-            cleanNode(this.el);
-            break;
-        }
-
-        this.el = null;
+      if (mustRemoveRoot === void 0) {
+        mustRemoveRoot = false;
       }
 
+      const el = this.el;
+
+      if (!el) {
+        return this;
+      }
+
+      this.bindings.forEach(b => b.unmount(scope, parentScope, mustRemoveRoot));
+
+      switch (true) {
+        // pure components should handle the DOM unmount updates by themselves
+        // for mustRemoveRoot === null don't touch the DOM
+        case el[IS_PURE_SYMBOL] || mustRemoveRoot === null:
+          break;
+        // if children are declared, clear them
+        // applicable for <template> and <slot/> bindings
+
+        case Array.isArray(this.children):
+          clearChildren$1(this.children);
+          break;
+        // clean the node children only
+
+        case !mustRemoveRoot:
+          cleanNode$1(el);
+          break;
+        // remove the root node only if the mustRemoveRoot is truly
+
+        case !!mustRemoveRoot:
+          removeChild$1(el);
+          break;
+      }
+
+      this.el = null;
       return this;
     },
 
@@ -1606,7 +1669,7 @@ define(['require'], function (require) { 'use strict';
   /**
    * Create a template chunk wiring also the bindings
    * @param   {string|HTMLElement} html - template string
-   * @param   {Array} bindings - bindings collection
+   * @param   {BindingData[]} bindings - bindings collection
    * @returns {TemplateChunk} a new TemplateChunk copy
    */
 
@@ -1712,60 +1775,6 @@ define(['require'], function (require) { 'use strict';
 
   function callOrAssign(source) {
     return isFunction(source) ? source.prototype && source.prototype.constructor ? new source() : source() : source;
-  }
-
-  /**
-   * Helper function to set an immutable property
-   * @param   {Object} source - object where the new property will be set
-   * @param   {string} key - object key where the new property will be stored
-   * @param   {*} value - value of the new property
-   * @param   {Object} options - set the propery overriding the default options
-   * @returns {Object} - the original object modified
-   */
-  function defineProperty(source, key, value, options) {
-    if (options === void 0) {
-      options = {};
-    }
-
-    /* eslint-disable fp/no-mutating-methods */
-    Object.defineProperty(source, key, Object.assign({
-      value,
-      enumerable: false,
-      writable: false,
-      configurable: true
-    }, options));
-    /* eslint-enable fp/no-mutating-methods */
-
-    return source;
-  }
-  /**
-   * Define multiple properties on a target object
-   * @param   {Object} source - object where the new properties will be set
-   * @param   {Object} properties - object containing as key pair the key + value properties
-   * @param   {Object} options - set the propery overriding the default options
-   * @returns {Object} the original object modified
-   */
-
-  function defineProperties(source, properties, options) {
-    Object.entries(properties).forEach(_ref => {
-      let [key, value] = _ref;
-      defineProperty(source, key, value, options);
-    });
-    return source;
-  }
-  /**
-   * Define default properties if they don't exist on the source object
-   * @param   {Object} source - object that will receive the default properties
-   * @param   {Object} defaults - object containing additional optional keys
-   * @returns {Object} the original object received enhanced
-   */
-
-  function defineDefaults(source, defaults) {
-    Object.entries(defaults).forEach(_ref2 => {
-      let [key, value] = _ref2;
-      if (!source[key]) source[key] = value;
-    });
-    return source;
   }
 
   /**
@@ -2012,7 +2021,7 @@ define(['require'], function (require) { 'use strict';
   });
   /**
    * Performance optimization for the recursive components
-   * @param  {RiotComponentShell} componentShell - riot compiler generated object
+   * @param  {RiotComponentWrapper} componentWrapper - riot compiler generated object
    * @returns {Object} component like interface
    */
 
@@ -2056,16 +2065,16 @@ define(['require'], function (require) { 'use strict';
   /**
    * Factory function to create the component templates only once
    * @param   {Function} template - component template creation function
-   * @param   {RiotComponentShell} componentShell - riot compiler generated object
+   * @param   {RiotComponentWrapper} componentWrapper - riot compiler generated object
    * @returns {TemplateChunk} template chunk object
    */
 
 
-  function componentTemplateFactory(template, componentShell) {
-    const components = createSubcomponents(componentShell.exports ? componentShell.exports.components : {});
+  function componentTemplateFactory(template, componentWrapper) {
+    const components = createSubcomponents(componentWrapper.exports ? componentWrapper.exports.components : {});
     return template(create$7, expressionTypes, bindingTypes, name => {
       // improve support for recursive components
-      if (name === componentShell.name) return memoizedCreateComponent(componentShell); // return the registered components
+      if (name === componentWrapper.name) return memoizedCreateComponent(componentWrapper); // return the registered components
 
       return components[name] || COMPONENTS_IMPLEMENTATION_MAP$1.get(name);
     });
@@ -2117,23 +2126,23 @@ define(['require'], function (require) { 'use strict';
   }
   /**
    * Create the component interface needed for the @riotjs/dom-bindings tag bindings
-   * @param   {RiotComponentShell} componentShell - riot compiler generated object
-   * @param   {string} componentShell.css - component css
-   * @param   {Function} componentShell.template - function that will return the dom-bindings template function
-   * @param   {Object} componentShell.exports - component interface
-   * @param   {string} componentShell.name - component name
+   * @param   {RiotComponentWrapper} componentWrapper - riot compiler generated object
+   * @param   {string} componentWrapper.css - component css
+   * @param   {Function} componentWrapper.template - function that will return the dom-bindings template function
+   * @param   {Object} componentWrapper.exports - component interface
+   * @param   {string} componentWrapper.name - component name
    * @returns {Object} component like interface
    */
 
 
-  function createComponent(componentShell) {
+  function createComponent(componentWrapper) {
     const {
       css,
       template,
       exports,
       name
-    } = componentShell;
-    const templateFn = template ? componentTemplateFactory(template, componentShell) : MOCKED_TEMPLATE_INTERFACE;
+    } = componentWrapper;
+    const templateFn = template ? componentTemplateFactory(template, componentWrapper) : MOCKED_TEMPLATE_INTERFACE;
     return _ref2 => {
       let {
         slots,
@@ -2953,12 +2962,10 @@ define(['require'], function (require) { 'use strict';
           return arrayToRegexp(path, keys, options);
       return stringToRegexp(path, keys, options);
   }
-
-  var LEADING_DELIMITER = /^[\\\/]+/;
   var TRAILING_DELIMITER = /[\\\/]+$/;
   var DELIMITER_NOT_IN_PARENTHESES = /[\\\/]+(?![^(]*[)])/g;
   function prepare(path) {
-      return path.replace(LEADING_DELIMITER, "").replace(TRAILING_DELIMITER, "").replace(DELIMITER_NOT_IN_PARENTHESES, "/");
+      return ("/" + path).replace(TRAILING_DELIMITER, "").replace(DELIMITER_NOT_IN_PARENTHESES, "/");
   }
   function generate(path, keys) {
       if (Array.isArray(path)) {
@@ -3050,6 +3057,7 @@ define(['require'], function (require) { 'use strict';
       };
       ContextManager.prototype.insert = function (href, replace) {
           if (replace === void 0) { replace = false; }
+          href = prepare(href);
           this.clean();
           var foundContext = this.contextOf(href, this._length > 0);
           var previousContext = this._hrefs.length > 0 ? this._hrefs[this._hrefs.length - 1] : null;
@@ -3210,7 +3218,7 @@ define(['require'], function (require) { 'use strict';
           if (context == null) {
               this._contexts.set(context_name, context = [[], null]);
           }
-          context[1] = href;
+          context[1] = href !== null ? prepare(href) : null;
       };
       ContextManager.prototype.setContext = function (context) {
           var _this = this;
@@ -3819,14 +3827,25 @@ define(['require'], function (require) { 'use strict';
 
   var DIVIDER = "#R!:";
   var catchPopState$2 = null;
-  window.addEventListener("popstate", function (event) {
-      if (catchPopState$2 == null) {
-          return;
+  var destroyEventListener$3 = null;
+  function initEventListener$3() {
+      if (destroyEventListener$3 !== null) {
+          return destroyEventListener$3;
       }
-      event.stopImmediatePropagation();
-      event.stopPropagation();
-      catchPopState$2();
-  }, true);
+      var listener = function (event) {
+          if (catchPopState$2 == null) {
+              return;
+          }
+          event.stopImmediatePropagation();
+          event.stopPropagation();
+          catchPopState$2();
+      };
+      window.addEventListener("popstate", listener, true);
+      return destroyEventListener$3 = function () {
+          window.removeEventListener("popstate", listener, true);
+          destroyEventListener$3 = null;
+      };
+  }
   function onCatchPopState$2(onCatchPopState, once) {
       if (once === void 0) { once = false; }
       if (once) {
@@ -4027,17 +4046,30 @@ define(['require'], function (require) { 'use strict';
       return works.some(function (w) { return w.locking; });
   }
   var catchPopState$1 = null;
-  window.addEventListener("popstate", function (event) {
-      if (!started || isLocked$1()) {
-          return;
+  var destroyEventListener$2 = null;
+  function initEventListener$2() {
+      if (destroyEventListener$2 !== null) {
+          return destroyEventListener$2;
       }
-      if (catchPopState$1 == null) {
-          handlePopState$1();
-          return;
-      }
-      event.stopImmediatePropagation();
-      catchPopState$1();
-  }, true);
+      var destroyOptionsEventListener = initEventListener$3();
+      var listener = function (event) {
+          if (!started || isLocked$1()) {
+              return;
+          }
+          if (catchPopState$1 == null) {
+              handlePopState$1();
+              return;
+          }
+          event.stopImmediatePropagation();
+          catchPopState$1();
+      };
+      window.addEventListener("popstate", listener, true);
+      return destroyEventListener$2 = function () {
+          window.removeEventListener("popstate", listener, true);
+          destroyOptionsEventListener();
+          destroyEventListener$2 = null;
+      };
+  }
   function onCatchPopState$1(onCatchPopState, once) {
       if (once === void 0) { once = false; }
       if (once) {
@@ -4484,6 +4516,7 @@ define(['require'], function (require) { 'use strict';
       getAutoManagement: getAutoManagement,
       onWorkFinished: onWorkFinished,
       acquire: acquire,
+      initEventListener: initEventListener$2,
       addFront: addFront,
       addBack: addBack,
       index: index$1,
@@ -4504,13 +4537,24 @@ define(['require'], function (require) { 'use strict';
 
   var locks$1 = [];
   var catchPopState = null;
-  window.addEventListener("popstate", function (event) {
-      if (catchPopState == null) {
-          return handlePopState();
+  var destroyEventListener$1 = null;
+  function initEventListener$1() {
+      if (destroyEventListener$1 !== null) {
+          return destroyEventListener$1;
       }
-      event.stopImmediatePropagation();
-      catchPopState();
-  }, true);
+      var listener = function (event) {
+          if (catchPopState == null) {
+              return handlePopState();
+          }
+          event.stopImmediatePropagation();
+          catchPopState();
+      };
+      window.addEventListener("popstate", listener, true);
+      return destroyEventListener$1 = function () {
+          window.removeEventListener("popstate", listener, true);
+          destroyEventListener$1 = null;
+      };
+  }
   function onCatchPopState(onCatchPopState, once) {
       if (once === void 0) { once = false; }
       if (once) {
@@ -4655,6 +4699,7 @@ define(['require'], function (require) { 'use strict';
 
   var NavigationLock = /*#__PURE__*/Object.freeze({
       __proto__: null,
+      initEventListener: initEventListener$1,
       lock: lock$2,
       unlock: unlock$1,
       locked: locked$1
@@ -4871,7 +4916,21 @@ define(['require'], function (require) { 'use strict';
           emitRoute = true;
       }
   }
-  window.addEventListener("historylanded", onland);
+  var destroyEventListener = null;
+  function initEventListener() {
+      if (destroyEventListener !== null) {
+          return destroyEventListener;
+      }
+      var destroyHistoryEventListener = initEventListener$2();
+      var destroyNavigationLockEventListener = initEventListener$1();
+      window.addEventListener("historylanded", onland);
+      return destroyEventListener = function () {
+          window.removeEventListener("historylanded", onland);
+          destroyNavigationLockEventListener();
+          destroyHistoryEventListener();
+          destroyEventListener = null;
+      };
+  }
   function _go(path, replace$1, emit) {
       if (replace$1 === void 0) { replace$1 = false; }
       if (emit === void 0) { emit = true; }
@@ -4975,6 +5034,7 @@ define(['require'], function (require) { 'use strict';
       return main.unroute(path);
   }
   function start(startingContext) {
+      initEventListener();
       return start$1(startingContext);
   }
   function index() {
@@ -5083,6 +5143,7 @@ define(['require'], function (require) { 'use strict';
   var Router = /*#__PURE__*/Object.freeze({
       __proto__: null,
       getLocation: getLocation,
+      initEventListener: initEventListener,
       redirect: redirect,
       unredirect: unredirect,
       route: route,
@@ -5205,9 +5266,9 @@ define(['require'], function (require) { 'use strict';
                 'name': null,
 
                 'evaluate': function(
-                  scope
+                  _scope
                 ) {
-                  return scope.getSelfSlotProp();
+                  return _scope.getSelfSlotProp();
                 }
               }
             ],
@@ -5699,9 +5760,9 @@ define(['require'], function (require) { 'use strict';
                 'name': 'href',
 
                 'evaluate': function(
-                  scope
+                  _scope
                 ) {
-                  return scope.href();
+                  return _scope.href();
                 }
               },
               {
@@ -5709,11 +5770,11 @@ define(['require'], function (require) { 'use strict';
                 'name': 'style',
 
                 'evaluate': function(
-                  scope
+                  _scope
                 ) {
                   return [
                     'display: ',
-                    scope.root.style.display,
+                    _scope.root.style.display,
                     '; width: 100%; height: 100%;'
                   ].join(
                     ''
@@ -5739,6 +5800,32 @@ define(['require'], function (require) { 'use strict';
   register("rhm-router", RouterComponent);
   register("rhm-route", RouteComponent);
   register("rhm-navigate", NavigateComponent);
+
+  /**
+   * Remove the child nodes from any DOM node
+   * @param   {HTMLElement} node - target node
+   * @returns {undefined}
+   */
+  function cleanNode(node) {
+    clearChildren(node.childNodes);
+  }
+
+  /**
+   * Clear multiple children in a node
+   * @param   {HTMLElement[]} children - direct children nodes
+   * @returns {undefined}
+   */
+  function clearChildren(children) {
+    Array.from(children).forEach(removeChild);
+  }
+
+
+  /**
+   * Remove a node
+   * @param {HTMLElement}node - node to remove
+   * @returns {undefined}
+   */
+  const removeChild = node => node && node.parentNode && node.parentNode.removeChild(node);
 
   // this object will contain all the components implementations lazy loaded
   const cache = new WeakMap();
@@ -5784,8 +5871,12 @@ define(['require'], function (require) { 'use strict';
         if (!this.isMounted) return
 
         // unmount the loader if it was previously created
-        // notice the true flat to keep the root node
-        if (this.component) this.component.unmount(true);
+        if (this.component) {
+          // unmount the bindings
+          this.component.unmount();
+          // clean the DOM
+          cleanNode(this.el);
+        }
 
         // replace the old component instance with the new lazy loaded component
         this.createManagedComponent(cache.get(LazyComponent), parentScope);
@@ -5826,7 +5917,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr31="expr31"></slot>',
+        '<slot expr33="expr33"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5837,16 +5928,16 @@ define(['require'], function (require) { 'use strict';
                 'name': null,
 
                 'evaluate': function(
-                  scope
+                  _scope
                 ) {
-                  return scope.getSlotProp();
+                  return _scope.getSlotProp();
                 }
               }
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr31',
-            'selector': '[expr31]'
+            'redundantAttribute': 'expr33',
+            'selector': '[expr33]'
           }
         ]
       );
@@ -5900,7 +5991,7 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-48f35244'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-79c74e64'], resolve, reject) })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
           "rhm-test-slot-prop": TestSlotProp
       },
@@ -5933,7 +6024,7 @@ define(['require'], function (require) { 'use strict';
             'getComponent': getComponent,
 
             'evaluate': function(
-              scope
+              _scope
             ) {
               return 'rhm-navigate';
             },
@@ -5954,9 +6045,9 @@ define(['require'], function (require) { 'use strict';
                         'name': 'style',
 
                         'evaluate': function(
-                          scope
+                          _scope
                         ) {
-                          return scope.state.path === "home" || scope.state.path === "" ? "text-decoration: underline;": "";
+                          return _scope.state.path === "home" || _scope.state.path === "" ? "text-decoration: underline;": "";
                         }
                       }
                     ]
@@ -5974,7 +6065,7 @@ define(['require'], function (require) { 'use strict';
             'getComponent': getComponent,
 
             'evaluate': function(
-              scope
+              _scope
             ) {
               return 'rhm-navigate';
             },
@@ -5995,9 +6086,9 @@ define(['require'], function (require) { 'use strict';
                         'name': 'style',
 
                         'evaluate': function(
-                          scope
+                          _scope
                         ) {
-                          return scope.state.path === "me" ? "text-decoration: underline;": "";
+                          return _scope.state.path === "me" ? "text-decoration: underline;": "";
                         }
                       }
                     ]
@@ -6020,11 +6111,11 @@ define(['require'], function (require) { 'use strict';
                 'childNodeIndex': 0,
 
                 'evaluate': function(
-                  scope
+                  _scope
                 ) {
                   return [
                     'Whole: ',
-                    scope.state.visible ? "Visible": "Not Visible"
+                    _scope.state.visible ? "Visible": "Not Visible"
                   ].join(
                     ''
                   );
@@ -6042,11 +6133,11 @@ define(['require'], function (require) { 'use strict';
                 'childNodeIndex': 0,
 
                 'evaluate': function(
-                  scope
+                  _scope
                 ) {
                   return [
                     'Home: ',
-                    scope.state.homeVisible ? "Visible": "Not Visible"
+                    _scope.state.homeVisible ? "Visible": "Not Visible"
                   ].join(
                     ''
                   );
@@ -6059,7 +6150,7 @@ define(['require'], function (require) { 'use strict';
             'getComponent': getComponent,
 
             'evaluate': function(
-              scope
+              _scope
             ) {
               return 'rhm-test-slot-prop';
             },
@@ -6080,9 +6171,9 @@ define(['require'], function (require) { 'use strict';
                         'name': 'onclick',
 
                         'evaluate': function(
-                          scope
+                          _scope
                         ) {
-                          return scope.toggleWhole;
+                          return _scope.toggleWhole;
                         }
                       }
                     ]
@@ -6097,9 +6188,9 @@ define(['require'], function (require) { 'use strict';
                         'name': 'onclick',
 
                         'evaluate': function(
-                          scope
+                          _scope
                         ) {
-                          return scope.toggleHome;
+                          return _scope.toggleHome;
                         }
                       }
                     ]
@@ -6108,9 +6199,9 @@ define(['require'], function (require) { 'use strict';
                     'type': bindingTypes.IF,
 
                     'evaluate': function(
-                      scope
+                      _scope
                     ) {
-                      return scope.state.visible;
+                      return _scope.state.visible;
                     },
 
                     'redundantAttribute': 'expr15',
@@ -6124,7 +6215,7 @@ define(['require'], function (require) { 'use strict';
                           'getComponent': getComponent,
 
                           'evaluate': function(
-                            scope
+                            _scope
                           ) {
                             return 'rhm-router';
                           },
@@ -6140,7 +6231,7 @@ define(['require'], function (require) { 'use strict';
                                   'getComponent': getComponent,
 
                                   'evaluate': function(
-                                    scope
+                                    _scope
                                   ) {
                                     return 'rhm-route';
                                   },
@@ -6154,9 +6245,9 @@ define(['require'], function (require) { 'use strict';
                                   'type': bindingTypes.IF,
 
                                   'evaluate': function(
-                                    scope
+                                    _scope
                                   ) {
-                                    return scope.state.homeVisible;
+                                    return _scope.state.homeVisible;
                                   },
 
                                   'redundantAttribute': 'expr17',
@@ -6170,7 +6261,7 @@ define(['require'], function (require) { 'use strict';
                                         'getComponent': getComponent,
 
                                         'evaluate': function(
-                                          scope
+                                          _scope
                                         ) {
                                           return 'rhm-route';
                                         },
@@ -6186,7 +6277,7 @@ define(['require'], function (require) { 'use strict';
                                                 'getComponent': getComponent,
 
                                                 'evaluate': function(
-                                                  scope
+                                                  _scope
                                                 ) {
                                                   return 'rhm-homepage';
                                                 },
@@ -6210,7 +6301,7 @@ define(['require'], function (require) { 'use strict';
                                   'getComponent': getComponent,
 
                                   'evaluate': function(
-                                    scope
+                                    _scope
                                   ) {
                                     return 'rhm-route';
                                   },
@@ -6226,7 +6317,7 @@ define(['require'], function (require) { 'use strict';
                                           'getComponent': getComponent,
 
                                           'evaluate': function(
-                                            scope
+                                            _scope
                                           ) {
                                             return 'rhm-replace-test';
                                           },
@@ -6241,7 +6332,7 @@ define(['require'], function (require) { 'use strict';
                                           'getComponent': getComponent,
 
                                           'evaluate': function(
-                                            scope
+                                            _scope
                                           ) {
                                             return 'rhm-navigate';
                                           },
@@ -6263,7 +6354,7 @@ define(['require'], function (require) { 'use strict';
                                           'getComponent': getComponent,
 
                                           'evaluate': function(
-                                            scope
+                                            _scope
                                           ) {
                                             return 'rhm-navigate';
                                           },
@@ -6285,7 +6376,7 @@ define(['require'], function (require) { 'use strict';
                                           'getComponent': getComponent,
 
                                           'evaluate': function(
-                                            scope
+                                            _scope
                                           ) {
                                             return 'rhm-navigate';
                                           },
@@ -6315,7 +6406,7 @@ define(['require'], function (require) { 'use strict';
                                   'getComponent': getComponent,
 
                                   'evaluate': function(
-                                    scope
+                                    _scope
                                   ) {
                                     return 'rhm-route';
                                   },
@@ -6330,9 +6421,9 @@ define(['require'], function (require) { 'use strict';
                                           'type': bindingTypes.IF,
 
                                           'evaluate': function(
-                                            scope
+                                            _scope
                                           ) {
-                                            return (window.document.title = `Utente #${scope.route.keymap.get("id")}`) && false;
+                                            return (window.document.title = `Utente #${_scope.route.keymap.get("id")}`) && false;
                                           },
 
                                           'redundantAttribute': 'expr25',
@@ -6353,9 +6444,9 @@ define(['require'], function (require) { 'use strict';
                                               'childNodeIndex': 0,
 
                                               'evaluate': function(
-                                                scope
+                                                _scope
                                               ) {
-                                                return scope.route.location.href;
+                                                return _scope.route.location.href;
                                               }
                                             }
                                           ]
@@ -6373,7 +6464,7 @@ define(['require'], function (require) { 'use strict';
                                   'getComponent': getComponent,
 
                                   'evaluate': function(
-                                    scope
+                                    _scope
                                   ) {
                                     return 'rhm-route';
                                   },

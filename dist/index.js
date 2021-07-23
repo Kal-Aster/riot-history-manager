@@ -242,7 +242,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr0="expr0"></slot>',
+          '<slot expr2="expr2"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -253,16 +253,16 @@
                   'name': null,
 
                   'evaluate': function(
-                    scope
+                    _scope
                   ) {
-                    return scope.getSelfSlotProp();
+                    return _scope.getSelfSlotProp();
                   }
                 }
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr0',
-              'selector': '[expr0]'
+              'redundantAttribute': 'expr2',
+              'selector': '[expr2]'
             }
           ]
         );
@@ -735,11 +735,11 @@
         getComponent
       ) {
         return template(
-          '<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>',
+          '<a expr0="expr0" ref="-navigate-a"><slot expr1="expr1"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr1',
-              'selector': '[expr1]',
+              'redundantAttribute': 'expr0',
+              'selector': '[expr0]',
 
               'expressions': [
                 {
@@ -747,9 +747,9 @@
                   'name': 'href',
 
                   'evaluate': function(
-                    scope
+                    _scope
                   ) {
-                    return scope.href();
+                    return _scope.href();
                   }
                 },
                 {
@@ -757,11 +757,11 @@
                   'name': 'style',
 
                   'evaluate': function(
-                    scope
+                    _scope
                   ) {
                     return [
                       'display: ',
-                      scope.root.style.display,
+                      _scope.root.style.display,
                       '; width: 100%; height: 100%;'
                     ].join(
                       ''
@@ -774,8 +774,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr2',
-              'selector': '[expr2]'
+              'redundantAttribute': 'expr1',
+              'selector': '[expr1]'
             }
           ]
         );
