@@ -2830,109 +2830,6 @@ var RouterComponent = {
 var ONBEFOREROUTE = Symbol("onbeforeroute");
 var ONUNROUTE = Symbol("onunroute");
 var ONROUTE = Symbol("onroute");
-var destroyer = null;
-function init() {
-    if (destroyer !== null) {
-        return destroyer;
-    }
-    var HTMLElementAddEventListener = HTMLElement.prototype.addEventListener;
-    HTMLElement.prototype.addEventListener = function (type, listener, options) {
-        if (options === void 0) { options = false; }
-        switch (type) {
-            case "beforeroute": {
-                var onbeforeroute = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
-                var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-                onbeforeroute.push({ listener: listener, useCapture: useCapture });
-                break;
-            }
-            case "unroute": {
-                var onunroute = this[ONUNROUTE] = this[ONUNROUTE] || [];
-                var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-                onunroute.push({ listener: listener, useCapture: useCapture });
-                break;
-            }
-            case "route": {
-                var onroute = this[ONROUTE] = this[ONROUTE] || [];
-                var useCapture = typeof options === "boolean" ? options : options ? options.capture != null : false;
-                onroute.push({ listener: listener, useCapture: useCapture });
-                break;
-            }
-            default: {
-                return HTMLElementAddEventListener.call(this, type, listener, options);
-            }
-        }
-    };
-    var HTMLElementRemoveEventListener = HTMLElement.prototype.removeEventListener;
-    HTMLElement.prototype.removeEventListener = function (type, listener, options) {
-        switch (type) {
-            case "beforeroute": {
-                var onbeforeroute = this[ONBEFOREROUTE];
-                if (!onbeforeroute) {
-                    return;
-                }
-                var useCapture_1 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-                var index_1 = -1;
-                if (!onbeforeroute.some(function (l, i) {
-                    if (l.listener === listener && l.useCapture === useCapture_1) {
-                        index_1 = i;
-                        return true;
-                    }
-                    return false;
-                })) {
-                    return;
-                }
-                onbeforeroute.slice(index_1, 1);
-                break;
-            }
-            case "unroute": {
-                var onunroute = this[ONUNROUTE];
-                if (!onunroute) {
-                    return;
-                }
-                var useCapture_2 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-                var index_2 = -1;
-                if (!onunroute.some(function (l, i) {
-                    if (l.listener === listener && l.useCapture === useCapture_2) {
-                        index_2 = i;
-                        return true;
-                    }
-                    return false;
-                })) {
-                    return;
-                }
-                onunroute.slice(index_2, 1);
-                break;
-            }
-            case "route": {
-                var onroute = this[ONROUTE];
-                if (!onroute) {
-                    return;
-                }
-                var useCapture_3 = typeof options === "boolean" ? options : options ? options.capture != null : false;
-                var index_3 = -1;
-                if (!onroute.some(function (l, i) {
-                    if (l.listener === listener && l.useCapture === useCapture_3) {
-                        index_3 = i;
-                        return true;
-                    }
-                    return false;
-                })) {
-                    return;
-                }
-                onroute.slice(index_3, 1);
-                break;
-            }
-            default: {
-                return HTMLElementRemoveEventListener.call(this, type, listener, options);
-            }
-        }
-    };
-    return destroyer = function () {
-        HTMLElement.prototype.addEventListener = HTMLElementAddEventListener;
-        HTMLElement.prototype.removeEventListener = HTMLElementRemoveEventListener;
-        destroyer = null;
-    };
-}
 function getRouter(element) {
     var tag = element[riot.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
     if (tag && tag.name === "rhm-router") {
@@ -3188,7 +3085,6 @@ var RouteComponent = {
     },
 
     onBeforeMount() {
-        init();
     },
 
     onMounted() {

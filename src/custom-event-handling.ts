@@ -20,6 +20,8 @@ export function init() {
     if (destroyer !== null) {
         return destroyer;
     }
+    const HTMLElement = window.HTMLElement;
+
     let HTMLElementAddEventListener: typeof HTMLElement.prototype.addEventListener = HTMLElement.prototype.addEventListener;
     HTMLElement.prototype.addEventListener = function (
         type: string,
