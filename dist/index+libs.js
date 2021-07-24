@@ -2823,7 +2823,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr3="expr3"></slot>',
+          '<slot expr5="expr5"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -2842,8 +2842,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr3',
-              'selector': '[expr3]'
+              'redundantAttribute': 'expr5',
+              'selector': '[expr5]'
             }
           ]
         );
@@ -3113,6 +3113,8 @@
         },
 
         onMounted() {
+            this.root.removeAttribute("title");
+
             this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
             // this.root.replaceWith(placeholder);
             const router = this[riot.__.globals.PARENT_KEY_SYMBOL][ROUTER];
@@ -3149,6 +3151,10 @@
             }
 
             this[IS_UNMOUNTING] = false;
+        },
+
+        onUpdated() {
+            this.root.removeAttribute("title");
         }
       },
 
@@ -3227,11 +3233,11 @@
         getComponent
       ) {
         return template(
-          '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
+          '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr4',
-              'selector': '[expr4]',
+              'redundantAttribute': 'expr3',
+              'selector': '[expr3]',
 
               'expressions': [
                 {
@@ -3266,8 +3272,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr5',
-              'selector': '[expr5]'
+              'redundantAttribute': 'expr4',
+              'selector': '[expr4]'
             }
           ]
         );

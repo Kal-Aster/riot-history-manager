@@ -168,6 +168,8 @@
                 init();
             },
             onMounted() {
+                this.root.removeAttribute("title");
+
                 const placeholder = this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
                 // this.root.replaceWith(placeholder);
                 const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
@@ -202,6 +204,9 @@
                 }
 
                 this[IS_UNMOUNTING] = false;
+            },
+            onUpdated() {
+                this.root.removeAttribute("title");
             }
         }
     </script>

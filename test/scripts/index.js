@@ -5570,6 +5570,8 @@ define(['require'], function (require) { 'use strict';
       },
 
       onMounted() {
+          this.root.removeAttribute("title");
+
           this[ROUTE_PLACEHOLDER] = this.root; // document.createComment("");
           // this.root.replaceWith(placeholder);
           const router = this[__.globals.PARENT_KEY_SYMBOL][ROUTER];
@@ -5606,6 +5608,10 @@ define(['require'], function (require) { 'use strict';
           }
 
           this[IS_UNMOUNTING] = false;
+      },
+
+      onUpdated() {
+          this.root.removeAttribute("title");
       }
     },
 
@@ -5853,7 +5859,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr34="expr34"></slot>',
+        '<slot expr32="expr32"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5872,8 +5878,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr34',
-            'selector': '[expr34]'
+            'redundantAttribute': 'expr32',
+            'selector': '[expr32]'
           }
         ]
       );
@@ -5927,7 +5933,7 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-af47e931'], resolve, reject) })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
           "rhm-test-slot-prop": TestSlotProp
       },
