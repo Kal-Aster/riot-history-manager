@@ -32,6 +32,6 @@ define(['exports'], function (exports) { 'use strict';
       'name': 'rhm-replace-test'
     };
 
-    exports.default = rhmReplaceTest;
+    exports['default'] = rhmReplaceTest;
 
 });

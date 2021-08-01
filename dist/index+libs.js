@@ -2287,7 +2287,7 @@
     var routers = [];
     function getLocation(href) {
         if (href === void 0) { href = get(); }
-        var pathname = "";
+        var pathname = "/";
         var hash = "";
         var query = "";
         var cachedQuery = null;
@@ -2299,7 +2299,7 @@
         }
         {
             var split = pathname.split("?");
-            pathname = split.shift();
+            pathname = split.shift() || "/";
             query = split.join("?");
             query = query ? "?" + query : "";
         }
@@ -2823,7 +2823,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr5="expr5"></slot>',
+          '<slot expr3="expr3"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -2842,8 +2842,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr5',
-              'selector': '[expr5]'
+              'redundantAttribute': 'expr3',
+              'selector': '[expr3]'
             }
           ]
         );
@@ -3233,11 +3233,11 @@
         getComponent
       ) {
         return template(
-          '<a expr3="expr3" ref="-navigate-a"><slot expr4="expr4"></slot></a>',
+          '<a expr4="expr4" ref="-navigate-a"><slot expr5="expr5"></slot></a>',
           [
             {
-              'redundantAttribute': 'expr3',
-              'selector': '[expr3]',
+              'redundantAttribute': 'expr4',
+              'selector': '[expr4]',
 
               'expressions': [
                 {
@@ -3272,8 +3272,8 @@
               'type': bindingTypes.SLOT,
               'attributes': [],
               'name': 'default',
-              'redundantAttribute': 'expr4',
-              'selector': '[expr4]'
+              'redundantAttribute': 'expr5',
+              'selector': '[expr5]'
             }
           ]
         );

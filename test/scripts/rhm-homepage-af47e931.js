@@ -72,6 +72,6 @@ define(['exports'], function (exports) { 'use strict';
       'name': 'rhm-homepage'
     };
 
-    exports.default = rhmHomepage;
+    exports['default'] = rhmHomepage;
 
 });
