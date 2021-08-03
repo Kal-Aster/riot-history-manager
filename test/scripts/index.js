@@ -2980,7 +2980,7 @@ define(['require'], function (require) { 'use strict';
   var TRAILING_DELIMITER = /[\\\/]+$/;
   var DELIMITER_NOT_IN_PARENTHESES = /[\\\/]+(?![^(]*[)])/g;
   function prepare(path) {
-      return ("/" + path).replace(TRAILING_DELIMITER, "").replace(DELIMITER_NOT_IN_PARENTHESES, "/");
+      return ("/" + path).replace(TRAILING_DELIMITER, "/").replace(DELIMITER_NOT_IN_PARENTHESES, "/");
   }
   function generate(path, keys) {
       if (Array.isArray(path)) {
@@ -4746,7 +4746,7 @@ define(['require'], function (require) { 'use strict';
   var routers = [];
   function getLocation(href) {
       if (href === void 0) { href = get(); }
-      var pathname = "/";
+      var pathname = "";
       var hash = "";
       var query = "";
       var cachedQuery = null;
@@ -4758,7 +4758,7 @@ define(['require'], function (require) { 'use strict';
       }
       {
           var split = pathname.split("?");
-          pathname = split.shift() || "/";
+          pathname = split.shift();
           query = split.join("?");
           query = query ? "?" + query : "";
       }
@@ -5861,7 +5861,7 @@ define(['require'], function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr32="expr32"></slot>',
+        '<slot expr34="expr34"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5880,8 +5880,8 @@ define(['require'], function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr32',
-            'selector': '[expr32]'
+            'redundantAttribute': 'expr34',
+            'selector': '[expr34]'
           }
         ]
       );
@@ -5935,7 +5935,7 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-af47e931'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject) })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
           "rhm-test-slot-prop": TestSlotProp
       },

@@ -1,9 +1,9 @@
 {
   "name": "riot-history-manager",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "",
   "dependencies": {
-    "history-manager": "^2.1.1",
+    "history-manager": "^2.1.2",
     "riot": "^6.0.2"
   },
   "devDependencies": {
