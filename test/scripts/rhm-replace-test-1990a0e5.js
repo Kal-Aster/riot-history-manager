@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
     var rhmReplaceTest = {
       'css': null,
@@ -32,6 +32,6 @@ define(['exports'], function (exports) { 'use strict';
       'name': 'rhm-replace-test'
     };
 
-    exports['default'] = rhmReplaceTest;
+    exports["default"] = rhmReplaceTest;
 
-});
+}));

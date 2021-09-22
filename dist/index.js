@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('riot'), require('history-manager')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'riot', 'history-manager'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.riotHistoryManager = {}, global.riot, global.historyManager));
-}(this, (function (exports, riot, historyManager) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('history-manager'), require('riot')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'history-manager', 'riot'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.riotHistoryManager = {}, global.historyManager, global.riot));
+})(this, (function (exports, historyManager, riot) { 'use strict';
 
     function _interopNamespace(e) {
         if (e && e.__esModule) return e;
@@ -13,27 +13,25 @@
                     var d = Object.getOwnPropertyDescriptor(e, k);
                     Object.defineProperty(n, k, d.get ? d : {
                         enumerable: true,
-                        get: function () {
-                            return e[k];
-                        }
+                        get: function () { return e[k]; }
                     });
                 }
             });
         }
-        n['default'] = e;
+        n["default"] = e;
         return Object.freeze(n);
     }
 
     var riot__namespace = /*#__PURE__*/_interopNamespace(riot);
 
-    var loadingBar = null;
-    var loadingBarContainer = null;
+    let loadingBar = null;
+    let loadingBarContainer = null;
     function getLoadingElements() {
-        var container = loadingBarContainer;
+        let container = loadingBarContainer;
         if (container === null) {
             (container = loadingBarContainer = document.body.appendChild(document.createElement("div"))).setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
         }
-        var bar = loadingBar;
+        let bar = loadingBar;
         if (bar === null) {
             (bar = loadingBar = container.appendChild(document.createElement("div"))).setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
         }
@@ -42,27 +40,30 @@
             bar: bar
         };
     }
-    var actualClaimedBy = null;
-    var nextFrame = -1;
-    var loadingProgress = 0;
-    var loadingDone = false;
-    var progressVel = function (progress) {
+    let actualClaimedBy = null;
+    let nextFrame = -1;
+    let loadingProgress = 0;
+    let loadingDone = false;
+    // velocità della barra, in funzione del progresso, finchè non è stato ancora terminato il caricamento
+    let progressVel = (progress) => {
         return (8192 - (1.08 * progress * progress)) / 819.2;
     };
-    var visibilityTime = 300;
-    var doneTime = visibilityTime;
-    var claimedWhenVisible = 0;
+    // tempo di visibilità della barra, da quando ha il progresso è completo
+    const visibilityTime = 300;
+    let doneTime = visibilityTime;
+    let claimedWhenVisible = 0;
     function dispatchRouterLoad() {
         document.dispatchEvent(new Event("routerload", { bubbles: true, cancelable: false }));
     }
     function startLoading() {
+        // se era già previsto un aggiornamento della barra, annullarlo
         if (nextFrame) {
             cancelAnimationFrame(nextFrame);
         }
-        var lastTime;
-        var eventDispatched = false;
-        var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
-        var step = function () {
+        let lastTime;
+        let eventDispatched = false;
+        const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
+        let step = () => {
             nextFrame = -1;
             if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
                 loadingProgress = 100;
@@ -70,8 +71,9 @@
                 dispatchRouterLoad();
                 return;
             }
-            var last = lastTime;
-            var delta = ((lastTime = Date.now()) - last);
+            let last = lastTime;
+            let delta = ((lastTime = Date.now()) - last);
+            // se il progresso della barra è completo, attendere che passi il tempo previsto prima di nasconderla
             if (loadingProgress >= 100) {
                 if (!eventDispatched) {
                     dispatchRouterLoad();
@@ -86,15 +88,20 @@
                 }
                 return;
             }
+            // se il caricamento è determinato, aggiungere un valore fisso per raggiungere il completamento
+            // altrimenti richiedere la velocità alla funzione designata
             if (loadingDone) {
                 loadingProgress += delta / 2;
             }
             else {
                 loadingProgress += delta * progressVel(loadingProgress) / 100;
             }
+            // applicare il progresso
             loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+            // richiedere il prossimo aggiornamento della barra
             nextFrame = requestAnimationFrame(step);
         };
+        // visualizzare la barra
         loadingBarContainer.style.display = "block";
         lastTime = Date.now();
         step();
@@ -103,6 +110,7 @@
         if (claimer == null) {
             return;
         }
+        // ricomincia il progresso della barra, gestita da un altro processo
         actualClaimedBy = claimer;
         claimedWhenVisible = getLoadingElements().container.style.display === "block" ? loadingProgress : 5;
         loadingProgress = 5;
@@ -112,33 +120,36 @@
     function claimedBy(claimer) {
         return claimer != null && claimer === actualClaimedBy;
     }
-    var claimed = claimedBy;
+    const claimed = claimedBy;
     function release(claimer) {
+        // se chi ha chiamato questa funzione è lo stesso che ha chiamato
+        // per ultimo la funzione precedente, allora termina il caricamento
         if (claimer == null || actualClaimedBy !== claimer) {
             return;
         }
+        // console.log("claim end at", Date.now() - lastClaim + "ms");
         loadingDone = true;
     }
     function isLoading() {
         return nextFrame !== -1;
     }
-    var rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
-    var shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
-    var hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
+    const rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
+    const shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
+    const hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
     function applyColor(r, g, b) {
-        var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
-        loadingBar.style.background = "rgb(" + r + "," + g + "," + b + ")";
-        loadingBarContainer.style.background = "rgb(" + r + "," + g + "," + b + ",0.5)";
+        const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
+        loadingBar.style.background = `rgb(${r},${g},${b})`;
+        loadingBarContainer.style.background = `rgb(${r},${g},${b},0.5)`;
     }
     function setColor(color) {
         if (typeof color !== "string") {
             throw new TypeError("color must be string");
         }
-        var match = color.match(rgbRegex);
+        let match = color.match(rgbRegex);
         if (match != null) {
-            var r = parseFloat(match[1]);
-            var g = parseFloat(match[2]);
-            var b = parseFloat(match[3]);
+            const r = parseFloat(match[1]);
+            const g = parseFloat(match[2]);
+            const b = parseFloat(match[3]);
             if (r > 255 || g > 255 || b > 255) {
                 throw new TypeError("invalid color rgb arguments");
             }
@@ -151,9 +162,9 @@
         }
         match = color.match(hexRegex);
         if (match != null) {
-            var r = parseInt(match[1], 16);
-            var g = parseInt(match[2], 16);
-            var b = parseInt(match[3], 16);
+            const r = parseInt(match[1], 16);
+            const g = parseInt(match[2], 16);
+            const b = parseInt(match[3], 16);
             applyColor(r, g, b);
             return;
         }
@@ -170,15 +181,135 @@
         setColor: setColor
     });
 
-    var ROUTER = Symbol("router");
-    var UNROUTE_METHOD = Symbol("unroute");
-    var LAST_ROUTED = Symbol("last-routed");
-    var ROUTE_PLACEHOLDER = Symbol("route-placeholder");
-    var IS_UNMOUNTING = Symbol("is-unmounting");
+    var RhmNavigate = {
+      'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+
+      'exports': {
+        onMounted() {
+            this.root.style.cursor = "pointer";
+            if (this.root.style.display === "") {
+                this.root.style.display = "inline";
+            }
+
+            this.root.setAttribute("route-listener", "true");
+            this.root.addEventListener("route", () => {
+                this.update();
+            });
+            
+            this.root.firstElementChild.addEventListener("click", event => {
+                event.preventDefault();
+                let href = this.href(false);
+                if (href != null) {
+                    historyManager.Router.go(href, { replace: this.replace() });
+                } else {
+                    let context = this.context();
+                    if (context) {
+                        historyManager.Router.restoreContext(context);
+                    }
+                }
+                return false;
+            });
+        },
+
+        onBeforeUpdate() {
+            this._href = null;
+        },
+
+        replace() {
+            if (typeof this.props.replace !== "boolean") {
+                return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
+            }
+            return this.props.replace;
+        },
+
+        href(toA = true) {
+            if (typeof this.props.href !== "string") {
+                if (toA) {
+                    const context = this.context();
+                    return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
+                }
+                return null;
+            }
+            if (this._href == null) {
+                this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
+                // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
+            }
+            return toA ? historyManager.URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
+        },
+
+        context() {
+            if (typeof this.props.context !== "string") {
+                return null;
+            }
+            return this.props.context;
+        }
+      },
+
+      'template': function(
+        template,
+        expressionTypes,
+        bindingTypes,
+        getComponent
+      ) {
+        return template(
+          '<a expr1="expr1" ref="-navigate-a"><slot expr2="expr2"></slot></a>',
+          [
+            {
+              'redundantAttribute': 'expr1',
+              'selector': '[expr1]',
+
+              'expressions': [
+                {
+                  'type': expressionTypes.ATTRIBUTE,
+                  'name': 'href',
+
+                  'evaluate': function(
+                    _scope
+                  ) {
+                    return _scope.href();
+                  }
+                },
+                {
+                  'type': expressionTypes.ATTRIBUTE,
+                  'name': 'style',
+
+                  'evaluate': function(
+                    _scope
+                  ) {
+                    return [
+                      'display: ',
+                      _scope.root.style.display,
+                      '; width: 100%; height: 100%;'
+                    ].join(
+                      ''
+                    );
+                  }
+                }
+              ]
+            },
+            {
+              'type': bindingTypes.SLOT,
+              'attributes': [],
+              'name': 'default',
+              'redundantAttribute': 'expr2',
+              'selector': '[expr2]'
+            }
+          ]
+        );
+      },
+
+      'name': 'rhm-navigate'
+    };
+
+    const ROUTER = Symbol("router");
+    const UNROUTE_METHOD = Symbol("unroute");
+    const LAST_ROUTED = Symbol("last-routed");
+    const ROUTE_PLACEHOLDER = Symbol("route-placeholder");
+    const IS_UNMOUNTING = Symbol("is-unmounting");
 
     const noop = () => { };
 
-    var RouterComponent = {
+    var RhmRouter = {
       'css': null,
 
       'exports': {
@@ -255,7 +386,7 @@
         getComponent
       ) {
         return template(
-          '<slot expr2="expr2"></slot>',
+          '<slot expr0="expr0"></slot>',
           [
             {
               'type': bindingTypes.SLOT,
@@ -274,8 +405,8 @@
               ],
 
               'name': 'default',
-              'redundantAttribute': 'expr2',
-              'selector': '[expr2]'
+              'redundantAttribute': 'expr0',
+              'selector': '[expr0]'
             }
           ]
         );
@@ -284,19 +415,27 @@
       'name': 'rhm-router'
     };
 
-    var ONBEFOREROUTE = Symbol("onbeforeroute");
-    var ONUNROUTE = Symbol("onunroute");
-    var ONROUTE = Symbol("onroute");
+    const ONBEFOREROUTE = Symbol("onbeforeroute");
+    const ONUNROUTE = Symbol("onunroute");
+    const ONROUTE = Symbol("onroute");
+    const DOM_COMPONENT_INSTANCE_PROPERTY = riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY;
     function getRouter(element) {
-        var tag = element[riot__namespace.__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+        if (!(element instanceof HTMLElement)) {
+            return null;
+        }
+        let tag = element[DOM_COMPONENT_INSTANCE_PROPERTY];
         if (tag && tag.name === "rhm-router") {
             return tag;
         }
         return null;
     }
     function dispatchEventOver(children, event, collectLoaders, collectRouter) {
-        var stop = false;
-        var immediateStop = false;
+        // variabili per controllare se è stata richiesta l'interruzione della
+        // propagazione dell'evento all'interno di un ascolatatore
+        let stop = false;
+        let immediateStop = false;
+        // sostituisci le funzioni native per sovrascrivere
+        // la modalità di propagazione dell'evento
         event.stopImmediatePropagation = function () {
             stop = true;
             immediateStop = true;
@@ -304,15 +443,18 @@
         event.stopPropagation = function () {
             stop = true;
         };
+        // funzione per propagare l'evento all'elemento specificato ed i suoi figli
         function propagateEvent(child) {
-            var routerTag = getRouter(child);
+            // se l'elemento è un router, non propagare l'evento
+            let routerTag = getRouter(child);
             if (routerTag) {
+                // se è specificata la lista di collezionamento degli elementi router, aggiungere questo
                 if (collectRouter != null) {
                     collectRouter.push(routerTag);
                 }
                 return false;
             }
-            var listeners;
+            let listeners;
             switch (event.type) {
                 case "beforeroute": {
                     listeners = child[ONBEFOREROUTE];
@@ -328,7 +470,7 @@
                 }
                 default: return true;
             }
-            var isLoader = collectLoaders != null && (function (attr) { return attr != null && attr !== "false"; })(child.getAttribute("need-loading"));
+            let isLoader = collectLoaders != null && ((attr) => attr != null && attr !== "false")(child.getAttribute("need-loading"));
             if (isLoader) {
                 child.addEventListener("load", function load() {
                     child.removeEventListener("load", load);
@@ -336,7 +478,7 @@
                 });
             }
             if (listeners) {
-                listeners.some(function (listener) {
+                listeners.some(listener => {
                     if (listener.useCapture) {
                         if (typeof listener.listener === "function") {
                             listener.listener.call(child, event);
@@ -353,9 +495,10 @@
                     }
                 });
             }
+            // propagare l'evento ai figli del presente elemento
             if (!stop) {
                 if (!Array.prototype.some.call(child.children, propagateEvent) && listeners) {
-                    listeners.some(function (listener) {
+                    listeners.some(listener => {
                         if (!listener.useCapture) {
                             if (typeof listener.listener === "function") {
                                 listener.listener.call(child, event);
@@ -373,13 +516,18 @@
                     });
                 }
             }
+            // se è specificata la lista di collezionamento degli elementi che hanno bisogno
+            // di un caricamento ed il presente elemento dovrebbe essere tra questi, aggiungerlo
             if (isLoader) {
                 collectLoaders.push(child);
             }
             return stop;
         }
         Array.prototype.some.call(children, propagateEvent);
+        // elimina le funzioni sostitutive
+        // @ts-ignore
         delete event.stopImmediatePropagation;
+        // @ts-ignore
         delete event.stopPropagation;
     }
 
@@ -519,7 +667,7 @@
         }
     }).bind(routeComponent); }
 
-    var RouteComponent = {
+    var RhmRoute = {
       'css': null,
 
       'exports': {
@@ -594,133 +742,17 @@
       'name': 'rhm-route'
     };
 
-    var NavigateComponent = {
-      'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
-
-      'exports': {
-        onMounted() {
-            this.root.style.cursor = "pointer";
-            if (this.root.style.display === "") {
-                this.root.style.display = "inline";
-            }
-
-            this.root.setAttribute("route-listener", "true");
-            this.root.addEventListener("route", () => {
-                this.update();
-            });
-            
-            this.root.firstElementChild.addEventListener("click", event => {
-                event.preventDefault();
-                let href = this.href(false);
-                if (href != null) {
-                    historyManager.Router.go(href, { replace: this.replace() });
-                } else {
-                    let context = this.context();
-                    if (context) {
-                        historyManager.Router.restoreContext(context);
-                    }
-                }
-                return false;
-            });
-        },
-
-        onBeforeUpdate() {
-            this._href = null;
-        },
-
-        replace() {
-            if (typeof this.props.replace !== "boolean") {
-                return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
-            }
-            return this.props.replace;
-        },
-
-        href(toA = true) {
-            if (typeof this.props.href !== "string") {
-                if (toA) {
-                    const context = this.context();
-                    return context != null ? historyManager.Router.getContextDefaultOf(context) : null;
-                }
-                return null;
-            }
-            if (this._href == null) {
-                this._href = historyManager.Router.getLocation().hrefIf(this.props.href);
-                // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
-            }
-            return toA ? historyManager.URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
-        },
-
-        context() {
-            if (typeof this.props.context !== "string") {
-                return null;
-            }
-            return this.props.context;
-        }
-      },
-
-      'template': function(
-        template,
-        expressionTypes,
-        bindingTypes,
-        getComponent
-      ) {
-        return template(
-          '<a expr0="expr0" ref="-navigate-a"><slot expr1="expr1"></slot></a>',
-          [
-            {
-              'redundantAttribute': 'expr0',
-              'selector': '[expr0]',
-
-              'expressions': [
-                {
-                  'type': expressionTypes.ATTRIBUTE,
-                  'name': 'href',
-
-                  'evaluate': function(
-                    _scope
-                  ) {
-                    return _scope.href();
-                  }
-                },
-                {
-                  'type': expressionTypes.ATTRIBUTE,
-                  'name': 'style',
-
-                  'evaluate': function(
-                    _scope
-                  ) {
-                    return [
-                      'display: ',
-                      _scope.root.style.display,
-                      '; width: 100%; height: 100%;'
-                    ].join(
-                      ''
-                    );
-                  }
-                }
-              ]
-            },
-            {
-              'type': bindingTypes.SLOT,
-              'attributes': [],
-              'name': 'default',
-              'redundantAttribute': 'expr1',
-              'selector': '[expr1]'
-            }
-          ]
-        );
-      },
-
-      'name': 'rhm-navigate'
-    };
-
-    riot.register("rhm-router", RouterComponent);
-    riot.register("rhm-route", RouteComponent);
-    riot.register("rhm-navigate", NavigateComponent);
-    var components = {
-        "rhm-router": RouterComponent,
-        "rhm-route": RouteComponent,
-        "rhm-navigate": NavigateComponent
+    /**
+     * Giuliano Collacchioni: 2019
+     */
+    riot.register("rhm-navigate", RhmNavigate);
+    riot.register("rhm-router", RhmRouter);
+    riot.register("rhm-route", RhmRoute);
+    // tslint:disable-next-line:typedef
+    const components = {
+        RhmNavigate,
+        RhmRouter,
+        RhmRoute
     };
 
     exports.components = components;
@@ -728,4 +760,4 @@
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

@@ -4,21 +4,21 @@
 
 import * as loadingBar from "./loading-bar";
 
-import RouterComponent from "./rhm-router.riot";
-import RouteComponent from "./rhm-route.riot";
-import NavigateComponent from "./rhm-navigate.riot";
+import RhmNavigate from "./rhm-navigate.riot";
+import RhmRouter from "./rhm-router.riot";
+import RhmRoute from "./rhm-route.riot";
 
 import { register } from "riot";
 
-register("rhm-router", RouterComponent);
-register("rhm-route", RouteComponent);
-register("rhm-navigate", NavigateComponent);
+register("rhm-navigate", RhmNavigate);
+register("rhm-router", RhmRouter);
+register("rhm-route", RhmRoute);
 
 // tslint:disable-next-line:typedef
 const components = {
-    "rhm-router": RouterComponent,
-    "rhm-route": RouteComponent,
-    "rhm-navigate": NavigateComponent
+    RhmNavigate,
+    RhmRouter,
+    RhmRoute
 };
 
 export { components, loadingBar };

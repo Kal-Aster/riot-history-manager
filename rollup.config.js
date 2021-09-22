@@ -1,7 +1,8 @@
-const riot = require('rollup-plugin-riot');
 const commonjs = require('@rollup/plugin-commonjs');
-const typescript = require('@rollup/plugin-typescript');
-const nodeResolve = require("@rollup/plugin-node-resolve").default;
+const riot = require('rollup-plugin-riot');
+const typescript = require('rollup-plugin-ts');
+
+const {nodeResolve} = require("@rollup/plugin-node-resolve");
 
 const basicGlobals = {
     "riot": "riot"

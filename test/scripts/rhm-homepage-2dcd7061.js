@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
     var rhmHomepage = {
       'css': null,
@@ -72,6 +72,6 @@ define(['exports'], function (exports) { 'use strict';
       'name': 'rhm-homepage'
     };
 
-    exports['default'] = rhmHomepage;
+    exports["default"] = rhmHomepage;
 
-});
+}));

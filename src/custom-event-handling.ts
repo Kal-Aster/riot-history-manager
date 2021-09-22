@@ -6,6 +6,18 @@ const ONROUTE: unique symbol = Symbol("onroute");
 const CAPTURING_PHASE: unique symbol = Symbol("bubbling-phase");
 const BUBBLING_PHASE: unique symbol = Symbol("capturing-phase");
 
+const DOM_COMPONENT_INSTANCE_PROPERTY: unique symbol = (riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY;
+
+declare global {
+    interface HTMLElement {
+        [ONBEFOREROUTE]: Array<ListenerObject>
+        [ONROUTE]: Array<ListenerObject>
+        [ONUNROUTE]: Array<ListenerObject>
+
+        [DOM_COMPONENT_INSTANCE_PROPERTY]: riot.RiotComponent
+    }
+}
+
 // listen "beforeroute", "unroute" and "route" differently,
 // limiting the handling of these events to this library
 type EventListener = ((this: HTMLElement, ev: Event) => any) | {
@@ -130,7 +142,10 @@ export function init() {
 }
 
 export function getRouter(element: Element): any {
-    let tag: any = element[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+    if (!(element instanceof HTMLElement)) {
+        return null;
+    }
+    let tag: any = element[DOM_COMPONENT_INSTANCE_PROPERTY];
     if (tag && tag.name === "rhm-router") {
         return tag;
     }
@@ -138,7 +153,10 @@ export function getRouter(element: Element): any {
 }
 
 export function getRoute(element: Element): any {
-    let tag: any = element[(riot as any).__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+    if (!(element instanceof HTMLElement)) {
+        return null;
+    }
+    let tag: any = element[DOM_COMPONENT_INSTANCE_PROPERTY];
     if (tag && tag.name === "rhm-route") {
         return tag;
     }

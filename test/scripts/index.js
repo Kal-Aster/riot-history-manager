@@ -1,6 +1,6 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
-  /* Riot v6.0.2, @license MIT */
+  /* Riot v6.0.4, @license MIT */
   /**
    * Convert a string from camel case to dash-case
    * @param   {string} string - probably a component tag name
@@ -2417,7 +2417,7 @@ define(['require'], function (require) { 'use strict';
   }
 
   const {
-    DOM_COMPONENT_INSTANCE_PROPERTY,
+    DOM_COMPONENT_INSTANCE_PROPERTY: DOM_COMPONENT_INSTANCE_PROPERTY$2,
     COMPONENTS_IMPLEMENTATION_MAP,
     PLUGINS_SET
   } = globals;
@@ -2498,14 +2498,14 @@ define(['require'], function (require) { 'use strict';
     globals
   };
 
-  var loadingBar = null;
-  var loadingBarContainer = null;
+  let loadingBar = null;
+  let loadingBarContainer = null;
   function getLoadingElements() {
-      var container = loadingBarContainer;
+      let container = loadingBarContainer;
       if (container === null) {
           (container = loadingBarContainer = document.body.appendChild(document.createElement("div"))).setAttribute("style", "position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 999999; background: rgba(250, 120, 30, .5); display: none;");
       }
-      var bar = loadingBar;
+      let bar = loadingBar;
       if (bar === null) {
           (bar = loadingBar = container.appendChild(document.createElement("div"))).setAttribute("style", "height: 100%; width: 100%; background: rgb(250, 120, 30) none repeat scroll 0% 0%; transform-origin: center left;");
       }
@@ -2514,27 +2514,30 @@ define(['require'], function (require) { 'use strict';
           bar: bar
       };
   }
-  var actualClaimedBy = null;
-  var nextFrame = -1;
-  var loadingProgress = 0;
-  var loadingDone = false;
-  var progressVel = function (progress) {
+  let actualClaimedBy = null;
+  let nextFrame = -1;
+  let loadingProgress = 0;
+  let loadingDone = false;
+  // velocità della barra, in funzione del progresso, finchè non è stato ancora terminato il caricamento
+  let progressVel = (progress) => {
       return (8192 - (1.08 * progress * progress)) / 819.2;
   };
-  var visibilityTime = 300;
-  var doneTime = visibilityTime;
-  var claimedWhenVisible = 0;
+  // tempo di visibilità della barra, da quando ha il progresso è completo
+  const visibilityTime = 300;
+  let doneTime = visibilityTime;
+  let claimedWhenVisible = 0;
   function dispatchRouterLoad() {
       document.dispatchEvent(new Event("routerload", { bubbles: true, cancelable: false }));
   }
   function startLoading() {
+      // se era già previsto un aggiornamento della barra, annullarlo
       if (nextFrame) {
           cancelAnimationFrame(nextFrame);
       }
-      var lastTime;
-      var eventDispatched = false;
-      var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
-      var step = function () {
+      let lastTime;
+      let eventDispatched = false;
+      const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
+      let step = () => {
           nextFrame = -1;
           if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
               loadingProgress = 100;
@@ -2542,8 +2545,9 @@ define(['require'], function (require) { 'use strict';
               dispatchRouterLoad();
               return;
           }
-          var last = lastTime;
-          var delta = ((lastTime = Date.now()) - last);
+          let last = lastTime;
+          let delta = ((lastTime = Date.now()) - last);
+          // se il progresso della barra è completo, attendere che passi il tempo previsto prima di nasconderla
           if (loadingProgress >= 100) {
               if (!eventDispatched) {
                   dispatchRouterLoad();
@@ -2558,15 +2562,20 @@ define(['require'], function (require) { 'use strict';
               }
               return;
           }
+          // se il caricamento è determinato, aggiungere un valore fisso per raggiungere il completamento
+          // altrimenti richiedere la velocità alla funzione designata
           if (loadingDone) {
               loadingProgress += delta / 2;
           }
           else {
               loadingProgress += delta * progressVel(loadingProgress) / 100;
           }
+          // applicare il progresso
           loadingBar.style.transform = "scaleX(" + (loadingProgress / 100) + ")";
+          // richiedere il prossimo aggiornamento della barra
           nextFrame = requestAnimationFrame(step);
       };
+      // visualizzare la barra
       loadingBarContainer.style.display = "block";
       lastTime = Date.now();
       step();
@@ -2575,6 +2584,7 @@ define(['require'], function (require) { 'use strict';
       if (claimer == null) {
           return;
       }
+      // ricomincia il progresso della barra, gestita da un altro processo
       actualClaimedBy = claimer;
       claimedWhenVisible = getLoadingElements().container.style.display === "block" ? loadingProgress : 5;
       loadingProgress = 5;
@@ -2584,30 +2594,33 @@ define(['require'], function (require) { 'use strict';
   function claimedBy(claimer) {
       return claimer != null && claimer === actualClaimedBy;
   }
-  var claimed = claimedBy;
+  const claimed = claimedBy;
   function release(claimer) {
+      // se chi ha chiamato questa funzione è lo stesso che ha chiamato
+      // per ultimo la funzione precedente, allora termina il caricamento
       if (claimer == null || actualClaimedBy !== claimer) {
           return;
       }
+      // console.log("claim end at", Date.now() - lastClaim + "ms");
       loadingDone = true;
   }
-  var rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
-  var shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
-  var hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
+  const rgbRegex = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
+  const shortHexRegex = /^\s*#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])\s*$/;
+  const hexRegex = /^\s*#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\s*$/;
   function applyColor(r, g, b) {
-      var _a = getLoadingElements(), loadingBarContainer = _a.container, loadingBar = _a.bar;
-      loadingBar.style.background = "rgb(" + r + "," + g + "," + b + ")";
-      loadingBarContainer.style.background = "rgb(" + r + "," + g + "," + b + ",0.5)";
+      const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
+      loadingBar.style.background = `rgb(${r},${g},${b})`;
+      loadingBarContainer.style.background = `rgb(${r},${g},${b},0.5)`;
   }
   function setColor(color) {
       if (typeof color !== "string") {
           throw new TypeError("color must be string");
       }
-      var match = color.match(rgbRegex);
+      let match = color.match(rgbRegex);
       if (match != null) {
-          var r = parseFloat(match[1]);
-          var g = parseFloat(match[2]);
-          var b = parseFloat(match[3]);
+          const r = parseFloat(match[1]);
+          const g = parseFloat(match[2]);
+          const b = parseFloat(match[3]);
           if (r > 255 || g > 255 || b > 255) {
               throw new TypeError("invalid color rgb arguments");
           }
@@ -2620,68 +2633,13 @@ define(['require'], function (require) { 'use strict';
       }
       match = color.match(hexRegex);
       if (match != null) {
-          var r = parseInt(match[1], 16);
-          var g = parseInt(match[2], 16);
-          var b = parseInt(match[3], 16);
+          const r = parseInt(match[1], 16);
+          const g = parseInt(match[2], 16);
+          const b = parseInt(match[3], 16);
           applyColor(r, g, b);
           return;
       }
       throw new TypeError("invalid color format");
-  }
-
-  /*! *****************************************************************************
-  Copyright (c) Microsoft Corporation.
-
-  Permission to use, copy, modify, and/or distribute this software for any
-  purpose with or without fee is hereby granted.
-
-  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-  PERFORMANCE OF THIS SOFTWARE.
-  ***************************************************************************** */
-
-  var __assign = function() {
-      __assign = Object.assign || function __assign(t) {
-          for (var s, i = 1, n = arguments.length; i < n; i++) {
-              s = arguments[i];
-              for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-          }
-          return t;
-      };
-      return __assign.apply(this, arguments);
-  };
-
-  function __values(o) {
-      var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-      if (m) return m.call(o);
-      if (o && typeof o.length === "number") return {
-          next: function () {
-              if (o && i >= o.length) o = void 0;
-              return { value: o && o[i++], done: !o };
-          }
-      };
-      throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-  }
-
-  function __read(o, n) {
-      var m = typeof Symbol === "function" && o[Symbol.iterator];
-      if (!m) return o;
-      var i = m.call(o), r, ar = [], e;
-      try {
-          while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-      }
-      catch (error) { e = { error: error }; }
-      finally {
-          try {
-              if (r && !r.done && (m = i["return"])) m.call(i);
-          }
-          finally { if (e) throw e.error; }
-      }
-      return ar;
   }
 
   /**
@@ -2977,14 +2935,14 @@ define(['require'], function (require) { 'use strict';
           return arrayToRegexp(path, keys, options);
       return stringToRegexp(path, keys, options);
   }
-  var TRAILING_DELIMITER = /[\\\/]+$/;
-  var DELIMITER_NOT_IN_PARENTHESES = /[\\\/]+(?![^(]*[)])/g;
+  const TRAILING_DELIMITER = /[\\\/]+$/;
+  const DELIMITER_NOT_IN_PARENTHESES = /[\\\/]+(?![^(]*[)])/g;
   function prepare(path) {
       return ("/" + path).replace(TRAILING_DELIMITER, "/").replace(DELIMITER_NOT_IN_PARENTHESES, "/");
   }
   function generate(path, keys) {
       if (Array.isArray(path)) {
-          path.map(function (value) {
+          path.map(value => {
               if (typeof value === "string") {
                   return prepare(value);
               }
@@ -2994,46 +2952,48 @@ define(['require'], function (require) { 'use strict';
       if (typeof path === "string") {
           path = prepare(path);
       }
-      return pathToRegexp(path, keys);
+      return pathToRegexp(path, keys); // , { end: false }); // is this needed?
   }
 
-  var ContextManager = (function () {
-      function ContextManager() {
-          this._contexts = new Map();
-          this._hrefs = [];
-          this._index = -1;
-          this._length = 0;
-      }
-      ContextManager.prototype.clean = function () {
+  class ContextManager {
+      _contexts = new Map();
+      _hrefs = [];
+      _index = -1;
+      _length = 0;
+      /**
+       * Removes all references after the actual index
+       */
+      clean() {
           if (this._index < this._length - 1) {
-              var index_1 = this._index;
-              var newHREFs_1 = [];
-              this._hrefs.some(function (c_hrefs) {
-                  var newCHrefs = [];
-                  var result = c_hrefs[1].some(function (href) {
-                      if (index_1-- >= 0) {
+              let index = this._index;
+              let newHREFs = [];
+              this._hrefs.some(c_hrefs => {
+                  let newCHrefs = [];
+                  let result = c_hrefs[1].some(href => {
+                      // if index is still greater or equal to 0
+                      // then keep the reference else stop the loop
+                      if (index-- >= 0) {
                           newCHrefs.push(href);
                           return false;
                       }
                       return true;
                   });
                   if (newCHrefs.length) {
-                      newHREFs_1.push([c_hrefs[0], newCHrefs]);
+                      newHREFs.push([c_hrefs[0], newCHrefs]);
                   }
                   return result;
               });
-              this._hrefs = newHREFs_1;
+              this._hrefs = newHREFs;
               this._length = this._index + 1;
           }
-      };
-      ContextManager.prototype.currentContext = function () {
+      }
+      currentContext() {
           if (this._hrefs.length === 0) {
               return null;
           }
-          var index = this._index;
-          var context;
-          if (this._hrefs.some(function (_a) {
-              var _b = __read(_a, 2), c = _b[0], hrefs = _b[1];
+          let index = this._index;
+          let context;
+          if (this._hrefs.some(([c, hrefs]) => {
               context = c;
               index -= hrefs.length;
               return index < 0;
@@ -3041,41 +3001,32 @@ define(['require'], function (require) { 'use strict';
               return context;
           }
           return null;
-      };
-      ContextManager.prototype.contextOf = function (href, skipFallback) {
-          var e_1, _a;
-          if (skipFallback === void 0) { skipFallback = true; }
-          var foundContext = null;
+      }
+      contextOf(href, skipFallback = true) {
+          let foundContext = null;
           href = href.split("#")[0].split("?")[0];
-          try {
-              for (var _b = __values(this._contexts.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
-                  var _d = __read(_c.value, 2), context = _d[0], _e = __read(_d[1], 1), hrefs = _e[0];
-                  if (hrefs.some(function (c_href) {
-                      if (c_href.fallback && skipFallback) {
-                          return false;
-                      }
-                      return c_href.path.test(href);
-                  })) {
-                      foundContext = context;
-                      break;
+          for (let [context, [hrefs]] of this._contexts.entries()) {
+              if (hrefs.some(c_href => {
+                  if (c_href.fallback && skipFallback) {
+                      return false;
                   }
+                  return c_href.path.test(href);
+              })) {
+                  foundContext = context;
+                  break;
               }
-          }
-          catch (e_1_1) { e_1 = { error: e_1_1 }; }
-          finally {
-              try {
-                  if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-              }
-              finally { if (e_1) throw e_1.error; }
           }
           return foundContext;
-      };
-      ContextManager.prototype.insert = function (href, replace) {
-          if (replace === void 0) { replace = false; }
+      }
+      insert(href, replace = false) {
           href = prepare(href);
           this.clean();
-          var foundContext = this.contextOf(href, this._length > 0);
-          var previousContext = this._hrefs.length > 0 ? this._hrefs[this._hrefs.length - 1] : null;
+          // console.group(`ContextManager.insert("${href}", ${replace})`);
+          // console.log(`current href: ${this.hrefs()}`);
+          // get context of href
+          let foundContext = this.contextOf(href, this._length > 0);
+          // console.log(`found context: ${foundContext}`);
+          let previousContext = this._hrefs.length > 0 ? this._hrefs[this._hrefs.length - 1] : null;
           if (foundContext == null) {
               if (this._hrefs.length > 0) {
                   this._hrefs[this._hrefs.length - 1][1].push(href);
@@ -3084,15 +3035,15 @@ define(['require'], function (require) { 'use strict';
               }
           }
           else {
-              var i_1 = -1;
-              if (this._hrefs.some(function (c_hrefs, index) {
+              let i = -1;
+              if (this._hrefs.some((c_hrefs, index) => {
                   if (c_hrefs[0] === foundContext) {
-                      i_1 = index;
+                      i = index;
                       return true;
                   }
                   return false;
               })) {
-                  var c_hrefs = this._hrefs.splice(i_1, 1)[0];
+                  let c_hrefs = this._hrefs.splice(i, 1)[0];
                   if (href !== c_hrefs[1][c_hrefs[1].length - 1]) {
                       c_hrefs[1].push(href);
                       this._length++;
@@ -3107,7 +3058,8 @@ define(['require'], function (require) { 'use strict';
               }
           }
           if (replace && this._hrefs.length > 0) {
-              var lastContext = this._hrefs[this._hrefs.length - 1];
+              let lastContext = this._hrefs[this._hrefs.length - 1];
+              // console.log(`current context: ["${ lastContext[0] }", [${ lastContext[1] }]]`);
               if (lastContext === previousContext) {
                   if (lastContext[1].length > 1) {
                       do {
@@ -3116,6 +3068,7 @@ define(['require'], function (require) { 'use strict';
                           this._index--;
                       } while (lastContext[1].length > 1 &&
                           lastContext[1][lastContext[1].length - 2] === href);
+                      // console.log(`final hrefs: ${ lastContext[1] }`);
                   }
               }
               else if (previousContext != null) {
@@ -3124,21 +3077,28 @@ define(['require'], function (require) { 'use strict';
                   this._index--;
               }
           }
-      };
-      ContextManager.prototype.goBackward = function () {
+          // console.groupEnd();
+      }
+      goBackward() {
+          // console.group("ContextManager.goBackward()");
+          // console.log(`current index: ${this._index}`);
           this._index = Math.max(--this._index, 0);
+          // console.log(`new index: ${this._index}`);
+          // console.groupEnd();
           return this.get();
-      };
-      ContextManager.prototype.goForward = function () {
+      }
+      goForward() {
+          // console.group("ContextManager.goForward()");
+          // console.log(`current index: ${this._index}`);
           this._index = Math.min(++this._index, this._length - 1);
+          // console.log(`new index: ${this._index}`);
+          // console.groupEnd();
           return this.get();
-      };
-      ContextManager.prototype.get = function (index) {
-          if (index === void 0) { index = this._index; }
-          var href;
-          if (this._hrefs.some(function (_a) {
-              var _b = __read(_a, 2); _b[0]; var hrefs = _b[1];
-              var length = hrefs.length;
+      }
+      get(index = this._index) {
+          let href;
+          if (this._hrefs.some(([c, hrefs]) => {
+              let length = hrefs.length;
               if (index >= length) {
                   index -= length;
                   return false;
@@ -3149,8 +3109,8 @@ define(['require'], function (require) { 'use strict';
               return href;
           }
           return null;
-      };
-      ContextManager.prototype.index = function (value) {
+      }
+      index(value) {
           if (value === void 0) {
               return this._index;
           }
@@ -3158,55 +3118,57 @@ define(['require'], function (require) { 'use strict';
           if (isNaN(value)) {
               throw new Error("value must be a number");
           }
+          // console.group(`ContextManager.index(${value})`);
+          // console.log(`current hrefs: ${this.hrefs()}`);
           this._index = value;
-      };
-      ContextManager.prototype.length = function () {
+          // console.groupEnd();
+      }
+      length() {
           return this._length;
-      };
-      ContextManager.prototype.getContextNames = function () {
+      }
+      getContextNames() {
           return Array.from(this._contexts.keys());
-      };
-      ContextManager.prototype.getDefaultOf = function (context) {
-          var c = this._contexts.get(context);
+      }
+      getDefaultOf(context) {
+          let c = this._contexts.get(context);
           if (!c) {
               return null;
           }
-          var href = c[1];
+          let href = c[1];
           if (href == null) {
               return null;
           }
           return href;
-      };
-      ContextManager.prototype.restore = function (context) {
-          var _this = this;
-          var tmpHREFs = this._hrefs;
+      }
+      restore(context) {
+          let tmpHREFs = this._hrefs;
           this.clean();
           if (this._hrefs.length) {
-              var lastContext = this._hrefs[this._hrefs.length - 1];
+              let lastContext = this._hrefs[this._hrefs.length - 1];
               if (lastContext[0] === context) {
-                  var path = this._contexts.get(context)[1] || lastContext[1][0];
-                  var numPages = lastContext[1].splice(1).length;
+                  let path = this._contexts.get(context)[1] || lastContext[1][0];
+                  let numPages = lastContext[1].splice(1).length;
                   this._length -= numPages;
                   this._index -= numPages;
                   lastContext[1][0] = path;
                   return true;
               }
           }
-          if (!this._hrefs.some(function (c, i) {
+          if (!this._hrefs.some((c, i) => {
               if (c[0] === context) {
-                  if (i < _this._hrefs.length - 1) {
-                      _this._hrefs.push(_this._hrefs.splice(i, 1)[0]);
+                  if (i < this._hrefs.length - 1) {
+                      this._hrefs.push(this._hrefs.splice(i, 1)[0]);
                   }
                   return true;
               }
               return false;
           })) {
-              var c = this._contexts.get(context);
+              let c = this._contexts.get(context);
               if (c == null) {
                   this._hrefs = tmpHREFs;
                   return false;
               }
-              var href = c[1];
+              let href = c[1];
               if (href != null) {
                   this.insert(href);
                   return true;
@@ -3214,46 +3176,42 @@ define(['require'], function (require) { 'use strict';
               return false;
           }
           return true;
-      };
-      ContextManager.prototype.addContextPath = function (context_name, path, fallback) {
-          if (fallback === void 0) { fallback = false; }
-          var pathRegexp = generate(path);
-          var context = this._contexts.get(context_name);
+      }
+      addContextPath(context_name, path, fallback = false) {
+          let pathRegexp = generate(path);
+          let context = this._contexts.get(context_name);
           if (context == null) {
               this._contexts.set(context_name, context = [[], null]);
           }
           context[0].push({
               path: pathRegexp,
-              fallback: fallback
+              fallback
           });
           return pathRegexp;
-      };
-      ContextManager.prototype.setContextDefaultHref = function (context_name, href) {
-          var context = this._contexts.get(context_name);
+      }
+      setContextDefaultHref(context_name, href) {
+          let context = this._contexts.get(context_name);
           if (context == null) {
               this._contexts.set(context_name, context = [[], null]);
           }
           context[1] = href !== null ? prepare(href) : null;
-      };
-      ContextManager.prototype.setContext = function (context) {
-          var _this = this;
-          context.paths.forEach(function (path) {
-              _this.addContextPath(context.name, path.path, path.fallback);
+      }
+      setContext(context) {
+          context.paths.forEach(path => {
+              this.addContextPath(context.name, path.path, path.fallback);
           });
           if (context.default !== undefined) {
               this.setContextDefaultHref(context.name, context.default);
           }
-      };
-      ContextManager.prototype.hrefs = function () {
-          var hrefs = [];
-          this._hrefs.forEach(function (_a) {
-              var _b = __read(_a, 2); _b[0]; var c_hrefs = _b[1];
+      }
+      hrefs() {
+          let hrefs = [];
+          this._hrefs.forEach(([c, c_hrefs]) => {
               hrefs.push.apply(hrefs, c_hrefs);
           });
           return hrefs;
-      };
-      return ContextManager;
-  }());
+      }
+  }
 
   var queryString = {};
 
@@ -3840,14 +3798,18 @@ define(['require'], function (require) { 'use strict';
   };
   }(queryString));
 
-  var DIVIDER = "#R!:";
-  var catchPopState$2 = null;
-  var destroyEventListener$3 = null;
+  /**
+   * @author Giuliano Collacchioni @2020
+   */
+  const DIVIDER = "#R!:";
+  // add a listener to popstate event to stop propagation on option handling
+  let catchPopState$2 = null;
+  let destroyEventListener$3 = null;
   function initEventListener$3() {
       if (destroyEventListener$3 !== null) {
           return destroyEventListener$3;
       }
-      var listener = function (event) {
+      const listener = (event) => {
           if (catchPopState$2 == null) {
               return;
           }
@@ -3856,28 +3818,27 @@ define(['require'], function (require) { 'use strict';
           catchPopState$2();
       };
       window.addEventListener("popstate", listener, true);
+      // remove options of just loaded page
       if (Object.keys(get$1()).length > 0) {
           set({});
       }
-      return destroyEventListener$3 = function () {
+      return destroyEventListener$3 = () => {
           window.removeEventListener("popstate", listener, true);
           destroyEventListener$3 = null;
       };
   }
-  function onCatchPopState$2(onCatchPopState, once) {
-      if (once === void 0) { once = false; }
+  function onCatchPopState$2(onCatchPopState, once = false) {
       if (once) {
-          var tmpOnCatchPopState_1 = onCatchPopState;
-          onCatchPopState = function () {
+          let tmpOnCatchPopState = onCatchPopState;
+          onCatchPopState = () => {
               catchPopState$2 = null;
-              tmpOnCatchPopState_1();
+              tmpOnCatchPopState();
           };
       }
       catchPopState$2 = onCatchPopState;
   }
-  function goTo$1(href, replace) {
-      if (replace === void 0) { replace = false; }
-      return new Promise(function (resolve) {
+  function goTo$1(href, replace = false) {
+      return new Promise(resolve => {
           if (href === window.location.href) {
               return resolve();
           }
@@ -3901,9 +3862,8 @@ define(['require'], function (require) { 'use strict';
           }
       });
   }
-  function splitHref(href) {
-      if (href === void 0) { href = window.location.href; }
-      var splitted = href.split(DIVIDER);
+  function splitHref(href = window.location.href) {
+      let splitted = href.split(DIVIDER);
       if (splitted.length > 2) {
           return [
               splitted.slice(0, splitted.length - 1).join(DIVIDER),
@@ -3912,40 +3872,61 @@ define(['require'], function (require) { 'use strict';
       }
       return [splitted[0], splitted[1] || ""];
   }
+  /**
+   * Converts opts to a query-like string
+   * @param opts
+   */
   function optsToStr(opts) {
-      var filteredOpts = {};
-      Object.entries(opts).forEach(function (_a) {
-          var _b = __read(_a, 2), key = _b[0], value = _b[1];
+      let filteredOpts = {};
+      Object.entries(opts).forEach(([key, value]) => {
           if (value !== undefined) {
               filteredOpts[key] = value;
           }
       });
       return queryString.stringify(filteredOpts);
   }
+  /**
+   * Gets the options stored in the url
+   */
   function get$1() {
       return queryString.parse(splitHref()[1]);
   }
+  /**
+   * Sets the options
+   * @param opts
+   */
   function set(opts) {
-      var newHref = splitHref()[0] + DIVIDER + optsToStr(opts);
+      let newHref = splitHref()[0] + DIVIDER + optsToStr(opts);
       return goTo$1(newHref, true);
   }
-  function goWith(href, opts, replace) {
-      if (replace === void 0) { replace = false; }
-      var newHref = splitHref(href)[0] + DIVIDER + optsToStr(opts);
+  /**
+   * Go to the given href adding the specified options
+   * @param href
+   * @param opts
+   * @param replace
+   */
+  function goWith(href, opts, replace = false) {
+      let newHref = splitHref(href)[0] + DIVIDER + optsToStr(opts);
       return goTo$1(newHref, replace);
   }
+  /**
+   * Get the href with the options portion
+   */
   function clearHref() {
       return splitHref()[0];
   }
 
-  var BASE = "#";
-  var LOCATION_BASE = null;
-  var LOCATION_PATHNAME = null;
+  /**
+   * @author Giuliano Collacchioni @2020
+   */
+  let BASE = "#";
+  let LOCATION_BASE = null;
+  let LOCATION_PATHNAME = null;
   function getLocationBase() {
       if (LOCATION_BASE !== null) {
           return LOCATION_BASE;
       }
-      return LOCATION_BASE = window.location.protocol + "//" + window.location.host;
+      return LOCATION_BASE = `${window.location.protocol}//${window.location.host}`;
   }
   function getLocationPathname() {
       if (LOCATION_PATHNAME !== null) {
@@ -3956,7 +3937,7 @@ define(['require'], function (require) { 'use strict';
   function getLocation$1() {
       return getLocationBase() + (BASE[0] === "#" ? getLocationPathname() : "");
   }
-  var parenthesesRegex = /[\\\/]+/g;
+  const parenthesesRegex = /[\\\/]+/g;
   function base(value) {
       if (value != null) {
           if (typeof value !== "string") {
@@ -3975,11 +3956,10 @@ define(['require'], function (require) { 'use strict';
       return BASE;
   }
   function get() {
-      var LOCATION = getLocation$1();
-      return ("/" + prepare(clearHref().split(LOCATION).slice(1).join(LOCATION).split(BASE).slice(1).join(BASE))).replace(parenthesesRegex, "/");
+      const LOCATION = getLocation$1();
+      return `/${prepare(clearHref().split(LOCATION).slice(1).join(LOCATION).split(BASE).slice(1).join(BASE))}`.replace(parenthesesRegex, "/");
   }
-  function construct(href, full) {
-      if (full === void 0) { full = false; }
+  function construct(href, full = false) {
       switch (href[0]) {
           case "?": {
               href = get().split("?")[0] + href;
@@ -4001,8 +3981,11 @@ define(['require'], function (require) { 'use strict';
       construct: construct
   });
 
-  var started = false;
-  var historyManaged = null;
+  /**
+   * @author Giuliano Collacchioni @2020
+   */
+  let started = false;
+  let historyManaged = null;
   function setAutoManagement(value) {
       if (started) {
           throw new Error("HistoryManager already started");
@@ -4012,8 +3995,8 @@ define(['require'], function (require) { 'use strict';
   function getAutoManagement() {
       return historyManaged || false;
   }
-  var works = [];
-  var onworkfinished = [];
+  let works = [];
+  let onworkfinished = [];
   function onWorkFinished(callback, context) {
       if (works.length === 0) {
           callback.call(context || null);
@@ -4021,11 +4004,10 @@ define(['require'], function (require) { 'use strict';
       }
       onworkfinished.push([callback, context || null]);
   }
-  function createWork(locking) {
-      if (locking === void 0) { locking = false; }
-      var finished = false;
-      var finishing = false;
-      var work = {
+  function createWork(locking = false) {
+      let finished = false;
+      let finishing = false;
+      let work = {
           get locking() {
               return locking;
           },
@@ -4035,13 +4017,13 @@ define(['require'], function (require) { 'use strict';
           get finishing() {
               return finishing;
           },
-          finish: function () {
+          finish() {
               if (finished) {
                   return;
               }
               finished = true;
               finishing = false;
-              var i = works.length - 1;
+              let i = works.length - 1;
               for (; i >= 0; i--) {
                   if (works[i] === work) {
                       works.splice(i, 1);
@@ -4050,15 +4032,15 @@ define(['require'], function (require) { 'use strict';
               }
               if (i >= 0 && works.length === 0) {
                   while (onworkfinished.length > 0 && works.length === 0) {
-                      var _a = __read(onworkfinished.shift(), 2), callback = _a[0], context = _a[1];
+                      let [callback, context] = onworkfinished.shift();
                       callback.call(context || window);
                   }
               }
           },
-          beginFinish: function () {
+          beginFinish() {
               finishing = true;
           },
-          askFinish: function () {
+          askFinish() {
               return false;
           }
       };
@@ -4066,20 +4048,20 @@ define(['require'], function (require) { 'use strict';
       return work;
   }
   function acquire() {
-      var lock = createWork(true);
+      let lock = createWork(true);
       return lock;
   }
   function isLocked$1() {
-      return works.some(function (w) { return w.locking; });
+      return works.some(w => w.locking);
   }
-  var catchPopState$1 = null;
-  var destroyEventListener$2 = null;
+  let catchPopState$1 = null;
+  let destroyEventListener$2 = null;
   function initEventListener$2() {
       if (destroyEventListener$2 !== null) {
           return destroyEventListener$2;
       }
-      var destroyOptionsEventListener = initEventListener$3();
-      var listener = function (event) {
+      const destroyOptionsEventListener = initEventListener$3();
+      const listener = (event) => {
           if (!started || isLocked$1()) {
               return;
           }
@@ -4091,26 +4073,24 @@ define(['require'], function (require) { 'use strict';
           catchPopState$1();
       };
       window.addEventListener("popstate", listener, true);
-      return destroyEventListener$2 = function () {
+      return destroyEventListener$2 = () => {
           window.removeEventListener("popstate", listener, true);
           destroyOptionsEventListener();
           destroyEventListener$2 = null;
       };
   }
-  function onCatchPopState$1(onCatchPopState, once) {
-      if (once === void 0) { once = false; }
+  function onCatchPopState$1(onCatchPopState, once = false) {
       if (once) {
-          var tmpOnCatchPopState_1 = onCatchPopState;
-          onCatchPopState = function () {
+          let tmpOnCatchPopState = onCatchPopState;
+          onCatchPopState = () => {
               catchPopState$1 = null;
-              tmpOnCatchPopState_1();
+              tmpOnCatchPopState();
           };
       }
       catchPopState$1 = onCatchPopState;
   }
-  function goTo(href, replace) {
-      if (replace === void 0) { replace = false; }
-      var fullHref = construct(href, true);
+  function goTo(href, replace = false) {
+      const fullHref = construct(href, true);
       href = construct(href);
       if (window.location.href === fullHref) {
           window.dispatchEvent(new Event("popstate"));
@@ -4134,36 +4114,34 @@ define(['require'], function (require) { 'use strict';
           window.dispatchEvent(new Event("popstate"));
       }
   }
-  function addFront(frontHref) {
-      if (frontHref === void 0) { frontHref = "next"; }
-      var href = get();
-      var work = createWork();
-      return new Promise(function (resolve) {
+  function addFront(frontHref = "next") {
+      let href = get();
+      let work = createWork();
+      return new Promise(resolve => {
           goWith(construct(frontHref, true), { back: undefined, front: null })
-              .then(function () { return new Promise(function (resolve) {
+              .then(() => new Promise(resolve => {
               onCatchPopState$1(resolve, true);
               window.history.go(-1);
-          }); })
-              .then(function () { return new Promise(function (resolve) {
+          }))
+              .then(() => new Promise(resolve => {
               onCatchPopState$1(resolve, true);
               goTo(href, true);
-          }); })
-              .then(function () {
+          }))
+              .then(() => {
               work.finish();
               resolve();
           });
       });
   }
-  function addBack(backHref) {
-      if (backHref === void 0) { backHref = ""; }
-      var href = get();
-      var work = createWork();
-      return new Promise(function (resolve) {
-          (new Promise(function (resolve) {
+  function addBack(backHref = "") {
+      let href = get();
+      let work = createWork();
+      return new Promise(resolve => {
+          (new Promise(resolve => {
               onCatchPopState$1(resolve, true);
               window.history.go(-1);
           }))
-              .then(function () { return new Promise(function (resolve) {
+              .then(() => new Promise(resolve => {
               if (backHref) {
                   onCatchPopState$1(resolve, true);
                   goTo(backHref, true);
@@ -4171,20 +4149,20 @@ define(['require'], function (require) { 'use strict';
               else {
                   resolve();
               }
-          }); })
-              .then(function () { return set({ back: null, front: undefined }); })
-              .then(function () { return new Promise(function (resolve) {
+          }))
+              .then(() => set({ back: null, front: undefined }))
+              .then(() => new Promise(resolve => {
               onCatchPopState$1(resolve, true);
               goTo(href);
-          }); })
-              .then(function () {
+          }))
+              .then(() => {
               work.finish();
               resolve();
           });
       });
   }
-  var hasBack = false;
-  var contextManager = new ContextManager();
+  let hasBack = false;
+  let contextManager = new ContextManager();
   function index$1() {
       return contextManager.index();
   }
@@ -4197,8 +4175,7 @@ define(['require'], function (require) { 'use strict';
       }
       return contextManager.setContext(context);
   }
-  function addContextPath$1(context, href, isFallback) {
-      if (isFallback === void 0) { isFallback = false; }
+  function addContextPath$1(context, href, isFallback = false) {
       if (historyManaged === null) {
           historyManaged = true;
       }
@@ -4213,8 +4190,7 @@ define(['require'], function (require) { 'use strict';
   function getContextDefaultOf$1(context) {
       return contextManager.getDefaultOf(context);
   }
-  function getContext$1(href) {
-      if (href === void 0) { href = null; }
+  function getContext$1(href = null) {
       if (href == null) {
           return contextManager.currentContext();
       }
@@ -4227,9 +4203,9 @@ define(['require'], function (require) { 'use strict';
       return contextManager.hrefs();
   }
   function tryUnlock() {
-      var locksAsked = 0;
-      for (var i = works.length - 1; i >= 0; i--) {
-          var work = works[i];
+      let locksAsked = 0;
+      for (let i = works.length - 1; i >= 0; i--) {
+          let work = works[i];
           if (work.locking && !work.finishing) {
               if (!work.askFinish()) {
                   return -1;
@@ -4239,56 +4215,56 @@ define(['require'], function (require) { 'use strict';
       }
       return locksAsked;
   }
-  var workToRelease = null;
+  let workToRelease = null;
   function restore(context) {
       if (!historyManaged) {
           throw new Error("can't restore a context without history management");
       }
-      var locksFinished = tryUnlock();
+      let locksFinished = tryUnlock();
       if (locksFinished === -1) {
-          return new Promise(function (_, reject) { reject(); });
+          return new Promise((_, reject) => { reject(); });
       }
-      var promiseResolve;
-      var promise = new Promise(function (resolve) { promiseResolve = resolve; });
-      onWorkFinished(function () {
-          var previousIndex = contextManager.index();
+      let promiseResolve;
+      let promise = new Promise(resolve => { promiseResolve = resolve; });
+      onWorkFinished(() => {
+          let previousIndex = contextManager.index();
           if (contextManager.restore(context)) {
-              var replace_1 = previousIndex >= contextManager.index();
+              let replace = previousIndex >= contextManager.index();
               workToRelease = createWork();
               onWorkFinished(promiseResolve);
-              var href_1 = contextManager.get();
-              var hadBack_1 = hasBack;
-              (new Promise(function (resolve) {
-                  if (!replace_1 && !hasBack) {
+              let href = contextManager.get();
+              let hadBack = hasBack;
+              (new Promise(resolve => {
+                  if (!replace && !hasBack) {
                       onCatchPopState$1(resolve, true);
-                      goTo(href_1);
+                      goTo(href);
                   }
                   else {
                       resolve();
                   }
               }))
-                  .then(function () { return new Promise(function (resolve) {
-                  var index = contextManager.index() - 1;
-                  if (replace_1 && !hasBack) {
+                  .then(() => new Promise(resolve => {
+                  let index = contextManager.index() - 1;
+                  if (replace && !hasBack) {
                       resolve();
                   }
                   else {
                       addBack(contextManager.get(index))
-                          .then(function () {
+                          .then(() => {
                           hasBack = true;
                           resolve();
                       });
                   }
-              }); })
-                  .then(function () { return new Promise(function (resolve) {
-                  if (hadBack_1 || replace_1) {
+              }))
+                  .then(() => new Promise(resolve => {
+                  if (hadBack || replace) {
                       onCatchPopState$1(resolve, true);
-                      goTo(href_1, true);
+                      goTo(href, true);
                   }
                   else {
                       resolve();
                   }
-              }); })
+              }))
                   .then(onlanded);
           }
           else {
@@ -4298,28 +4274,28 @@ define(['require'], function (require) { 'use strict';
       return promise;
   }
   function assign(href) {
-      var locksFinished = tryUnlock();
+      let locksFinished = tryUnlock();
       if (locksFinished === -1) {
-          return new Promise(function (_, reject) { reject(); });
+          return new Promise((_, reject) => { reject(); });
       }
-      var promiseResolve;
-      var promise = new Promise(function (resolve) { promiseResolve = resolve; });
-      onWorkFinished(function () {
+      let promiseResolve;
+      let promise = new Promise(resolve => { promiseResolve = resolve; });
+      onWorkFinished(() => {
           workToRelease = createWork();
           onWorkFinished(promiseResolve);
           goTo(href);
       });
       return promise;
   }
-  var replacing = false;
+  let replacing = false;
   function replace(href) {
-      var locksFinished = tryUnlock();
+      let locksFinished = tryUnlock();
       if (locksFinished === -1) {
-          return new Promise(function (_, reject) { reject(); });
+          return new Promise((_, reject) => { reject(); });
       }
-      var promiseResolve;
-      var promise = new Promise(function (resolve) { promiseResolve = resolve; });
-      onWorkFinished(function () {
+      let promiseResolve;
+      let promise = new Promise(resolve => { promiseResolve = resolve; });
+      onWorkFinished(() => {
           workToRelease = createWork();
           onWorkFinished(promiseResolve);
           goTo(href, replacing = true);
@@ -4327,9 +4303,9 @@ define(['require'], function (require) { 'use strict';
       return promise;
   }
   function go$1(direction) {
-      var locksFinished = tryUnlock();
+      let locksFinished = tryUnlock();
       if (locksFinished === -1) {
-          return new Promise(function (resolve, reject) {
+          return new Promise((resolve, reject) => {
               reject();
           });
       }
@@ -4343,16 +4319,16 @@ define(['require'], function (require) { 'use strict';
       if (direction === 0) {
           return Promise.resolve();
       }
-      var promiseResolve;
-      var promise = new Promise(function (resolve, reject) { promiseResolve = resolve; });
-      onWorkFinished(function () {
+      let promiseResolve;
+      let promise = new Promise((resolve, reject) => { promiseResolve = resolve; });
+      onWorkFinished(() => {
           if (historyManaged === false) {
               window.history.go(direction);
               promiseResolve();
               return;
           }
-          var contextIndex = contextManager.index();
-          var index = Math.max(0, Math.min(contextManager.length() - 1, contextIndex + direction));
+          const contextIndex = contextManager.index();
+          let index = Math.max(0, Math.min(contextManager.length() - 1, contextIndex + direction));
           if (contextIndex === index) {
               onlanded();
               promiseResolve();
@@ -4378,27 +4354,27 @@ define(['require'], function (require) { 'use strict';
       fallbackContext = historyManaged ?
           (fallbackContext === void 0 ? contextManager.getContextNames()[0] : fallbackContext)
           : null;
-      var href = get();
-      var promiseResolve;
-      var promiseReject;
-      var promise = new Promise(function (resolve, reject) {
+      let href = get();
+      let promiseResolve;
+      let promiseReject;
+      const promise = new Promise((resolve, reject) => {
           promiseResolve = resolve;
           promiseReject = reject;
       });
       if (historyManaged) {
-          var context = contextManager.contextOf(href, false);
+          let context = contextManager.contextOf(href, false);
           if (context == null) {
               if (!fallbackContext) {
                   throw new Error("must define a fallback context");
               }
-              var defaultHREF = contextManager.getDefaultOf(fallbackContext);
+              let defaultHREF = contextManager.getDefaultOf(fallbackContext);
               if (defaultHREF == null) {
                   throw new Error("must define a default href for the fallback context");
               }
               started = true;
               href = defaultHREF;
               workToRelease = createWork();
-              onCatchPopState$1(function () { onlanded(); promiseResolve(); }, true);
+              onCatchPopState$1(() => { onlanded(); promiseResolve(); }, true);
               goTo(defaultHREF, true);
           }
           contextManager.insert(href);
@@ -4418,15 +4394,18 @@ define(['require'], function (require) { 'use strict';
   function onlanded() {
       window.dispatchEvent(new Event("historylanded"));
       if (workToRelease != null) {
-          var work = workToRelease;
+          let work = workToRelease;
           workToRelease = null;
           work.finish();
       }
   }
   function handlePopState$1() {
-      var options = __assign(__assign({}, get$1()), (historyManaged ? {} : { front: undefined, back: undefined }));
+      let options = {
+          ...get$1(),
+          ...(historyManaged ? {} : { front: undefined, back: undefined })
+      };
       if (options.locked) {
-          onCatchPopState$1(function () {
+          onCatchPopState$1(() => {
               if (get$1().locked) {
                   handlePopState$1();
               }
@@ -4435,16 +4414,17 @@ define(['require'], function (require) { 'use strict';
           return;
       }
       if (options.front !== undefined) {
-          var frontEvent = new Event("historyforward", { cancelable: true });
+          let frontEvent = new Event("historyforward", { cancelable: true });
           window.dispatchEvent(frontEvent);
           if (frontEvent.defaultPrevented) {
-              onCatchPopState$1(function () { return; }, true);
+              onCatchPopState$1(() => { return; }, true);
               window.history.go(-1);
               return;
           }
-          var backHref = contextManager.get();
-          var href_2 = contextManager.goForward();
-          (new Promise(function (resolve) {
+          // should go forward in history
+          let backHref = contextManager.get();
+          let href = contextManager.goForward();
+          (new Promise(resolve => {
               if (hasBack) {
                   onCatchPopState$1(resolve, true);
                   window.history.go(-1);
@@ -4453,12 +4433,12 @@ define(['require'], function (require) { 'use strict';
                   resolve();
               }
           }))
-              .then(function () { return new Promise(function (resolve) {
+              .then(() => new Promise(resolve => {
               onCatchPopState$1(resolve, true);
-              goTo(href_2, true);
-          }); })
+              goTo(href, true);
+          }))
               .then(addBack.bind(null, backHref))
-              .then(function () { return new Promise(function (resolve) {
+              .then(() => new Promise(resolve => {
               if (contextManager.index() < contextManager.length() - 1) {
                   onCatchPopState$1(resolve, true);
                   addFront(contextManager.get(contextManager.index() + 1)).then(resolve);
@@ -4466,23 +4446,24 @@ define(['require'], function (require) { 'use strict';
               else {
                   resolve();
               }
-          }); })
-              .then(function () {
+          }))
+              .then(() => {
               hasBack = true;
               onlanded();
           });
       }
       else if (options.back !== undefined) {
-          var backEvent = new Event("historybackward", { cancelable: true });
+          let backEvent = new Event("historybackward", { cancelable: true });
           window.dispatchEvent(backEvent);
           if (backEvent.defaultPrevented) {
-              onCatchPopState$1(function () { return; }, true);
+              onCatchPopState$1(() => { return; }, true);
               window.history.go(+1);
               return;
           }
-          var frontHref = contextManager.get();
-          var href_3 = contextManager.goBackward();
-          (new Promise(function (resolve) {
+          // should go backward in history
+          let frontHref = contextManager.get();
+          let href = contextManager.goBackward();
+          (new Promise(resolve => {
               if (contextManager.index() > 0) {
                   onCatchPopState$1(resolve, true);
                   window.history.go(1);
@@ -4491,28 +4472,29 @@ define(['require'], function (require) { 'use strict';
                   resolve();
               }
           }))
-              .then(function () { return new Promise(function (resolve) {
+              .then(() => new Promise(resolve => {
               onCatchPopState$1(resolve, true);
-              goTo(href_3, true);
-          }); })
+              goTo(href, true);
+          }))
               .then(addFront.bind(null, frontHref))
-              .then(function () {
+              .then(() => {
               hasBack = contextManager.index() > 0;
               onlanded();
           });
       }
       else {
-          var href_4 = get();
-          var backHref_1 = contextManager.get();
-          if (href_4 === backHref_1 || !historyManaged) {
+          // should add new page to history
+          let href = get();
+          let backHref = contextManager.get();
+          if (href === backHref || !historyManaged) {
               return onlanded();
           }
-          var replaced_1 = replacing;
+          let replaced = replacing;
           replacing = false;
-          var willHaveBack_1 = hasBack || !replaced_1;
-          contextManager.insert(href_4, replaced_1);
-          (new Promise(function (resolve) {
-              if (hasBack && !replaced_1) {
+          let willHaveBack = hasBack || !replaced;
+          contextManager.insert(href, replaced);
+          (new Promise(resolve => {
+              if (hasBack && !replaced) {
                   onCatchPopState$1(resolve, true);
                   window.history.go(-1);
               }
@@ -4520,18 +4502,18 @@ define(['require'], function (require) { 'use strict';
                   resolve();
               }
           }))
-              .then(function () {
-              if (replaced_1) {
+              .then(() => {
+              if (replaced) {
                   return Promise.resolve();
               }
-              return addBack(backHref_1);
+              return addBack(backHref);
           })
-              .then(function () { return new Promise(function (resolve) {
+              .then(() => new Promise(resolve => {
               onCatchPopState$1(resolve, true);
-              goTo(href_4, true);
-          }); })
-              .then(function () {
-              hasBack = willHaveBack_1;
+              goTo(href, true);
+          }))
+              .then(() => {
+              hasBack = willHaveBack;
               onlanded();
           });
       }
@@ -4562,14 +4544,17 @@ define(['require'], function (require) { 'use strict';
       isStarted: isStarted
   });
 
-  var locks$1 = [];
-  var catchPopState = null;
-  var destroyEventListener$1 = null;
+  /**
+   * @author Giuliano Collacchioni @2020
+   */
+  let locks$1 = [];
+  let catchPopState = null;
+  let destroyEventListener$1 = null;
   function initEventListener$1() {
       if (destroyEventListener$1 !== null) {
           return destroyEventListener$1;
       }
-      var listener = function (event) {
+      const listener = (event) => {
           if (catchPopState == null) {
               return handlePopState();
           }
@@ -4577,57 +4562,56 @@ define(['require'], function (require) { 'use strict';
           catchPopState();
       };
       window.addEventListener("popstate", listener, true);
-      return destroyEventListener$1 = function () {
+      return destroyEventListener$1 = () => {
           window.removeEventListener("popstate", listener, true);
           destroyEventListener$1 = null;
       };
   }
-  function onCatchPopState(onCatchPopState, once) {
-      if (once === void 0) { once = false; }
+  function onCatchPopState(onCatchPopState, once = false) {
       if (once) {
-          var tmpOnCatchPopState_1 = onCatchPopState;
-          onCatchPopState = function () {
+          let tmpOnCatchPopState = onCatchPopState;
+          onCatchPopState = () => {
               catchPopState = null;
-              tmpOnCatchPopState_1();
+              tmpOnCatchPopState();
           };
       }
       catchPopState = onCatchPopState;
   }
   function lock$2() {
-      var delegate = new EventTarget();
-      var id = Date.now();
-      var historyLock;
-      var promiseResolve;
-      var isPromiseResolved = false;
-      var promise = new Promise(function (resolve) {
-          promiseResolve = function (lock) {
+      const delegate = new EventTarget();
+      const id = Date.now();
+      let historyLock;
+      let promiseResolve;
+      let isPromiseResolved = false;
+      const promise = new Promise(resolve => {
+          promiseResolve = lock => {
               resolve(lock);
               isPromiseResolved = true;
           };
       });
-      onWorkFinished(function () {
+      onWorkFinished(() => {
           historyLock = acquire();
-          var lock = {
+          const lock = {
               lock: {
                   get id() {
                       return id;
                   },
-                  listen: function (listener) {
+                  listen(listener) {
                       delegate.addEventListener("navigation", listener);
                   },
-                  unlisten: function (listener) {
+                  unlisten(listener) {
                       delegate.removeEventListener("navigation", listener);
                   },
-                  unlock: function () {
+                  unlock() {
                       if (!locks$1.length || historyLock.finishing) {
                           return;
                       }
-                      var fn = function () {
+                      const fn = () => {
                           if (locks$1[locks$1.length - 1].lock.id === id) {
                               unlock$1();
                           }
                           else {
-                              locks$1.some(function (lock, index) {
+                              locks$1.some((lock, index) => {
                                   if (lock.lock.id === id) {
                                       locks$1.splice(index, 1)[0].release();
                                   }
@@ -4643,25 +4627,25 @@ define(['require'], function (require) { 'use strict';
                       }
                   }
               },
-              fire: function () {
-                  var e = new Event("navigation", { cancelable: true });
+              fire() {
+                  let e = new Event("navigation", { cancelable: true });
                   delegate.dispatchEvent(e);
                   return e.defaultPrevented;
               },
-              release: function () {
+              release() {
                   historyLock.finish();
               },
-              beginRelease: function (start_fn) {
+              beginRelease(start_fn) {
                   historyLock.beginFinish();
                   if (isPromiseResolved) {
                       start_fn();
                   }
                   else {
-                      promise.then(function () { return start_fn(); });
+                      promise.then(() => start_fn());
                   }
               }
           };
-          historyLock.askFinish = function () {
+          historyLock.askFinish = () => {
               if (!lock.fire()) {
                   return false;
               }
@@ -4669,23 +4653,22 @@ define(['require'], function (require) { 'use strict';
               return true;
           };
           locks$1.push(lock);
-          goWith(clearHref(), __assign(__assign({}, get$1()), { locked: lock.lock.id })).then(function () {
+          goWith(clearHref(), { ...get$1(), locked: lock.lock.id }).then(() => {
               promiseResolve(lock.lock);
           });
       });
       return promise;
   }
-  function unlock$1(force) {
-      if (force === void 0) { force = true; }
-      var wrapper = locks$1.splice(locks$1.length - 1, 1)[0];
+  function unlock$1(force = true) {
+      let wrapper = locks$1.splice(locks$1.length - 1, 1)[0];
       if (wrapper == null) {
           return true;
       }
       if (!force && !wrapper.fire()) {
           return false;
       }
-      wrapper.beginRelease(function () {
-          onCatchPopState(function () {
+      wrapper.beginRelease(() => {
+          onCatchPopState(() => {
               wrapper.release();
           }, true);
           window.history.go(-1);
@@ -4695,26 +4678,26 @@ define(['require'], function (require) { 'use strict';
   function locked$1() {
       return locks$1.length > 0;
   }
-  var shouldUnlock = false;
+  let shouldUnlock = false;
   function handlePopState() {
       if (locks$1.length === 0) {
           return;
       }
-      var lockId = parseInt(get$1().locked, 10);
+      let lockId = parseInt(get$1().locked, 10);
       if (isNaN(lockId)) {
           shouldUnlock = true;
           window.history.go(1);
       }
       else {
-          var lock_1 = locks$1[locks$1.length - 1];
-          if (lockId === lock_1.lock.id) {
-              if (shouldUnlock && lock_1.fire()) {
+          let lock = locks$1[locks$1.length - 1];
+          if (lockId === lock.lock.id) {
+              if (shouldUnlock && lock.fire()) {
                   unlock$1();
               }
               shouldUnlock = false;
               return;
           }
-          else if (lockId > lock_1.lock.id) {
+          else if (lockId > lock.lock.id) {
               window.history.go(-1);
           }
           else {
@@ -4732,32 +4715,39 @@ define(['require'], function (require) { 'use strict';
       locked: locked$1
   });
 
-  var _a, _b, _c;
-  var ROUTES = Symbol("routes");
-  var REDIRECTIONS = Symbol("redirections");
-  var DESTROYED = Symbol("destroyed");
+  /**
+   * @author Giuliano Collacchioni @2020
+   */
+  const ROUTES = Symbol("routes");
+  const REDIRECTIONS = Symbol("redirections");
+  const DESTROYED = Symbol("destroyed");
+  /**
+   * Genera una Map avendo le chiavi e i valori associati in due liste separate
+   * @param keys
+   * @param values
+   */
   function KeyMapFrom(keys, values) {
-      var map = new Map();
-      keys.forEach(function (key, index) {
+      let map = new Map();
+      keys.forEach((key, index) => {
           map.set(key.name.toString(), values[index]);
       });
       return map;
   }
-  var routers = [];
-  function getLocation(href) {
-      if (href === void 0) { href = get(); }
-      var pathname = "";
-      var hash = "";
-      var query = "";
-      var cachedQuery = null;
+  let routers = [];
+  function getLocation(href = get()) {
+      let pathname = "";
+      let hash = "";
+      let query = "";
+      let cachedQuery = null;
+      // href = "/" + href.replace(/[\\\/]+(?![^(]*[)])/g, "/").replace(/^[\/]+/, "").replace(/[\/]+$/, "");
       {
-          var split = href.split("#");
+          let split = href.split("#");
           pathname = split.shift();
           hash = split.join("#");
           hash = hash ? "#" + hash : "";
       }
       {
-          var split = pathname.split("?");
+          let split = pathname.split("?");
           pathname = split.shift();
           query = split.join("?");
           query = query ? "?" + query : "";
@@ -4765,11 +4755,11 @@ define(['require'], function (require) { 'use strict';
       pathname = prepare(pathname);
       return {
           hrefIf: function (go) {
-              var oldP = pathname;
-              var oldH = hash;
-              var oldQ = query;
+              let oldP = pathname;
+              let oldH = hash;
+              let oldQ = query;
               this.href = go;
-              var hrefIf = this.href;
+              let hrefIf = this.href;
               pathname = oldP;
               hash = oldH;
               query = oldQ;
@@ -4783,9 +4773,11 @@ define(['require'], function (require) { 'use strict';
                   throw new Error("href should be a string");
               }
               if (!value) {
+                  // refresh
                   return;
               }
-              var match = value.match(/^([\/\\]{2,})|([\/\\]{1})|([#])|([\?])/);
+              // match at start "//", "/", "#" or "?"
+              let match = value.match(/^([\/\\]{2,})|([\/\\]{1})|([#])|([\?])/);
               if (match) {
                   switch (match[0]) {
                       case "?": {
@@ -4803,18 +4795,21 @@ define(['require'], function (require) { 'use strict';
                           break;
                       }
                       default: {
+                          // here only for "//", not valid
                           return;
                       }
                   }
               }
               else {
-                  var path = pathname.split("/");
+                  let path = pathname.split("/");
+                  // replace last item with the new value
                   path.pop();
                   path.push(prepare(value));
                   pathname = path.join("/");
                   hash = "";
                   query = "";
               }
+              // emit?
           },
           get pathname() {
               return pathname;
@@ -4867,40 +4862,39 @@ define(['require'], function (require) { 'use strict';
               }
               return cachedQuery;
           },
-          hasQueryParam: function (param) {
+          hasQueryParam(param) {
               if (!query) {
                   return false;
               }
               return this.parsedQuery[param] !== undefined;
           },
-          getQueryParam: function (param) {
+          getQueryParam(param) {
               if (!query) {
                   return undefined;
               }
               return this.parsedQuery[param];
           },
-          addQueryParam: function (param, value) {
-              var _d;
-              if (value === void 0) { value = null; }
-              var newQuery = __assign(__assign({}, this.parsedQuery), (_d = {}, _d[param] = value, _d));
+          addQueryParam(param, value = null) {
+              let newQuery = { ...this.parsedQuery, [param]: value };
               cachedQuery = null;
               query = queryString.stringify(newQuery);
               if (query) {
                   query = "?" + query;
               }
           },
-          removeQueryParam: function (param) {
+          removeQueryParam(param) {
               if (!query) {
                   return;
               }
-              var parsedQuery = this.parsedQuery;
+              let parsedQuery = this.parsedQuery;
               delete parsedQuery[param];
               this.query = queryString.stringify(parsedQuery);
           }
       };
   }
   function emitSingle(router, location) {
-      var path;
+      // se non è disponibile `location` recuperare l'attuale
+      let path;
       if (location) {
           path = location.pathname;
       }
@@ -4908,9 +4902,11 @@ define(['require'], function (require) { 'use strict';
           location = getLocation();
           path = location.pathname;
       }
-      var redirection = null;
-      router[REDIRECTIONS].some(function (redirectionRoute) {
-          var exec = redirectionRoute.regex.exec(path);
+      // path = PathGenerator.prepare(path); // it is done inside location, is it needed here?
+      let redirection = null;
+      // check if this route should be redirected
+      router[REDIRECTIONS].some(redirectionRoute => {
+          let exec = redirectionRoute.regex.exec(path);
           if (exec) {
               redirection = { location: location, keymap: KeyMapFrom(redirectionRoute.keys, exec.slice(1)) };
               location = getLocation(redirectionRoute.redirection);
@@ -4919,8 +4915,8 @@ define(['require'], function (require) { 'use strict';
           }
           return false;
       });
-      router[ROUTES].some(function (route) {
-          var exec = route.regex.exec(path);
+      router[ROUTES].some(route => {
+          let exec = route.regex.exec(path);
           if (exec) {
               route.callback(location, KeyMapFrom(route.keys, exec.slice(1)), redirection);
               return true;
@@ -4929,12 +4925,12 @@ define(['require'], function (require) { 'use strict';
       });
   }
   function _emit() {
-      var location = getLocation();
-      routers.forEach(function (router) {
+      let location = getLocation();
+      routers.forEach(router => {
           emitSingle(router, location);
       });
   }
-  var emitRoute = true;
+  let emitRoute = true;
   function onland() {
       if (emitRoute) {
           _emit();
@@ -4943,27 +4939,25 @@ define(['require'], function (require) { 'use strict';
           emitRoute = true;
       }
   }
-  var destroyEventListener = null;
+  let destroyEventListener = null;
   function initEventListener() {
       if (destroyEventListener !== null) {
           return destroyEventListener;
       }
-      var destroyHistoryEventListener = initEventListener$2();
-      var destroyNavigationLockEventListener = initEventListener$1();
+      const destroyHistoryEventListener = initEventListener$2();
+      const destroyNavigationLockEventListener = initEventListener$1();
       window.addEventListener("historylanded", onland);
-      return destroyEventListener = function () {
+      return destroyEventListener = () => {
           window.removeEventListener("historylanded", onland);
           destroyNavigationLockEventListener();
           destroyHistoryEventListener();
           destroyEventListener = null;
       };
   }
-  function _go(path, replace$1, emit) {
-      if (replace$1 === void 0) { replace$1 = false; }
-      if (emit === void 0) { emit = true; }
-      var lastEmitRoute = emitRoute;
+  function _go(path, replace$1 = false, emit = true) {
+      let lastEmitRoute = emitRoute;
       emitRoute = emit;
-      return (replace$1 ? replace(path) : assign(path)).catch(function () {
+      return (replace$1 ? replace(path) : assign(path)).catch(() => {
           emitRoute = lastEmitRoute;
       });
   }
@@ -4972,38 +4966,47 @@ define(['require'], function (require) { 'use strict';
           throw new Error("Router destroyed");
       }
   }
-  var GenericRouter = (function () {
-      function GenericRouter() {
-          this[_a] = [];
-          this[_b] = [];
-          this[_c] = false;
+  class GenericRouter {
+      constructor() {
           routers.push(this);
       }
-      GenericRouter.prototype.destroy = function () {
+      [ROUTES] = [];
+      [REDIRECTIONS] = [];
+      [DESTROYED] = false;
+      destroy() {
           if (this[DESTROYED]) {
               return;
           }
-          var index = routers.indexOf(this);
+          let index = routers.indexOf(this);
           if (index > -1) {
               routers.splice(index, 1);
           }
           this[DESTROYED] = true;
-      };
-      GenericRouter.prototype.redirect = function (path, redirection) {
+      }
+      /**
+       * Segna il percorso specificato come reindirizzamento ad un altro
+       * @param path
+       * @param redirection
+       */
+      redirect(path, redirection) {
           _throwIfDestroyed(this);
-          var keys = [];
-          var regex = generate(path, keys);
-          this[REDIRECTIONS].push({ regex: regex, keys: keys, redirection: prepare(redirection) });
+          let keys = [];
+          let regex = generate(path, keys);
+          this[REDIRECTIONS].push({ regex, keys, redirection: prepare(redirection) });
           return regex;
-      };
-      GenericRouter.prototype.unredirect = function (path) {
+      }
+      /**
+       * Elimina un reindirizzamento
+       * @param path
+       */
+      unredirect(path) {
           _throwIfDestroyed(this);
-          var keys = [];
-          var regex = generate(path, keys);
-          var rIndex = -1;
-          this[ROUTES].some(function (route, index) {
-              var xSource = (regex.ignoreCase ? regex.source.toLowerCase() : regex.source);
-              var ySource = (route.regex.ignoreCase ? route.regex.source.toLowerCase() : route.regex.source);
+          let keys = [];
+          let regex = generate(path, keys);
+          let rIndex = -1;
+          this[ROUTES].some((route, index) => {
+              let xSource = (regex.ignoreCase ? regex.source.toLowerCase() : regex.source);
+              let ySource = (route.regex.ignoreCase ? route.regex.source.toLowerCase() : route.regex.source);
               if ((xSource === ySource) && (regex.global === route.regex.global) &&
                   (regex.ignoreCase === route.regex.ignoreCase) && (regex.multiline === route.regex.multiline)) {
                   rIndex = index;
@@ -5014,22 +5017,31 @@ define(['require'], function (require) { 'use strict';
           if (rIndex > -1) {
               this[ROUTES].splice(rIndex, 1);
           }
-      };
-      GenericRouter.prototype.route = function (path, callback) {
+      }
+      /**
+       * Associa una funzione ad un percorso
+       * @param path
+       * @param callback
+       */
+      route(path, callback) {
           _throwIfDestroyed(this);
-          var keys = [];
-          var regex = generate(path, keys);
-          this[ROUTES].push({ regex: regex, keys: keys, callback: callback });
+          let keys = [];
+          let regex = generate(path, keys);
+          this[ROUTES].push({ regex, keys, callback });
           return regex;
-      };
-      GenericRouter.prototype.unroute = function (path) {
+      }
+      /**
+       * Elimina la funzione associata al percorso
+       * @param path
+       */
+      unroute(path) {
           _throwIfDestroyed(this);
-          var keys = [];
-          var regex = generate(path, keys);
-          var rIndex = -1;
-          this[ROUTES].some(function (route, index) {
-              var xSource = (regex.ignoreCase ? regex.source.toLowerCase() : regex.source);
-              var ySource = (route.regex.ignoreCase ? route.regex.source.toLowerCase() : route.regex.source);
+          let keys = [];
+          let regex = generate(path, keys);
+          let rIndex = -1;
+          this[ROUTES].some((route, index) => {
+              let xSource = (regex.ignoreCase ? regex.source.toLowerCase() : regex.source);
+              let ySource = (route.regex.ignoreCase ? route.regex.source.toLowerCase() : route.regex.source);
               if ((xSource === ySource) && (regex.global === route.regex.global) &&
                   (regex.ignoreCase === route.regex.ignoreCase) && (regex.multiline === route.regex.multiline)) {
                   rIndex = index;
@@ -5040,14 +5052,63 @@ define(['require'], function (require) { 'use strict';
           if (rIndex > -1) {
               this[ROUTES].splice(rIndex, 1);
           }
-      };
-      GenericRouter.prototype.emit = function () {
+      }
+      emit() {
           emitSingle(this);
-      };
-      return GenericRouter;
-  }());
-  _a = ROUTES, _b = REDIRECTIONS, _c = DESTROYED;
-  var main = new GenericRouter();
+      }
+  }
+  // interface IMainRouter extends GenericRouter {
+  //     /**
+  //      * Crea un router separato dal principale
+  //      */
+  //     create(): GenericRouter;
+  //     setQueryParam(param: string, value: string | null | undefined, options?: { replace?: boolean, emit?: boolean }): Promise<undefined>;
+  //     go(path: string, options?: { replace?: boolean, emit?: boolean }): Promise<undefined>;
+  //     go(index: number, options?: { emit: boolean }): Promise<undefined>;
+  //     base: string;
+  //     location: ILocation;
+  //     /**
+  //      * Blocca la navigazione
+  //      */
+  //     lock(/* ghost?: boolean */): Promise<NavigationLock.Lock>;
+  //     /**
+  //      * Sblocca la navigazione
+  //      */
+  //     unlock(force?: boolean): boolean;
+  //     locked: boolean;
+  //     getContext(href?: string): string | null;
+  //     /**
+  //      * Associa un percorso ad un contesto
+  //      * @param context
+  //      * @param href
+  //      * @param isFallbackContext
+  //      * @param canChain
+  //      */
+  //     addContextPath(context: string, href: string, isFallbackContext?: boolean, canChain?: boolean): RegExp;
+  //     /**
+  //      * Imposta il percorso predefinito di un contesto
+  //      * @param context
+  //      * @param href
+  //      */
+  //     setContextDefaultHref(context: string, href: string): void;
+  //     /**
+  //      * Imposta un contesto
+  //      * @param this
+  //      * @param context
+  //      */
+  //     setContext(context: {
+  //         name: string,
+  //         paths: { path: string, fallback?: boolean }[],
+  //         default?: string
+  //     }): void;
+  //     restoreContext(context: string, defaultHref?: string): Promise<void>;
+  //     emit(single?: boolean): void;
+  //     // start(startingContext: string, organizeHistory?: boolean): boolean;
+  //     start(startingContext: string): void;
+  //     getLocationAt(index: number): ILocation | null;
+  //     index(): number;
+  // }
+  let main = new GenericRouter();
   function redirect(path, redirection) {
       return main.redirect(path, redirection);
   }
@@ -5060,6 +5121,8 @@ define(['require'], function (require) { 'use strict';
   function unroute(path) {
       return main.unroute(path);
   }
+  // :TODO:
+  // main.start = function (startingContext: string, organizeHistory: boolean = true): boolean {
   function start(startingContext) {
       initEventListener();
       return start$1(startingContext);
@@ -5068,14 +5131,13 @@ define(['require'], function (require) { 'use strict';
       return index$1();
   }
   function getLocationAt(index) {
-      var href = getHREFAt(index);
+      let href = getHREFAt(index);
       if (href == null) {
           return null;
       }
       return getLocation(href);
   }
-  function addContextPath(context, href, isFallback) {
-      if (isFallback === void 0) { isFallback = false; }
+  function addContextPath(context, href, isFallback = false) {
       return addContextPath$1(context, href, isFallback);
   }
   function setContextDefaultHref(context, href) {
@@ -5093,8 +5155,7 @@ define(['require'], function (require) { 'use strict';
   function getContextDefaultOf(context) {
       return getContextDefaultOf$1(context);
   }
-  function emit(single) {
-      if (single === void 0) { single = false; }
+  function emit(single = false) {
       if (single) {
           return emitSingle(main);
       }
@@ -5104,14 +5165,19 @@ define(['require'], function (require) { 'use strict';
       return new GenericRouter();
   }
   function go(path_index, options) {
-      var path_index_type = typeof path_index;
+      // tslint:disable-next-line: typedef
+      let path_index_type = typeof path_index;
       if (path_index_type !== "string" && path_index_type !== "number") {
           throw new Error("router.go should receive an url string or a number");
       }
-      options = __assign({}, options);
-      return new Promise(function (promiseResolve, promiseReject) {
-          var goingEvent = new CustomEvent("router:going", {
-              detail: __assign({ direction: path_index }, options),
+      // let promiseResolve: () => void;
+      options = { ...options };
+      return new Promise((promiseResolve, promiseReject) => {
+          let goingEvent = new CustomEvent("router:going", {
+              detail: {
+                  direction: path_index,
+                  ...options
+              },
               cancelable: true
           });
           window.dispatchEvent(goingEvent);
@@ -5123,19 +5189,19 @@ define(['require'], function (require) { 'use strict';
               _go(path_index, (options && options.replace) || false, (options == null || options.emit == null) ? true : options.emit).then(promiseResolve);
           }
           else {
-              var lastEmitRoute_1 = emitRoute;
+              let lastEmitRoute = emitRoute;
               emitRoute = options.emit == null ? true : options.emit;
-              go$1(path_index).then(promiseResolve, function () {
-                  emitRoute = lastEmitRoute_1;
+              go$1(path_index).then(promiseResolve, () => {
+                  emitRoute = lastEmitRoute;
               });
           }
       });
   }
   function setQueryParam(param, value, options) {
-      var promiseResolve;
-      var promise = new Promise(function (resolve) { promiseResolve = resolve; });
-      onWorkFinished(function () {
-          var location = getLocation();
+      let promiseResolve;
+      let promise = new Promise(resolve => { promiseResolve = resolve; });
+      onWorkFinished(() => {
+          let location = getLocation();
           if (value === undefined) {
               location.removeQueryParam(param);
           }
@@ -5149,8 +5215,7 @@ define(['require'], function (require) { 'use strict';
   function lock$1() {
       return lock$2();
   }
-  function unlock(force) {
-      if (force === void 0) { force = true; }
+  function unlock(force = true) {
       return unlock$1(force);
   }
   function destroy() {
@@ -5197,15 +5262,135 @@ define(['require'], function (require) { 'use strict';
       NavigationLock: NavigationLock
   });
 
-  var ROUTER = Symbol("router");
-  var UNROUTE_METHOD = Symbol("unroute");
-  var LAST_ROUTED = Symbol("last-routed");
-  var ROUTE_PLACEHOLDER = Symbol("route-placeholder");
-  var IS_UNMOUNTING = Symbol("is-unmounting");
+  var RhmNavigate = {
+    'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+
+    'exports': {
+      onMounted() {
+          this.root.style.cursor = "pointer";
+          if (this.root.style.display === "") {
+              this.root.style.display = "inline";
+          }
+
+          this.root.setAttribute("route-listener", "true");
+          this.root.addEventListener("route", () => {
+              this.update();
+          });
+          
+          this.root.firstElementChild.addEventListener("click", event => {
+              event.preventDefault();
+              let href = this.href(false);
+              if (href != null) {
+                  Router.go(href, { replace: this.replace() });
+              } else {
+                  let context = this.context();
+                  if (context) {
+                      Router.restoreContext(context);
+                  }
+              }
+              return false;
+          });
+      },
+
+      onBeforeUpdate() {
+          this._href = null;
+      },
+
+      replace() {
+          if (typeof this.props.replace !== "boolean") {
+              return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
+          }
+          return this.props.replace;
+      },
+
+      href(toA = true) {
+          if (typeof this.props.href !== "string") {
+              if (toA) {
+                  const context = this.context();
+                  return context != null ? Router.getContextDefaultOf(context) : null;
+              }
+              return null;
+          }
+          if (this._href == null) {
+              this._href = Router.getLocation().hrefIf(this.props.href);
+              // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
+          }
+          return toA ? URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
+      },
+
+      context() {
+          if (typeof this.props.context !== "string") {
+              return null;
+          }
+          return this.props.context;
+      }
+    },
+
+    'template': function(
+      template,
+      expressionTypes,
+      bindingTypes,
+      getComponent
+    ) {
+      return template(
+        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
+        [
+          {
+            'redundantAttribute': 'expr30',
+            'selector': '[expr30]',
+
+            'expressions': [
+              {
+                'type': expressionTypes.ATTRIBUTE,
+                'name': 'href',
+
+                'evaluate': function(
+                  _scope
+                ) {
+                  return _scope.href();
+                }
+              },
+              {
+                'type': expressionTypes.ATTRIBUTE,
+                'name': 'style',
+
+                'evaluate': function(
+                  _scope
+                ) {
+                  return [
+                    'display: ',
+                    _scope.root.style.display,
+                    '; width: 100%; height: 100%;'
+                  ].join(
+                    ''
+                  );
+                }
+              }
+            ]
+          },
+          {
+            'type': bindingTypes.SLOT,
+            'attributes': [],
+            'name': 'default',
+            'redundantAttribute': 'expr31',
+            'selector': '[expr31]'
+          }
+        ]
+      );
+    },
+
+    'name': 'rhm-navigate'
+  };
+
+  const ROUTER = Symbol("router");
+  const UNROUTE_METHOD = Symbol("unroute");
+  const LAST_ROUTED = Symbol("last-routed");
+  const ROUTE_PLACEHOLDER = Symbol("route-placeholder");
+  const IS_UNMOUNTING = Symbol("is-unmounting");
 
   const noop = () => { };
 
-  var RouterComponent = {
+  var RhmRouter = {
     'css': null,
 
     'exports': {
@@ -5311,19 +5496,27 @@ define(['require'], function (require) { 'use strict';
     'name': 'rhm-router'
   };
 
-  var ONBEFOREROUTE = Symbol("onbeforeroute");
-  var ONUNROUTE = Symbol("onunroute");
-  var ONROUTE = Symbol("onroute");
+  const ONBEFOREROUTE = Symbol("onbeforeroute");
+  const ONUNROUTE = Symbol("onunroute");
+  const ONROUTE = Symbol("onroute");
+  const DOM_COMPONENT_INSTANCE_PROPERTY = __.globals.DOM_COMPONENT_INSTANCE_PROPERTY;
   function getRouter(element) {
-      var tag = element[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY];
+      if (!(element instanceof HTMLElement)) {
+          return null;
+      }
+      let tag = element[DOM_COMPONENT_INSTANCE_PROPERTY];
       if (tag && tag.name === "rhm-router") {
           return tag;
       }
       return null;
   }
   function dispatchEventOver(children, event, collectLoaders, collectRouter) {
-      var stop = false;
-      var immediateStop = false;
+      // variabili per controllare se è stata richiesta l'interruzione della
+      // propagazione dell'evento all'interno di un ascolatatore
+      let stop = false;
+      let immediateStop = false;
+      // sostituisci le funzioni native per sovrascrivere
+      // la modalità di propagazione dell'evento
       event.stopImmediatePropagation = function () {
           stop = true;
           immediateStop = true;
@@ -5331,15 +5524,18 @@ define(['require'], function (require) { 'use strict';
       event.stopPropagation = function () {
           stop = true;
       };
+      // funzione per propagare l'evento all'elemento specificato ed i suoi figli
       function propagateEvent(child) {
-          var routerTag = getRouter(child);
+          // se l'elemento è un router, non propagare l'evento
+          let routerTag = getRouter(child);
           if (routerTag) {
+              // se è specificata la lista di collezionamento degli elementi router, aggiungere questo
               if (collectRouter != null) {
                   collectRouter.push(routerTag);
               }
               return false;
           }
-          var listeners;
+          let listeners;
           switch (event.type) {
               case "beforeroute": {
                   listeners = child[ONBEFOREROUTE];
@@ -5355,7 +5551,7 @@ define(['require'], function (require) { 'use strict';
               }
               default: return true;
           }
-          var isLoader = collectLoaders != null && (function (attr) { return attr != null && attr !== "false"; })(child.getAttribute("need-loading"));
+          let isLoader = collectLoaders != null && ((attr) => attr != null && attr !== "false")(child.getAttribute("need-loading"));
           if (isLoader) {
               child.addEventListener("load", function load() {
                   child.removeEventListener("load", load);
@@ -5363,7 +5559,7 @@ define(['require'], function (require) { 'use strict';
               });
           }
           if (listeners) {
-              listeners.some(function (listener) {
+              listeners.some(listener => {
                   if (listener.useCapture) {
                       if (typeof listener.listener === "function") {
                           listener.listener.call(child, event);
@@ -5380,9 +5576,10 @@ define(['require'], function (require) { 'use strict';
                   }
               });
           }
+          // propagare l'evento ai figli del presente elemento
           if (!stop) {
               if (!Array.prototype.some.call(child.children, propagateEvent) && listeners) {
-                  listeners.some(function (listener) {
+                  listeners.some(listener => {
                       if (!listener.useCapture) {
                           if (typeof listener.listener === "function") {
                               listener.listener.call(child, event);
@@ -5400,13 +5597,18 @@ define(['require'], function (require) { 'use strict';
                   });
               }
           }
+          // se è specificata la lista di collezionamento degli elementi che hanno bisogno
+          // di un caricamento ed il presente elemento dovrebbe essere tra questi, aggiungerlo
           if (isLoader) {
               collectLoaders.push(child);
           }
           return stop;
       }
       Array.prototype.some.call(children, propagateEvent);
+      // elimina le funzioni sostitutive
+      // @ts-ignore
       delete event.stopImmediatePropagation;
+      // @ts-ignore
       delete event.stopPropagation;
   }
 
@@ -5546,7 +5748,7 @@ define(['require'], function (require) { 'use strict';
       }
   }).bind(routeComponent); }
 
-  var RouteComponent = {
+  var RhmRoute = {
     'css': null,
 
     'exports': {
@@ -5621,129 +5823,12 @@ define(['require'], function (require) { 'use strict';
     'name': 'rhm-route'
   };
 
-  var NavigateComponent = {
-    'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
-
-    'exports': {
-      onMounted() {
-          this.root.style.cursor = "pointer";
-          if (this.root.style.display === "") {
-              this.root.style.display = "inline";
-          }
-
-          this.root.setAttribute("route-listener", "true");
-          this.root.addEventListener("route", () => {
-              this.update();
-          });
-          
-          this.root.firstElementChild.addEventListener("click", event => {
-              event.preventDefault();
-              let href = this.href(false);
-              if (href != null) {
-                  Router.go(href, { replace: this.replace() });
-              } else {
-                  let context = this.context();
-                  if (context) {
-                      Router.restoreContext(context);
-                  }
-              }
-              return false;
-          });
-      },
-
-      onBeforeUpdate() {
-          this._href = null;
-      },
-
-      replace() {
-          if (typeof this.props.replace !== "boolean") {
-              return (this.props.replace != null && this.props.replace !== "false") || this.props.replace === "";
-          }
-          return this.props.replace;
-      },
-
-      href(toA = true) {
-          if (typeof this.props.href !== "string") {
-              if (toA) {
-                  const context = this.context();
-                  return context != null ? Router.getContextDefaultOf(context) : null;
-              }
-              return null;
-          }
-          if (this._href == null) {
-              this._href = Router.getLocation().hrefIf(this.props.href);
-              // console.log("got href", this._href, "from", this.props.href, "and", Router.location.href, this.root);
-          }
-          return toA ? URLManager.construct(this._href, true) : this._href; // (toA ? Router.base : "") + this._href;
-      },
-
-      context() {
-          if (typeof this.props.context !== "string") {
-              return null;
-          }
-          return this.props.context;
-      }
-    },
-
-    'template': function(
-      template,
-      expressionTypes,
-      bindingTypes,
-      getComponent
-    ) {
-      return template(
-        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
-        [
-          {
-            'redundantAttribute': 'expr30',
-            'selector': '[expr30]',
-
-            'expressions': [
-              {
-                'type': expressionTypes.ATTRIBUTE,
-                'name': 'href',
-
-                'evaluate': function(
-                  _scope
-                ) {
-                  return _scope.href();
-                }
-              },
-              {
-                'type': expressionTypes.ATTRIBUTE,
-                'name': 'style',
-
-                'evaluate': function(
-                  _scope
-                ) {
-                  return [
-                    'display: ',
-                    _scope.root.style.display,
-                    '; width: 100%; height: 100%;'
-                  ].join(
-                    ''
-                  );
-                }
-              }
-            ]
-          },
-          {
-            'type': bindingTypes.SLOT,
-            'attributes': [],
-            'name': 'default',
-            'redundantAttribute': 'expr31',
-            'selector': '[expr31]'
-          }
-        ]
-      );
-    },
-
-    'name': 'rhm-navigate'
-  };
-
-  register("rhm-router", RouterComponent);
-  register("rhm-route", RouteComponent);
-  register("rhm-navigate", NavigateComponent);
+  /**
+   * Giuliano Collacchioni: 2019
+   */
+  register("rhm-navigate", RhmNavigate);
+  register("rhm-router", RhmRouter);
+  register("rhm-route", RhmRoute);
 
   /**
    * Remove the child nodes from any DOM node
@@ -5935,8 +6020,8 @@ define(['require'], function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject) })),
-          "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject) })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject); })),
+          "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject); })),
           "rhm-test-slot-prop": TestSlotProp
       },
 
@@ -6471,4 +6556,4 @@ define(['require'], function (require) { 'use strict';
   register("rhm-test", TestComponent);
   mount("rhm-test");
 
-});
+}));
