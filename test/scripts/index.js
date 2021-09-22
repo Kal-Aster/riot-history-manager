@@ -5164,7 +5164,7 @@ define(['require'], (function (require) { 'use strict';
   function create() {
       return new GenericRouter();
   }
-  function go(path_index, options) {
+  function go(path_index, options = {}) {
       // tslint:disable-next-line: typedef
       let path_index_type = typeof path_index;
       if (path_index_type !== "string" && path_index_type !== "number") {
