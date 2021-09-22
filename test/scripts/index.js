@@ -5171,12 +5171,12 @@ define(['require'], (function (require) { 'use strict';
           throw new Error("router.go should receive an url string or a number");
       }
       // let promiseResolve: () => void;
-      options = { ...options };
+      const normalizedOptions = { emit: true, replace: false, ...options };
       return new Promise((promiseResolve, promiseReject) => {
           let goingEvent = new CustomEvent("router:going", {
               detail: {
                   direction: path_index,
-                  ...options
+                  ...normalizedOptions
               },
               cancelable: true
           });
@@ -5186,11 +5186,11 @@ define(['require'], (function (require) { 'use strict';
               return;
           }
           if (path_index_type === "string") {
-              _go(path_index, (options && options.replace) || false, (options == null || options.emit == null) ? true : options.emit).then(promiseResolve);
+              _go(path_index, (normalizedOptions && normalizedOptions.replace) || false, (normalizedOptions == null || normalizedOptions.emit == null) ? true : normalizedOptions.emit).then(promiseResolve);
           }
           else {
               let lastEmitRoute = emitRoute;
-              emitRoute = options.emit == null ? true : options.emit;
+              emitRoute = normalizedOptions.emit == null ? true : normalizedOptions.emit;
               go$1(path_index).then(promiseResolve, () => {
                   emitRoute = lastEmitRoute;
               });
@@ -5333,11 +5333,11 @@ define(['require'], (function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
+        '<a expr29="expr29" ref="-navigate-a"><slot expr30="expr30"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr30',
-            'selector': '[expr30]',
+            'redundantAttribute': 'expr29',
+            'selector': '[expr29]',
 
             'expressions': [
               {
@@ -5372,8 +5372,8 @@ define(['require'], (function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr31',
-            'selector': '[expr31]'
+            'redundantAttribute': 'expr30',
+            'selector': '[expr30]'
           }
         ]
       );
@@ -5467,7 +5467,7 @@ define(['require'], (function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr29="expr29"></slot>',
+        '<slot expr31="expr31"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5486,8 +5486,8 @@ define(['require'], (function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr29',
-            'selector': '[expr29]'
+            'redundantAttribute': 'expr31',
+            'selector': '[expr31]'
           }
         ]
       );
@@ -5946,7 +5946,7 @@ define(['require'], (function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr34="expr34"></slot>',
+        '<slot expr32="expr32"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5965,8 +5965,8 @@ define(['require'], (function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr34',
-            'selector': '[expr34]'
+            'redundantAttribute': 'expr32',
+            'selector': '[expr32]'
           }
         ]
       );
@@ -6020,7 +6020,7 @@ define(['require'], (function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject); })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-af47e931'], resolve, reject); })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject); })),
           "rhm-test-slot-prop": TestSlotProp
       },

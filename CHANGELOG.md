@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.3.1] - 2021-09-22
+- update dependencies
+
 ## [3.3.0] - 2021-09-22
 - emit ts declaration
 - `getRoute` and `getRouter` only if `HTMLElement`
