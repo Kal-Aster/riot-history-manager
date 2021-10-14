@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.3.3] - 2021-10-14
+- fix `rhm-navigate` styling
+
 ## [3.3.2] - 2021-09-22
 - update dependencies
 

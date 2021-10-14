@@ -2779,16 +2779,10 @@ var Router = /*#__PURE__*/Object.freeze({
 });
 
 var RhmNavigate = {
-  'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+  'css': `rhm-navigate,[is="rhm-navigate"]{ display: inline; } rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ display: inherit; width: 100%; height: 100%; }`,
 
   'exports': {
     onMounted() {
-        this.root.style.cursor = "pointer";
-        if (this.root.style.display === "") {
-            this.root.style.display = "inline";
-        }
-
-        this.root.setAttribute("route-listener", "true");
         this.root.addEventListener("route", () => {
             this.update();
         });
@@ -2864,22 +2858,6 @@ var RhmNavigate = {
                 _scope
               ) {
                 return _scope.href();
-              }
-            },
-            {
-              'type': expressionTypes.ATTRIBUTE,
-              'name': 'style',
-
-              'evaluate': function(
-                _scope
-              ) {
-                return [
-                  'display: ',
-                  _scope.root.style.display,
-                  '; width: 100%; height: 100%;'
-                ].join(
-                  ''
-                );
               }
             }
           ]

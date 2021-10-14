@@ -1,6 +1,6 @@
 {
   "name": "riot-history-manager",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "",
   "dependencies": {
     "history-manager": "^2.2.2",
@@ -9,13 +9,11 @@
   "devDependencies": {
     "@riotjs/compiler": "^6.0.4",
     "@riotjs/lazy": "^2.0.1",
-    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
-    "rollup": "^2.57.0",
+    "rollup": "^2.58.0",
     "rollup-plugin-riot": "^6.0.0",
-    "rollup-plugin-ts": "^1.4.6",
-    "tslib": "^2.3.0",
-    "typescript": "^4.4.3"
+    "rollup-plugin-ts": "^1.4.7"
   },
   "scripts": {},
   "author": "Giuliano Collacchioni",

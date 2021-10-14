@@ -5263,16 +5263,10 @@ define(['require'], (function (require) { 'use strict';
   });
 
   var RhmNavigate = {
-    'css': `rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ color: inherit; text-decoration: none; outline: none; }`,
+    'css': `rhm-navigate,[is="rhm-navigate"]{ display: inline; } rhm-navigate a[ref=-navigate-a],[is="rhm-navigate"] a[ref=-navigate-a]{ display: inherit; width: 100%; height: 100%; }`,
 
     'exports': {
       onMounted() {
-          this.root.style.cursor = "pointer";
-          if (this.root.style.display === "") {
-              this.root.style.display = "inline";
-          }
-
-          this.root.setAttribute("route-listener", "true");
           this.root.addEventListener("route", () => {
               this.update();
           });
@@ -5333,11 +5327,11 @@ define(['require'], (function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<a expr29="expr29" ref="-navigate-a"><slot expr30="expr30"></slot></a>',
+        '<a expr30="expr30" ref="-navigate-a"><slot expr31="expr31"></slot></a>',
         [
           {
-            'redundantAttribute': 'expr29',
-            'selector': '[expr29]',
+            'redundantAttribute': 'expr30',
+            'selector': '[expr30]',
 
             'expressions': [
               {
@@ -5349,22 +5343,6 @@ define(['require'], (function (require) { 'use strict';
                 ) {
                   return _scope.href();
                 }
-              },
-              {
-                'type': expressionTypes.ATTRIBUTE,
-                'name': 'style',
-
-                'evaluate': function(
-                  _scope
-                ) {
-                  return [
-                    'display: ',
-                    _scope.root.style.display,
-                    '; width: 100%; height: 100%;'
-                  ].join(
-                    ''
-                  );
-                }
               }
             ]
           },
@@ -5372,8 +5350,8 @@ define(['require'], (function (require) { 'use strict';
             'type': bindingTypes.SLOT,
             'attributes': [],
             'name': 'default',
-            'redundantAttribute': 'expr30',
-            'selector': '[expr30]'
+            'redundantAttribute': 'expr31',
+            'selector': '[expr31]'
           }
         ]
       );
@@ -5467,7 +5445,7 @@ define(['require'], (function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr31="expr31"></slot>',
+        '<slot expr29="expr29"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5486,8 +5464,8 @@ define(['require'], (function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr31',
-            'selector': '[expr31]'
+            'redundantAttribute': 'expr29',
+            'selector': '[expr29]'
           }
         ]
       );
@@ -5946,7 +5924,7 @@ define(['require'], (function (require) { 'use strict';
       getComponent
     ) {
       return template(
-        '<slot expr32="expr32"></slot>',
+        '<slot expr34="expr34"></slot>',
         [
           {
             'type': bindingTypes.SLOT,
@@ -5965,8 +5943,8 @@ define(['require'], (function (require) { 'use strict';
             ],
 
             'name': 'default',
-            'redundantAttribute': 'expr32',
-            'selector': '[expr32]'
+            'redundantAttribute': 'expr34',
+            'selector': '[expr34]'
           }
         ]
       );
@@ -6020,7 +5998,7 @@ define(['require'], (function (require) { 'use strict';
       },
 
       components: {
-          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-af47e931'], resolve, reject); })),
+          "rhm-homepage": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-homepage-2dcd7061'], resolve, reject); })),
           "rhm-replace-test": lazy(() => new Promise(function (resolve, reject) { require(['./rhm-replace-test-1990a0e5'], resolve, reject); })),
           "rhm-test-slot-prop": TestSlotProp
       },
