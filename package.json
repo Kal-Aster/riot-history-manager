@@ -3,17 +3,18 @@
   "version": "3.3.3",
   "description": "",
   "dependencies": {
-    "history-manager": "^2.2.2",
-    "riot": "^6.0.4"
+    "history-manager": "^3.3.1",
+    "riot": "^9.4.9"
   },
   "devDependencies": {
-    "@riotjs/compiler": "^6.0.4",
-    "@riotjs/lazy": "^2.0.1",
-    "@rollup/plugin-commonjs": "^21.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.5",
-    "rollup": "^2.58.0",
-    "rollup-plugin-riot": "^6.0.0",
-    "rollup-plugin-ts": "^1.4.7"
+    "@riotjs/compiler": "^9.4.9",
+    "@riotjs/lazy": "^9.0.0",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "express": "^4.21.2",
+    "rollup": "^4.44.2",
+    "rollup-plugin-riot": "^9.0.2"
   },
   "scripts": {},
   "author": "Giuliano Collacchioni",
