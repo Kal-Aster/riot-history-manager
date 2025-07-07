@@ -24,7 +24,7 @@
                 Array.prototype.forEach.call(this.root.querySelectorAll("rhm-route"), route => {
                     route[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY]._setup();
                 });
-                router.route("(.*)", (location, ) => {
+                router.route("*route", (location, ) => {
                     claim(this); release(this);
                     this[LAST_ROUTED] = null;
                     this[UNROUTE_METHOD]();
@@ -45,7 +45,7 @@
                 this[ROUTER] = Router.create();
             },
             onMounted() {
-                this[ROUTER].route("(.*)", (location, ) => {
+                this[ROUTER].route("*route", (location, ) => {
                     claim(this); release(this);
                     this[LAST_ROUTED] = null;
                     this[UNROUTE_METHOD]();

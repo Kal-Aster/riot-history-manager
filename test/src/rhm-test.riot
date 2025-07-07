@@ -43,7 +43,7 @@
                 <div class="asd"></div>
                 <span>{ route.location.href }</span>
             </rhm-route>
-            <rhm-route path="(.*)">
+            <rhm-route path="*route">
                 Page not found
             </rhm-route>
         </rhm-router>
@@ -68,6 +68,7 @@
             URLManager.base(window._ROUTER_BASE);
         }
 
+        console.log("71");
         Router.setContext({
             name: "home",
             paths: [
@@ -78,6 +79,7 @@
             ],
             default: "/home"
         });
+        console.log("82");
         Router.setContext({
             name: "profile",
             paths: [
@@ -88,11 +90,14 @@
             default: "/me"
         });
 
+        console.log("93");
         export default {
             _lastContext: null,
             _lastPath: null,
             onMounted() {
-                Router.create().route("(.*)", (location) => {
+                console.log("98");
+                Router.create().route("*route", (location) => {
+                    console.log("100");
                     let context = Router.getContext();
                     this._lastContext = context;
                     this._lastPath = location.pathname;
