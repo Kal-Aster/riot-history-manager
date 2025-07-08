@@ -6,6 +6,7 @@ export const PARENT_ROUTER: unique symbol = Symbol("parent-router");
 export const UNROUTE_METHOD: unique symbol = Symbol("unroute");
 
 export const LAST_ROUTED: unique symbol = Symbol("last-routed");
+export const TEST_LAST_ROUTED: unique symbol = Symbol("test-last-routed");
 
 export const ROUTE_PLACEHOLDER: unique symbol = Symbol("route-placeholder");
 

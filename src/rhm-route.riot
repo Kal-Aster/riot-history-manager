@@ -5,6 +5,7 @@
             ROUTER,
             UNROUTE_METHOD,
             LAST_ROUTED,
+            TEST_LAST_ROUTED,
             ROUTE_PLACEHOLDER,
             IS_UNMOUNTING
         } from "./constants";
@@ -34,7 +35,9 @@
             }
             // if want to keep some route for faster loading, just `display: none` the element?
             // currentEl.style.display = "none";
-            routeComponent.root.removeChild(currentEl);
+            if (routeComponent.root.isConnected) {
+                routeComponent.root.removeChild(currentEl);
+            }
             if (shouldResetUnroute) {
                 router[UNROUTE_METHOD] = () => {};
             }
@@ -88,12 +91,17 @@
         }
 
         function onroute(routeComponent) { return (function (location, keymap, redirection) {
+            const router = this[ROUTER];
+            if (router[TEST_LAST_ROUTED] !== false) {
+                router[TEST_LAST_ROUTED] = this;
+                return;
+            }
+
             const route = { location, keymap, redirection };
 
             const claimer = Object.create(null);
             loadingBar.claim(claimer);
 
-            const router = this[ROUTER];
             router[LAST_ROUTED] = this;
 
             const slot = this.slots[0];
@@ -101,7 +109,18 @@
             this.root.appendChild(currentEl);
             const currentMount = __.DOMBindings.template(slot.html, slot.bindings).mount(
                 currentEl,
-                Object.create(this[__.globals.PARENT_KEY_SYMBOL], { route: { value: { location, keymap, redirection } } }),
+                Object.create(
+                    this[__.globals.PARENT_KEY_SYMBOL],
+                    {
+                        route: {
+                            value: {
+                                location,
+                                keymap,
+                                redirection
+                            },
+                        },
+                    }
+                ),
                 this[__.globals.PARENT_KEY_SYMBOL]
             );
             currentEl.style.display = "none";
@@ -110,10 +129,12 @@
             const routerChildren = [];
             {
                 const beforeRouteEvent = new CustomEvent("beforeroute", {
-                    cancelable: false, detail: { location, keymap, redirection }
+                    cancelable: false,
+                    detail: { location, keymap, redirection }
                 });
                 dispatchEventOver(currentEl.children, beforeRouteEvent, needLoading, routerChildren);
             }
+
             if (needLoading.length > 0) {
                 let loaded = 0;
                 const onrequestvisibility = () => {
@@ -149,7 +170,7 @@
                 onloadingcomplete(routeComponent, currentMount, route, router, claimer);
             }
         }).bind(routeComponent); }
-        
+
         export default {
             [IS_UNMOUNTING]: false,
             _valid: false,
@@ -183,7 +204,7 @@
                 this[ROUTER] = router;
 
                 if (router.isMounted()) {
-                    router._refesh();
+                    router._refresh();
                 } else {
                     this._setup();
                 }
@@ -200,7 +221,7 @@
                         return;
                     }
                     if (router[LAST_ROUTED] === this) {
-                        router._refesh();
+                        router._refresh();
                     } else {
                         router[ROUTER].unroute(this._path);
                     }

@@ -2,15 +2,18 @@
     <slot { ...getSelfSlotProp() }></slot>
 
     <script>
-        import { __ } from "riot";
         import { Router, HistoryManager } from "history-manager";
 
         import {
             IS_UNMOUNTING,
             LAST_ROUTED,
+            TEST_LAST_ROUTED,
             ROUTER,
             UNROUTE_METHOD
         } from "./constants";
+
+        import { DOM_COMPONENT_INSTANCE_PROPERTY } from "./custom-event-handling/constants";
+
         import { claim, release } from "./loading-bar";
 
         const noop = () => { };
@@ -18,13 +21,27 @@
         export default {
             [IS_UNMOUNTING]: false,
             _mounted: false,
-            _refesh() {
-                this[ROUTER].destroy();
-                const router = this[ROUTER] = Router.create();
-                Array.prototype.forEach.call(this.root.querySelectorAll("rhm-route"), route => {
-                    route[__.globals.DOM_COMPONENT_INSTANCE_PROPERTY]._setup();
-                });
+            _refresh() {
+                let router = this[ROUTER];
+                if (this._mounted) {
+                    router.destroy();
+                    router = this[ROUTER] = Router.create();
+                    Array.prototype.forEach.call(
+                        this.root.querySelectorAll("rhm-route"),
+                        (routeElement) => {
+                            if (!(routeElement instanceof HTMLElement)) {
+                                return;
+                            }
+
+                            routeElement[DOM_COMPONENT_INSTANCE_PROPERTY]?._setup();
+                        }
+                    );
+                }
+
                 router.route("*route", (location, ) => {
+                    if (this[TEST_LAST_ROUTED] !== false) {
+                        return;
+                    }
                     claim(this); release(this);
                     this[LAST_ROUTED] = null;
                     this[UNROUTE_METHOD]();
@@ -32,7 +49,16 @@
                 });
                 // it should check if LAST_ROUTED would be the same,
                 // if so it should not emit
-                router.emit();
+                if (this._mounted) {
+                    const lastRouted = this[LAST_ROUTED];
+                    this[TEST_LAST_ROUTED] = null;
+                    router.emit();
+                    const testLastRouted = this[TEST_LAST_ROUTED];
+                    this[TEST_LAST_ROUTED] = false;
+                    if (testLastRouted !== lastRouted) {
+                        router.emit();
+                    }
+                }
             },
             getSelfSlotProp() {
                 return { [ROUTER]: this };
@@ -45,12 +71,7 @@
                 this[ROUTER] = Router.create();
             },
             onMounted() {
-                this[ROUTER].route("*route", (location, ) => {
-                    claim(this); release(this);
-                    this[LAST_ROUTED] = null;
-                    this[UNROUTE_METHOD]();
-                    this[UNROUTE_METHOD] = noop;
-                });
+                this._refresh();
 
                 this._mounted = true;
 
@@ -71,7 +92,8 @@
 
                 this._mounted = false;
             },
-            [LAST_ROUTED]: null
+            [LAST_ROUTED]: null,
+            [TEST_LAST_ROUTED]: false,
         }
     </script>
 </rhm-router>
