@@ -16,7 +16,11 @@
     "rollup": "^4.44.2",
     "rollup-plugin-riot": "^9.0.2"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "npx rollup -c",
+    "build:watch": "npx rollup -c -w",
+    "serve-test": "node ./test-server.js"
+  },
   "author": "Giuliano Collacchioni",
   "license": "MIT",
   "main": "dist/index.js",
