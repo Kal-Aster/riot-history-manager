@@ -1,12 +1,10 @@
 const express = require('express');
-const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from ./test directory
 app.use(express.static('./test'));
 
-// HTML template (your PHP file with placeholders)
 const htmlTemplate = `<!DOCTYPE html>
 <html>
     <head>
@@ -41,11 +39,10 @@ const htmlTemplate = `<!DOCTYPE html>
                 }
             }());
         </script>
-        <script src="{{RELATIVE_PATH}}require.js" data-main="scripts/index.js"></script>
+        <script src="{{RELATIVE_PATH}}require.js" data-main="{{RELATIVE_PATH}}scripts/index.js"></script>
     </body>
 </html>`;
 
-// Function to calculate relative path (equivalent to PHP logic)
 function calculateRelativePath(route) {
     const pathSegments = route.split('/');
     const count = pathSegments.length - 2;
@@ -62,29 +59,24 @@ function calculateRelativePath(route) {
     return '';
 }
 
-// Route handler for index.html and all other routes
 app.get('*', (req, res) => {
-    // Get the route (equivalent to PHP's PATH_INFO logic)
     const route = req.path || '/';
-    
-    // Calculate relative path
+
     const relativePath = calculateRelativePath(route);
-    
-    // Replace placeholders in template
-    const html = htmlTemplate
-        .replace('{{ROUTE}}', route)
-        .replace('{{RELATIVE_PATH}}', relativePath);
-    
-    // Set appropriate headers
+
+    const html = (htmlTemplate
+        .replaceAll('{{ROUTE}}', route)
+        .replaceAll('{{RELATIVE_PATH}}', relativePath)
+    );
+
     res.set({
         'Content-Type': 'text/html; charset=UTF-8',
         'X-Content-Type-Options': 'nosniff'
     });
-    
+
     res.send(html);
 });
 
-// Start server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Static files served from: ./test`);
