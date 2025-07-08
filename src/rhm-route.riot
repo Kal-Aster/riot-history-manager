@@ -8,8 +8,11 @@
             ROUTE_PLACEHOLDER,
             IS_UNMOUNTING
         } from "./constants";
+
+        import init from "./custom-event-handling/init";
+        import dispatchEventOver from "./custom-event-handling/dispatchEventOver";
+
         import * as loadingBar from "./loading-bar";
-        import { init, dispatchEventOver } from "./custom-event-handling";
 
         function onunroute(routeComponent, currentMount, route, router, shouldFireEvent, shouldResetUnroute) {
             const currentEl = currentMount.el;
