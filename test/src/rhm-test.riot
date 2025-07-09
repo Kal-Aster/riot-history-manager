@@ -23,12 +23,18 @@
     <div>Home: { state.homeVisible ? "Visible": "Not Visible" }</div>
     <rhm-test-slot-prop>
         <button onclick={ toggleWhole }>Toggle whole visibility</button><br>
-        <button onclick={ toggleHome }>Toggle home visibility</button>
+        <button onclick={ toggleHome }>Toggle home visibility</button><br>
+        <button onclick={ toggleMultiple }>Toggle multiple visibility</button>
         <rhm-router if={ state.visible }>
+            <rhm-route path="users/:id">
+                <div class="asd"></div>
+                <span>{ route.location.href }</span>
+            </rhm-route>
             <rhm-route path="home" title="Home" if={ state.homeVisible }>
+                <button onclick={test}>TEST</button>
                 <rhm-homepage need-loading></rhm-homepage>
             </rhm-route>
-            <rhm-route path="me" title="Profilo">
+            <rhm-route path="me" title="Profilo" if={ state.otherVisible }>
                 <rhm-replace-test need-loading></rhm-replace-test>
                 <div onroute={ () => console.log("routed") }>Friends:</div>
                 <div style="padding-left: 1em;">
@@ -37,11 +43,7 @@
                     <rhm-navigate href="/users/4">Sempronio</rhm-navigate>
                 </div>
             </rhm-route>
-            <rhm-route path="users/:id">
-                <div class="asd"></div>
-                <span>{ route.location.href }</span>
-            </rhm-route>
-            <rhm-route path="*route">
+            <rhm-route path="\{*route}">
                 Page not found
             </rhm-route>
         </rhm-router>
@@ -74,7 +76,7 @@
                 // { path: "me" },
                 // { path: "accedi", fallback: true },
                 // { path: "users/:id", fallback: true }
-                { path: "*route", fallback: true },
+                { path: "{/*route}", fallback: true },
             ],
             default: "/home"
         });
@@ -91,8 +93,25 @@
         export default {
             _lastContext: null,
             _lastPath: null,
+            async test() {
+                const lock = await Router.lock();
+                let times = 2;
+                lock.listen((event) => {
+                    console.log(event);
+                    if (--times === 0) {
+                        event.preventDefault();
+                    }
+                });
+            },
             onMounted() {
-                Router.create().route("*route", (location) => {
+                Router.route("/", (location, keymap, redirection) => {
+                    if (location.href !== "/") {
+                        return;
+                    }
+
+                    Router.go("/home", { replace: true, emit: true }).then(() => console.log("hey"));
+                });
+                Router.create().route("{/*route}", (location) => {
                     let context = Router.getContext();
                     this._lastContext = context;
                     this._lastPath = location.pathname;
@@ -114,13 +133,20 @@
             },
             state: {
                 visible: true,
-                homeVisible: true
+                homeVisible: true,
+                otherVisible: true,
             },
             toggleHome() {
                 this.update({ homeVisible: !this.state.homeVisible });
             },
             toggleWhole() {
                 this.update({ visible: !this.state.visible });
+            },
+            toggleMultiple() {
+                this.update({
+                    homeVisible: !this.state.homeVisible,
+                    otherVisible: !this.state.homeVisible,
+                });
             }
         }
     </script>
