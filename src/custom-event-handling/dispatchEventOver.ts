@@ -3,7 +3,7 @@ import { ONBEFOREROUTE, ONROUTE, ONUNROUTE } from "./constants";
 import getRouter from "./getRouter";
 
 export default function dispatchEventOver(
-    children: Array<Element>,
+    children: Iterable<Element>,
     event: Event,
     collectLoaders?: Array<HTMLElement>,
     collectRouter?: Array<RiotComponent>,
@@ -18,7 +18,11 @@ export default function dispatchEventOver(
         stop = true;
     };
 
-    function propagateEvent(child: HTMLElement) {
+    function propagateEvent(child: Element) {
+        if (!(child instanceof HTMLElement)) {
+            return false;
+        }
+
         const routerTag = getRouter(child);
         if (routerTag != null) {
             if (collectRouter != null) {
