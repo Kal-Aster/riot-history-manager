@@ -9,33 +9,45 @@
             LAST_ROUTED,
             TEST_LAST_ROUTED,
             ROUTER,
-            UNROUTE_METHOD
+            UNROUTE_METHOD,
+            CURRENT_ROUTE_INDEX
         } from "./constants";
 
         import { DOM_COMPONENT_INSTANCE_PROPERTY } from "./custom-event-handling/constants";
+
+        import ghost from "./ghost";
 
         import { claim, release } from "./loading-bar";
 
         const noop = () => { };
 
-        export default {
+        export default ghost({
             [IS_UNMOUNTING]: false,
             _mounted: false,
+            routes: null,
+            addRoute(route) {
+                const routes = this.routes ?? (this.routes = []);
+                if (!routes.includes(route)) {
+                    routes.splice(this[CURRENT_ROUTE_INDEX], 0, route);
+                }
+
+                return () => {
+                    const index = routes.indexOf(route);
+                    if (index < 0) {
+                        return;
+                    }
+
+                    routes.splice(index, 1);
+                };
+            },
             _refresh() {
                 let router = this[ROUTER];
                 if (this._mounted) {
                     router.destroy();
                     router = this[ROUTER] = Router.create();
-                    Array.prototype.forEach.call(
-                        this.root.querySelectorAll("rhm-route"),
-                        (routeElement) => {
-                            if (!(routeElement instanceof HTMLElement)) {
-                                return;
-                            }
-
-                            routeElement[DOM_COMPONENT_INSTANCE_PROPERTY]?._setup();
-                        }
-                    );
+                    this.routes?.forEach((route) => {
+                        route._setup();
+                    });
                 }
 
                 router.route("*route", (location, ) => {
@@ -69,6 +81,7 @@
             onBeforeMount() {
                 this[UNROUTE_METHOD] = noop;
                 this[ROUTER] = Router.create();
+                this[CURRENT_ROUTE_INDEX] = 0;
             },
             onMounted() {
                 this._refresh();
@@ -79,8 +92,12 @@
                     this[ROUTER].emit();
                 }
             },
+            onBeforeUpdate() {
+                this[CURRENT_ROUTE_INDEX] = 0;
+            },
             onBeforeUnmount() {
                 this[IS_UNMOUNTING] = true;
+                this[UNROUTE_METHOD]?.();
             },
             onUnmounted() {
                 this[IS_UNMOUNTING] = false;
@@ -94,6 +111,6 @@
             },
             [LAST_ROUTED]: null,
             [TEST_LAST_ROUTED]: false,
-        }
+        });
     </script>
 </rhm-router>
