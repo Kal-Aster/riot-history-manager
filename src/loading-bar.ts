@@ -22,7 +22,7 @@ function getLoadingElements() {
     };
 }
 let actualClaimedBy: any = null;
-let nextFrame: number = -1;
+let nextFrame: number | null = null;
 let loadingProgress: number = 0;
 let loadingDone: boolean = false;
 // velocità della barra, in funzione del progresso, finchè non è stato ancora terminato il caricamento
@@ -38,14 +38,15 @@ function dispatchRouterLoad(): void {
 }
 function startLoading(): void {
     // se era già previsto un aggiornamento della barra, annullarlo
-    if (nextFrame) {
+    if (nextFrame != null) {
         cancelAnimationFrame(nextFrame);
+        nextFrame = null;
     }
     let lastTime: number;
     let eventDispatched: boolean = false;
     const { container: loadingBarContainer, bar: loadingBar } = getLoadingElements();
     let step: () => void = () => {
-        nextFrame = -1;
+        nextFrame = null;
         if (loadingDone && loadingProgress === 5 && claimedWhenVisible === 5) {
             loadingProgress = 100;
             loadingBarContainer.style.display = "none";
@@ -112,7 +113,7 @@ export function release(claimer: any): void {
     loadingDone = true;
 }
 export function isLoading(): boolean {
-    return nextFrame !== -1;
+    return nextFrame != null;
 }
 
 const rgbRegex: RegExp = /^\s*rgb\s*\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\)\s*$/;
