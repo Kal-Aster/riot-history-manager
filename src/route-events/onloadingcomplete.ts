@@ -72,12 +72,22 @@ export default function onloadingcomplete(
         keymap: route.keymap,
         redirection: route.redirection
       } });
-      dispatchEventOver(
-        currentEl.children,
+      const routerChildren: RiotComponent[] = [];
+
+      const eventHasBeenStopped = dispatchEventOver(
+        [routeComponent.root],
         routeEvent,
         undefined,
-        []
-      );
+        routerChildren,
+      )
+      if (!eventHasBeenStopped) {
+        dispatchEventOver(
+          currentEl.children,
+          routeEvent,
+          undefined,
+          routerChildren
+        );
+      }
     }
   }
 }
