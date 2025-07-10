@@ -1,6 +1,6 @@
 {
   "name": "riot-history-manager",
-  "version": "3.3.3",
+  "version": "4.0.0",
   "description": "",
   "dependencies": {
     "@riotjs/util": "^2.5.1",
