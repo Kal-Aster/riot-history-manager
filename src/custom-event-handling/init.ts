@@ -71,7 +71,7 @@ export default function init() {
                     return;
                 }
 
-                onbeforeroute.slice(index, 1);
+                onbeforeroute.splice(index, 1);
                 break;
             }
             case "unroute": {
@@ -89,7 +89,7 @@ export default function init() {
                     return;
                 }
 
-                onunroute.slice(index, 1);
+                onunroute.splice(index, 1);
                 break;
             }
             case "route": {
@@ -107,7 +107,7 @@ export default function init() {
                     return;
                 }
 
-                onroute.slice(index, 1);
+                onroute.splice(index, 1);
                 break;
             }
             default: {
