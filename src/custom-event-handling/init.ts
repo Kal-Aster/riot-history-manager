@@ -58,6 +58,22 @@ export default function init() {
     };
 
     return destroyer = () => {
+        document.querySelectorAll('*').forEach((element) => {
+            if (!(element instanceof HTMLElement)) {
+                return;
+            }
+
+            if (element[ONBEFOREROUTE]) {
+                delete element[ONBEFOREROUTE];
+            }
+            if (element[ONROUTE]) {
+                delete element[ONROUTE];
+            }
+            if (element[ONUNROUTE]) {
+                delete element[ONUNROUTE];
+            }
+        });
+
         HTMLElement.prototype.addEventListener = HTMLElementAddEventListener;
         HTMLElement.prototype.removeEventListener = HTMLElementRemoveEventListener;
         destroyer = null;

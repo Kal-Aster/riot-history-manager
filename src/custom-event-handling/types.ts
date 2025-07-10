@@ -3,9 +3,9 @@ import { DOM_COMPONENT_INSTANCE_PROPERTY, ONBEFOREROUTE, ONROUTE, ONUNROUTE } fr
 
 declare global {
     interface HTMLElement {
-        [ONBEFOREROUTE]: Array<ListenerObject>;
-        [ONROUTE]: Array<ListenerObject>;
-        [ONUNROUTE]: Array<ListenerObject>;
+        [ONBEFOREROUTE]?: Array<ListenerObject>;
+        [ONROUTE]?: Array<ListenerObject>;
+        [ONUNROUTE]?: Array<ListenerObject>;
 
         [DOM_COMPONENT_INSTANCE_PROPERTY]?: RiotComponent;
     }
