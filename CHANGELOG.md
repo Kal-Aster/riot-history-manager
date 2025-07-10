@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [4.0.0] - 2025-07-10
+- update dependencies
+- hide router and route components from the DOM
+- fix unnecessary router emit on _refresh
+- make big code refactor
+
 ## [3.3.3] - 2021-10-14
 - fix `rhm-navigate` styling
 
