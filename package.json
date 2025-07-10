@@ -1,8 +1,9 @@
 {
   "name": "riot-history-manager",
-  "version": "3.3.3",
+  "version": "4.0.0",
   "description": "",
   "dependencies": {
+    "@riotjs/util": "^2.5.1",
     "history-manager": "^3.3.1",
     "riot": "^9.4.9"
   },
@@ -16,7 +17,11 @@
     "rollup": "^4.44.2",
     "rollup-plugin-riot": "^9.0.2"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "npx rollup -c",
+    "build:watch": "npx rollup -c -w",
+    "serve-test": "node ./test-server.js"
+  },
   "author": "Giuliano Collacchioni",
   "license": "MIT",
   "main": "dist/index.js",

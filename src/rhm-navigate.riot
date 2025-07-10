@@ -1,6 +1,6 @@
 <rhm-navigate>
 <!--  Giuliano Collacchioni: 2021  -->
-    <a href={ href() } ref="-navigate-a">
+    <a href={ href() } ref="-navigate-a" { ...getAnchorAttributes() }>
         <slot></slot>
     </a>
 
@@ -66,6 +66,10 @@
                     return null;
                 }
                 return this.props.context;
+            },
+            getAnchorAttributes() {
+                const { href, context, replace, ...attributes } = this.props;
+                return attributes;
             }
         }
     </script>

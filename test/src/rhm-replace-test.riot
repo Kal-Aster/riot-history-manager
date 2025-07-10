@@ -10,10 +10,10 @@
                     this.root.querySelector("[ref=slowLoader]").dispatchEvent(new Event("load"));
                     console.log("elapsed: " + (Date.now() - start) + "ms");
                 }, 600 + (Math.random() * 600));
-                Promise.resolve().then(() => {
+                setTimeout(() => {
                     // Router.go("/accedi", { replace: true });
                     this.root.querySelector("[ref=loader]").dispatchEvent(new Event("load"));
-                });
+                }, 300);
             }
         }
     </script>
