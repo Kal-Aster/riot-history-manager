@@ -82,12 +82,20 @@ export default function onroute(
         cancelable: false,
         detail: { location, keymap, redirection }
       });
-      dispatchEventOver(
-        currentEl.children,
+      const eventHasBeenStopped = dispatchEventOver(
+        [this.root],
         beforeRouteEvent,
         needLoading,
-        routerChildren
-      );
+        routerChildren,
+      )
+      if (!eventHasBeenStopped) {
+        dispatchEventOver(
+          currentEl.children,
+          beforeRouteEvent,
+          needLoading,
+          routerChildren
+        );
+      }
     }
 
     if (needLoading.length > 0) {
