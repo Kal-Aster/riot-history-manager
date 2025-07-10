@@ -6,9 +6,11 @@ import {
 import { RiotComponent, RiotComponentWithoutInternals } from "riot";
 
 function moveChildrenBefore(source: Node, target: Node) {
+  const fragment = document.createDocumentFragment();
   while (source.firstChild) {
-    insertBefore(source.firstChild, target);
+    fragment.appendChild(source.firstChild);
   }
+  insertBefore(fragment, target);
 }
 
 export const END_PLACEHOLDER = Symbol('end-placeholder');
