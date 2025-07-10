@@ -6,9 +6,8 @@ import {
 import { RiotComponent, RiotComponentWithoutInternals } from "riot";
 
 function moveChildrenBefore(source: Node, target: Node) {
-  if (source.firstChild) {
+  while (source.firstChild) {
     insertBefore(source.firstChild, target);
-    moveChildrenBefore(source, target);
   }
 }
 
