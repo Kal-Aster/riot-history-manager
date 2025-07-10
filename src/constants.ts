@@ -1,6 +1,7 @@
 import { __ } from "riot";
 
 export const ROUTER: unique symbol = Symbol("router");
+export const ROUTER_COMPONENT: unique symbol = Symbol("router-component");
 
 export const UNROUTE_METHOD: unique symbol = Symbol("unroute");
 

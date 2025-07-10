@@ -5,7 +5,7 @@ import { __, RiotComponent } from "riot";
 import {
   LAST_ROUTED,
   PARENT_KEY_SYMBOL,
-  ROUTER,
+  ROUTER_COMPONENT,
   TEST_LAST_ROUTED,
   UNROUTE_METHOD
 } from "../constants";
@@ -20,7 +20,7 @@ import onloadingcomplete from "./onloadingcomplete";
 
 export default function onroute(
   routeComponent: RiotComponent & {
-    [ROUTER]: {
+    [ROUTER_COMPONENT]: {
       [LAST_ROUTED]: any;
       [TEST_LAST_ROUTED]: any;
       [UNROUTE_METHOD]: () => void;
@@ -30,7 +30,7 @@ export default function onroute(
   }
 ) {
   return (function (this: RiotComponent & {
-    [ROUTER]: {
+    [ROUTER_COMPONENT]: {
       [LAST_ROUTED]: any;
       [TEST_LAST_ROUTED]: any;
       [UNROUTE_METHOD]: () => void;
@@ -38,7 +38,7 @@ export default function onroute(
     [END_PLACEHOLDER]: Node;
     [PARENT_KEY_SYMBOL]: any;
   }, location: any, keymap: any, redirection: any) {
-    const router = this[ROUTER];
+    const router = this[ROUTER_COMPONENT];
     if (router[TEST_LAST_ROUTED] !== false) {
       router[TEST_LAST_ROUTED] = this;
       return;

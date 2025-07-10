@@ -9,6 +9,7 @@
             LAST_ROUTED,
             TEST_LAST_ROUTED,
             ROUTER,
+            ROUTER_COMPONENT,
             UNROUTE_METHOD,
             CURRENT_ROUTE_INDEX
         } from "./constants";
@@ -71,7 +72,7 @@
                 }
             },
             getSelfSlotProp() {
-                return { [ROUTER]: this };
+                return { [ROUTER_COMPONENT]: this };
             },
             isMounted() {
                 return this._mounted;

@@ -8,6 +8,7 @@
 
         import {
             ROUTER,
+            ROUTER_COMPONENT,
             UNROUTE_METHOD,
             LAST_ROUTED,
             TEST_LAST_ROUTED,
@@ -36,7 +37,7 @@
                     return;
                 }
 
-                const router = this[ROUTER][ROUTER];
+                const router = this[ROUTER_COMPONENT][ROUTER];
 
                 if (this.props.redirect) {
                     router.redirect(this.props.path, this.props.redirect);
@@ -51,11 +52,11 @@
                 init();
             },
             onMounted() {
-                const router = this[PARENT_KEY_SYMBOL][ROUTER];
+                const router = this[PARENT_KEY_SYMBOL][ROUTER_COMPONENT];
                 if (router == null) {
                     return;
                 }
-                this[ROUTER] = router;
+                this[ROUTER_COMPONENT] = router;
 
                 this._valid = true;
 
@@ -67,7 +68,7 @@
                     this._setup();
                 }
 
-                this[PARENT_KEY_SYMBOL][ROUTER][CURRENT_ROUTE_INDEX]++;
+                this[ROUTER_COMPONENT][CURRENT_ROUTE_INDEX]++;
             },
             onBeforeUnmount() {
                 this[IS_UNMOUNTING] = true;
@@ -75,7 +76,7 @@
             },
             onUnmounted() {
                 if (this._valid) {
-                    const router = this[PARENT_KEY_SYMBOL][ROUTER];
+                    const router = this[ROUTER_COMPONENT];
                     if (router[IS_UNMOUNTING]) {
                         return;
                     }
@@ -86,11 +87,15 @@
                     }
                 }
 
+                this._onroute = null;
+                this._path = null;
+                this._remove = null;
+                this[ROUTER_COMPONENT] = null;
                 this[IS_UNMOUNTING] = false;
             },
             onUpdated() {
                 if (this._valid) {
-                    this[PARENT_KEY_SYMBOL][ROUTER][CURRENT_ROUTE_INDEX]++;
+                    this[ROUTER_COMPONENT][CURRENT_ROUTE_INDEX]++;
                 }
             }
         });
