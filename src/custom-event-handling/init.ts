@@ -1,5 +1,11 @@
 import { ONBEFOREROUTE, ONROUTE, ONUNROUTE } from "./constants";
 
+const CUSTOM_EVENTS = {
+  'beforeroute': ONBEFOREROUTE,
+  'unroute': ONUNROUTE,
+  'route': ONROUTE,
+} as const;
+
 let destroyer: (() => void) | null = null;
 export default function init() {
     if (destroyer !== null) {
@@ -13,32 +19,14 @@ export default function init() {
         listener: EventListener,
         options: boolean | AddEventListenerOptions = false
     ) {
-        const useCapture = (typeof options === "boolean" ?
-            options :
-            (options ?
-                options.capture != null :
-                false
-            )
-        );
-        switch (type) {
-            case "beforeroute": {
-                const onbeforeroute = this[ONBEFOREROUTE] = this[ONBEFOREROUTE] || [];
-                onbeforeroute.push({ listener, useCapture });
-                break;
-            }
-            case "unroute": {
-                const onunroute = this[ONUNROUTE] = this[ONUNROUTE] || [];
-                onunroute.push({ listener, useCapture });
-                break;
-            }
-            case "route": {
-                const onroute = this[ONROUTE] = this[ONROUTE] || [];
-                onroute.push({ listener, useCapture });
-                break;
-            }
-            default: {
-                return HTMLElementAddEventListener.call(this, type, listener, options);
-            }
+        const useCapture = typeof options === "boolean" ? options : options?.capture ?? false;
+
+        const eventSymbol = CUSTOM_EVENTS[type as keyof typeof CUSTOM_EVENTS];
+        if (eventSymbol != null) {
+            const handlers = this[eventSymbol] ?? (this[eventSymbol] = []);
+            handlers.push({ listener, useCapture });
+        } else {
+            return HTMLElementAddEventListener.call(this, type, listener, options);
         }
     };
 
@@ -48,71 +36,24 @@ export default function init() {
         listener: (this: HTMLElement, ev: Event) => any,
         options?: boolean | EventListenerOptions
     ) {
-        const useCapture = (typeof options === "boolean" ?
-            options :
-            (options ?
-                options.capture != null :
-                false
-            )
-        );
-        switch (type) {
-            case "beforeroute": {
-                const onbeforeroute = this[ONBEFOREROUTE];
-                if (!onbeforeroute) {
-                    return;
-                }
-                const index = onbeforeroute.findIndex((item) => {
+        const useCapture = typeof options === "boolean" ? options : options?.capture ?? false;
+        
+        const eventSymbol = CUSTOM_EVENTS[type as keyof typeof CUSTOM_EVENTS];
+        if (eventSymbol) {
+            const handlers = this[eventSymbol];
+            if (handlers) {
+                const index = handlers.findIndex((item) => {
                     return (
                         item.listener === listener &&
                         item.useCapture === useCapture
                     );
-                })
-                if (index < 0) {
-                    return;
+                });
+                if (index >= 0) {
+                    handlers.splice(index, 1); // Fixed: was slice in original
                 }
-
-                onbeforeroute.splice(index, 1);
-                break;
             }
-            case "unroute": {
-                const onunroute = this[ONUNROUTE];
-                if (!onunroute) {
-                    return;
-                }
-                const index = onunroute.findIndex((item) => {
-                    return (
-                        item.listener === listener &&
-                        item.useCapture === useCapture
-                    );
-                })
-                if (index < 0) {
-                    return;
-                }
-
-                onunroute.splice(index, 1);
-                break;
-            }
-            case "route": {
-                const onroute = this[ONROUTE];
-                if (!onroute) {
-                    return;
-                }
-                const index = onroute.findIndex((item) => {
-                    return (
-                        item.listener === listener &&
-                        item.useCapture === useCapture
-                    );
-                })
-                if (index < 0) {
-                    return;
-                }
-
-                onroute.splice(index, 1);
-                break;
-            }
-            default: {
-                return HTMLElementRemoveEventListener.call(this, type, listener, options);
-            }
+        } else {
+            return HTMLElementRemoveEventListener.call(this, type, listener, options);
         }
     };
 
