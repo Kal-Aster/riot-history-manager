@@ -26,8 +26,13 @@
         <button onclick={ toggleHome }>Toggle home visibility</button><br>
         <button onclick={ toggleMultiple }>Toggle multiple visibility</button>
         <rhm-router if={ state.visible }>
-            <rhm-route path="users/:id">
-                <div class="asd"></div>
+            <rhm-route path="users/:id" onbeforeroute={(event) => {
+                console.log("before-route");
+                event.stopPropagation();
+            }} onclick={() => 12}>
+                <div class="asd" onbeforeroute={() => {
+                    console.log("this shouldn't be reached");
+                }} onclick={() => 12}></div>
                 <span>{ route.location.href }</span>
             </rhm-route>
             <rhm-route path="home" title="Home" if={ state.homeVisible }>
