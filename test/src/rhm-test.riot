@@ -111,7 +111,7 @@
 
                     Router.go("/home", { replace: true, emit: true }).then(() => console.log("hey"));
                 });
-                Router.create().route("{/*route}", (location) => {
+                Router.create().route("/{*route}", (location) => {
                     let context = Router.getContext();
                     this._lastContext = context;
                     this._lastPath = location.pathname;
@@ -147,7 +147,7 @@
                     homeVisible: !this.state.homeVisible,
                     otherVisible: !this.state.homeVisible,
                 });
-            }
+            },
         }
     </script>
 </rhm-test>
