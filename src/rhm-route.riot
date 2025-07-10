@@ -17,7 +17,6 @@
             CURRENT_ROUTE_INDEX
         } from "./constants";
 
-        import init from "./custom-event-handling/init";
         import dispatchEventOver from "./custom-event-handling/dispatchEventOver";
 
         import ghost, { END_PLACEHOLDER } from "./ghost";
@@ -47,9 +46,6 @@
                         this._onroute = onroute(this)
                     );
                 }
-            },
-            onBeforeMount() {
-                init();
             },
             onMounted() {
                 const router = this[PARENT_KEY_SYMBOL][ROUTER_COMPONENT];
