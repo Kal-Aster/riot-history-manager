@@ -59,8 +59,6 @@
                     this[UNROUTE_METHOD]();
                     this[UNROUTE_METHOD] = noop;
                 });
-                // it should check if LAST_ROUTED would be the same,
-                // if so it should not emit
                 if (this._mounted) {
                     const lastRouted = this[LAST_ROUTED];
                     this[TEST_LAST_ROUTED] = null;
