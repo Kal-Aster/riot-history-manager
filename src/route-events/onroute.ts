@@ -91,41 +91,57 @@ export default function onroute(
     }
 
     if (needLoading.length > 0) {
-      let loaded = 0;
+      let pendingLoads = 0;
+
       const onrequestvisibility = () => {
         currentEl.style.display = "block";
       };
-      needLoading.forEach((element) => {
-        loaded++;
-        const onload = (element: HTMLElement) => {
-          const fn = () => {
-            currentEl.style.display = "none";
-            element.removeEventListener("requestvisibility", onrequestvisibility);
-            element.removeEventListener("load", fn);
-            Array.prototype.forEach.call(
-              currentEl.querySelectorAll("[need-loading]:not([need-loading='false'])"),
-              el => {
-                if (needLoading.some(other => other === el)) { return; }
-                needLoading.push(el);
-                loaded++
-                el.addEventListener("load", onload(el));
-                el.addEventListener("requestvisibility", onrequestvisibility);
+
+      const onload = (element: HTMLElement) => {
+        const fn = () => {
+          currentEl.style.display = "none";
+
+          element.removeEventListener("requestvisibility", onrequestvisibility);
+          element.removeEventListener("load", fn);
+
+          Array.prototype.forEach.call(
+            currentEl.querySelectorAll("[need-loading]:not([need-loading='false'])"),
+            (element: Node) => {
+              if (
+                !(element instanceof HTMLElement) ||
+                needLoading.some(other => other === element)
+              ) {
+                return;
               }
-            );
-            if (--loaded <= 0) {
-              onloadingcomplete(
-                routeComponent,
-                currentMount,
-                route,
-                router,
-                claimer
-              );
+
+              needLoading.push(element);
+              pendingLoads++;
+
+              setupListeners(element);
             }
-          };
-          return fn;
+          );
+
+          if (--pendingLoads <= 0) {
+            onloadingcomplete(
+              routeComponent,
+              currentMount,
+              route,
+              router,
+              claimer
+            );
+          }
         };
+        return fn;
+      };
+
+      const setupListeners = (element: HTMLElement) => {
         element.addEventListener("requestvisibility", onrequestvisibility);
         element.addEventListener("load", onload(element));
+      }
+
+      needLoading.forEach((element) => {
+        pendingLoads++;
+        setupListeners(element);
       });
     } else {
       onloadingcomplete(routeComponent, currentMount, route, router, claimer);
