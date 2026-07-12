@@ -128,4 +128,6 @@ export default function dispatchEventOver(
     delete event.stopImmediatePropagation;
     // @ts-ignore
     delete event.stopPropagation;
+
+    return stop;
 }
