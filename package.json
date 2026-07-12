@@ -3,7 +3,7 @@
   "version": "5.0.0",
   "description": "",
   "dependencies": {
-    "history-manager": "^3.4.3",
+    "history-manager": "^3.5.0",
     "riot": "^10.1.4"
   },
   "devDependencies": {
