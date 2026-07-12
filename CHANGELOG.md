@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.1] - 2026-07-12
+- inline DOM helpers and drop the @riotjs/util dependency
+- update history-manager to 3.5.0
+
 ## [5.0.0] - 2026-07-12
 - upgrade to riot 10 and the @riotjs v10 ecosystem
 - update history-manager to 3.4.3
