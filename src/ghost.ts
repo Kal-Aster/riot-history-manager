@@ -1,8 +1,4 @@
-import {
-  insertBefore,
-  removeChild
-  // @ts-expect-error
-} from "@riotjs/util";
+import { insertBefore, removeChild } from "./dom";
 import { RiotComponent, RiotComponentWithoutInternals } from "riot";
 
 function moveChildrenBefore(source: Node, target: Node) {

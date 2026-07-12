@@ -1,5 +1,4 @@
-// @ts-expect-error
-import { insertBefore } from "@riotjs/util";
+import { insertBefore } from "../dom";
 import { __, RiotComponent } from "riot";
 
 import {
