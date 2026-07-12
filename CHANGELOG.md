@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [5.0.0] - 2026-07-12
+- upgrade to riot 10 and the @riotjs v10 ecosystem
+- update history-manager to 3.4.3
+- update rollup build tooling
+
 ## [4.1.0] - 2025-07-11
 - dispatch route and beforeroute on route element too
 - move init as index side-effect instead

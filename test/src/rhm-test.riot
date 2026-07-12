@@ -1,18 +1,12 @@
 <rhm-test>
     <div style="height: 64px; background: #000; color: #fff; font-size: 24px; padding: 8px 16px; box-sizing: border-box;">
         <div style="display: inline-block; width: 1px; margin-right: -1px; height: 100%; vertical-align: middle;"></div>
-        <rhm-navigate href="/home" style={
-            state.path === "/home" || state.path === "" ? "text-decoration: underline;": "text-decoration: none;"
+        <rhm-navigate context="home" style={
+            state.context === "home" ? "text-decoration: underline;": "text-decoration: none;"
         }>Home</rhm-navigate>&nbsp;
-        <rhm-navigate href="/me" style={
-            state.path === "/me" ? "text-decoration: underline;": "text-decoration: none;"
+        <rhm-navigate context="profile" style={
+            state.context === "profile" ? "text-decoration: underline;": "text-decoration: none;"
         }>Profile</rhm-navigate>
-        <!--  <navigate context="home" style="color: {
-            state.context === 'home' ? 'rgb(250, 120, 30)' : '#fff'
-        };">Home</navigate>&nbsp;
-        <navigate context="profile" style="color: {
-            state.context === 'profile' ? 'rgb(250, 120, 30)' : '#fff'
-        };">Profile</navigate>  -->
     </div>
     <!--  <navigate href="home">navigate to HOME</navigate>&nbsp;
     <navigate href="me">navigate to ME</navigate>&nbsp;
@@ -73,7 +67,7 @@
             URLManager.base(window._ROUTER_BASE);
         }
 
-        HistoryManager.setAutoManagement(false);
+        HistoryManager.setAutoManagement(true);
         Router.setContext({
             name: "home",
             paths: [
