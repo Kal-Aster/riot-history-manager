@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.0.1] - 2026-07-16
+- add the missing MIT license file
+
 ## [6.0.0] - 2026-07-15
 - **breaking**: move `riot` and `history-manager` to peer dependencies
 - **breaking**: drop the `index+libs` bundle, unusable via script tag as it never re-exported the history-manager copy it inlined
