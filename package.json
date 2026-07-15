@@ -2,7 +2,7 @@
   "name": "riot-history-manager",
   "version": "5.0.1",
   "description": "",
-  "dependencies": {
+  "peerDependencies": {
     "history-manager": "^3.5.0",
     "riot": "^10.1.4"
   },
@@ -13,6 +13,8 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "express": "^4.21.2",
+    "history-manager": "^3.5.0",
+    "riot": "^10.1.4",
     "rollup": "^4.62.2",
     "rollup-plugin-riot": "^10.0.0",
     "typescript": "^5.9.3"
