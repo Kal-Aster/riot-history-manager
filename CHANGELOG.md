@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.0.0] - 2026-07-15
+- **breaking**: move `riot` and `history-manager` to peer dependencies
+- **breaking**: drop the `index+libs` bundle, unusable via script tag as it never re-exported the history-manager copy it inlined
+- **breaking**: stop publishing `src`, undocumented and a second import path into a side-effecting module
+- emit and publish ts declarations again, exposed via `types` and `exports`
+- fix `.riot` module typing, broken since riot 10 removed `RiotComponentShell`
+- declare `exports` and drop the obsolete `jsnext:main`
+- pin `typescript` explicitly, previously stuck at 4.4.4 as a phantom peer, and move it to 6.0.3
+- switch `moduleResolution` to `bundler`, required by typescript 6
+
+## [5.0.1] - 2026-07-12
+- inline DOM helpers and drop the @riotjs/util dependency
+- update history-manager to 3.5.0
+
 ## [5.0.0] - 2026-07-12
 - upgrade to riot 10 and the @riotjs v10 ecosystem
 - update history-manager to 3.4.3

@@ -1,6 +1,6 @@
 declare module "*.riot" {
-    import { RiotComponentShell } from "riot";
-    const shell: RiotComponentShell;
-    
+    import { RiotComponent, RiotComponentWrapper } from "riot";
+    const shell: RiotComponentWrapper<RiotComponent>;
+
     export default shell;
 }
