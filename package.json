@@ -36,11 +36,9 @@
       "import": "./dist/index.es.js",
       "require": "./dist/index.js"
     },
-    "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ]
 }
