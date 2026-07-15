@@ -18,7 +18,8 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "build": "npx rollup -c",
+    "build": "npm run build:types && npx rollup -c",
+    "build:types": "npx tsc -p tsconfig.types.json",
     "build:watch": "npx rollup -c -w",
     "serve-test": "node ./test-server.js"
   },
@@ -26,6 +27,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "types": "dist/types/index.d.ts",
   "jsnext:main": "dist/index.es.js",
   "files": [
     "dist",
