@@ -30,7 +30,15 @@
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/types/index.d.ts",
-  "jsnext:main": "dist/index.es.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "src"
