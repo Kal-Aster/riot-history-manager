@@ -1,6 +1,6 @@
 {
   "name": "riot-history-manager",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "",
   "peerDependencies": {
     "history-manager": "^3.5.0",
