@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [6.0.2] - 2026-07-19
+- update history-manager to 3.5.1
+
 ## [6.0.1] - 2026-07-16
 - add the missing MIT license file
 
